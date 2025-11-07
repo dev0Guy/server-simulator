@@ -5,7 +5,8 @@ from gymnasium.core import ObsType
 
 from server.envs.core.cluster import Cluster, T
 
-InfoType = tp.TypeVar('InfoType', bound=dict)
+InfoType = tp.TypeVar("InfoType", bound=dict)
+
 
 class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
@@ -13,7 +14,7 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
         self,
         cluster: Cluster[T],
         reward_func: tp.Callable[[InfoType, InfoType], tp.SupportsFloat],
-        info_func: tp.Callable[[Cluster[T]], InfoType]
+        info_func: tp.Callable[[Cluster[T]], InfoType],
     ):
         self._cluster = cluster
         self._reward_func = reward_func
@@ -23,7 +24,6 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
         self._action_combination = (self._cluster.n_machines * self._cluster.n_jobs) + 1
         self.action_space = gym.spaces.Discrete(self._action_combination)
-
 
     def reset(
         self,
@@ -38,7 +38,6 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
         info = self._info_func(self._cluster)
 
         return observation, info
-
 
     def step(
         self, action: int
@@ -61,10 +60,11 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
         return observation, reward, terminated, truncated, info
 
-
     def cast_action(self, action: int) -> tp.Optional[tuple[int, int]]:
         if not (0 <= action <= self._action_combination):
-            raise ValueError(f"Received action should be in range [{0},{self._action_combination}], which {action} don't fulfill.")
+            raise ValueError(
+                f"Received action should be in range [{0},{self._action_combination}], which {action} don't fulfill."
+            )
 
         if action == 0:
             return None
@@ -74,4 +74,3 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
         j_idx = adapted_action // self._cluster.n_machines
 
         return m_idx, j_idx
-

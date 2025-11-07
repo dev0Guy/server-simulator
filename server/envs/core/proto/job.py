@@ -4,8 +4,8 @@ import typing as tp
 import enum
 import abc
 
-T = tp.TypeVar('T')
-ObsType = tp.TypeVar('ObsType')
+T = tp.TypeVar("T")
+ObsType = tp.TypeVar("ObsType")
 
 
 class Status(enum.IntEnum):
@@ -14,6 +14,7 @@ class Status(enum.IntEnum):
     Running = enum.auto()
     Completed = enum.auto()
     Failed = enum.auto()
+
 
 @tp.runtime_checkable
 class Job(tp.Protocol[T]):

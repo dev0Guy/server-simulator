@@ -1,6 +1,5 @@
 import gymnasium as gym
 import typing as tp
-from dataclasses import dataclass, field
 
 from gymnasium.core import ObsType
 

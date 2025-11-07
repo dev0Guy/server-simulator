@@ -8,10 +8,7 @@ ObsType = tp.TypeVar('ObsType')
 
 @tp.runtime_checkable
 class Machine(tp.Protocol[T]):
-
-    @property
-    @abc.abstractmethod
-    def free_space(self) -> T: ...
+    free_space: T
 
 
 @tp.runtime_checkable

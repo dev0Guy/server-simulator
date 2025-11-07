@@ -2,25 +2,26 @@ import typing as tp
 
 from server.envs.core.proto.job import JobCollection, Status as JobStatus
 from server.envs.core.proto.machine import MachineCollection
-from server.envs.core.types import SupportsSub, SupportBool
+from server.envs.core.types import SupportsSubBool
 import gymnasium as gym
 
 
-T = tp.TypeVar('T', bound=(SupportsSub, SupportBool))
+T = tp.TypeVar('T', bound=SupportsSubBool)
 
 
 class Cluster(tp.Generic[T]):
 
     def __init__(
         self,
-        workload_creator: tp.Callable[[tp.Optional[None]], JobCollection[T]],
-        cluster_creator: tp.Callable[[tp.Optional[None]], MachineCollection[T]]
+        workload_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], JobCollection[T]],
+        cluster_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], MachineCollection[T]],
+        seed: tp.Optional[tp.SupportsFloat] = None
     ) -> None:
         self._current_tick = 0
         self._workload_creator = workload_creator
 
-        self._machines = cluster_creator(None)
-        self._jobs = self._workload_creator(None)
+        self._machines = cluster_creator(seed)
+        self._jobs = self._workload_creator(seed)
         self._jobs.execute_clock_tick(self._current_tick)
 
     @property
@@ -57,8 +58,8 @@ class Cluster(tp.Generic[T]):
         if not can_run:
             return False
 
-        machine -= job.usage
-        job.status = JobStatus.Scheduled
+        machine.free_space -= job.usage
+        job.status = JobStatus.Running
         return True
 
     def execute_clock_tick(self) -> None:
@@ -66,7 +67,7 @@ class Cluster(tp.Generic[T]):
         self._jobs.execute_clock_tick(self._current_tick)
         self._machines.execute_clock_tick()
 
-    def reset(self, seed: tp.Optional[int]) -> None:
+    def reset(self, seed: tp.Optional[tp.SupportsFloat]) -> None:
         self._current_tick = 0
         self._jobs = self._workload_creator(seed)
         self._machines.clean_and_reset(seed)

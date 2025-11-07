@@ -10,7 +10,6 @@ ObsType = tp.TypeVar('ObsType')
 
 class Status(enum.IntEnum):
     NotCreated = enum.auto()
-    Scheduled = enum.auto()
     Pending = enum.auto()
     Running = enum.auto()
     Completed = enum.auto()
@@ -49,12 +48,9 @@ class JobCollection(tp.Protocol[T]):
     @abc.abstractmethod
     def observation_space(self) -> gym.spaces.Space[ObsType]: ...
 
-    @abc.abstractmethod
     def execute_clock_tick(self, current_time: int) -> None:
         for job in self:
             match job.status:
-                case Status.Scheduled:
-                    job.status = Status.Running
                 case Status.NotCreated if job.arrival_time == current_time:
                     job.status = Status.Pending
                 case Status.Running if job.tick_left == 0:

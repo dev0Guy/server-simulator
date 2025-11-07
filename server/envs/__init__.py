@@ -1,6 +1,6 @@
-import gymnasium as gym
 import typing as tp
 
+import gymnasium as gym
 import numpy as np
 
 from server.envs.basic import BasicClusterEnv

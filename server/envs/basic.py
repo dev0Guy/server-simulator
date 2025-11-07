@@ -1,6 +1,6 @@
-import gymnasium as gym
 import typing as tp
 
+import gymnasium as gym
 from gymnasium.core import ObsType
 
 from server.envs.core.cluster import Cluster, T

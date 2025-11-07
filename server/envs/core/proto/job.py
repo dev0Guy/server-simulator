@@ -1,8 +1,8 @@
-import gymnasium as gym
-
-import typing as tp
-import enum
 import abc
+import enum
+import typing as tp
+
+import gymnasium as gym
 
 T = tp.TypeVar("T")
 ObsType = tp.TypeVar("ObsType")

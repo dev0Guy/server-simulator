@@ -1,7 +1,9 @@
-from server.envs.core.proto.job import JobCollection, Job, Status
-import gymnasium as gym
 import typing as tp
+
+import gymnasium as gym
 import numpy as np
+
+from server.envs.core.proto.job import Job, JobCollection, Status
 
 
 class SingleSlotJob(Job[np.float64]):

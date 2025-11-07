@@ -1,11 +1,12 @@
+import typing as tp
+
+import numpy as np
+
 from server.envs.core.cluster import Cluster
 from server.envs.core.proto.job import Job
 from server.envs.core.proto.machine import Machine
 from server.envs.single_slot.jobs import SingleSlotJobs, Status
 from server.envs.single_slot.machines import SingleSlotMachines
-
-import typing as tp
-import numpy as np
 
 
 def can_run(m: Machine, j: Job) -> bool:

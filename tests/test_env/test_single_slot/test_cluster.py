@@ -1,16 +1,13 @@
+import numpy as np
 import pytest
 
 from server.envs.core.cluster import Cluster
-from server.envs.single_slot import (
-    generate_single_slot_cluster,
-    SingleSlotJobs,
-    SingleSlotMachines,
-    can_run,
-    static_workload_creator,
-    static_machine_creator,
-)
-from server.envs.core.proto.job import Status as JobStatus, Status
-import numpy as np
+from server.envs.core.proto.job import Status
+from server.envs.core.proto.job import Status as JobStatus
+from server.envs.single_slot import (SingleSlotJobs, SingleSlotMachines,
+                                     can_run, generate_single_slot_cluster,
+                                     static_machine_creator,
+                                     static_workload_creator)
 
 
 @pytest.fixture

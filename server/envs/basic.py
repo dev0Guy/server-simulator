@@ -5,15 +5,15 @@ from gymnasium.core import ObsType
 
 from server.envs.core.cluster import Cluster, T
 
+InfoType = tp.TypeVar('InfoType', bound=dict)
 
-
-class BasicClusterEnv(gym.Env, tp.Generic[T]):
+class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
     def __init__(
         self,
         cluster: Cluster[T],
-        reward_func: tp.Callable[[Cluster[T]], tp.SupportsFloat],
-        info_func: tp.Callable[[Cluster[T]], dict[str, tp.Any]]
+        reward_func: tp.Callable[[InfoType, InfoType], tp.SupportsFloat],
+        info_func: tp.Callable[[Cluster[T]], InfoType]
     ):
         self._cluster = cluster
         self._reward_func = reward_func
@@ -43,6 +43,7 @@ class BasicClusterEnv(gym.Env, tp.Generic[T]):
     def step(
         self, action: int
     ) -> tuple[ObsType, tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
+        prev_info = self._info_func(self._cluster)
 
         match self.cast_action(action):
             case None:
@@ -55,22 +56,22 @@ class BasicClusterEnv(gym.Env, tp.Generic[T]):
         observation = self._cluster.get_observation()
         info = self._info_func(self._cluster)
         terminated = self._cluster.is_finished()
-        reward = self._reward_func(self._cluster)
+        reward = self._reward_func(prev_info, info)
         truncated = False
 
         return observation, reward, terminated, truncated, info
 
 
     def cast_action(self, action: int) -> tp.Optional[tuple[int, int]]:
-        if 0 <= action <= self._action_combination:
+        if not (0 <= action <= self._action_combination):
             raise ValueError(f"Received action should be in range [{0},{self._action_combination}], which {action} don't fulfill.")
 
         if action == 0:
             return None
 
         adapted_action = action - 1
-        m_idx = adapted_action % self._cluster.n_jobs
-        j_idx = adapted_action // self._cluster.n_jobs
+        m_idx = adapted_action % self._cluster.n_machines
+        j_idx = adapted_action // self._cluster.n_machines
 
         return m_idx, j_idx
 

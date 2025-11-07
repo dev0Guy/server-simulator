@@ -1,7 +1,9 @@
 import pytest
 
-from server.envs.single_slot import create_float_cluster
-from server.envs.core.proto.job import Status as JobStatus
+from server.envs.core.cluster import Cluster
+from server.envs.single_slot import generate_single_slot_cluster, SingleSlotJobs, SingleSlotMachines, can_run, \
+    static_workload_creator, static_machine_creator
+from server.envs.core.proto.job import Status as JobStatus, Status
 import numpy as np
 
 @pytest.fixture
@@ -14,7 +16,7 @@ def n_jobs() -> int:
 
 @pytest.mark.usefixtures
 def test_float_cluster_creation(n_machines: int, n_jobs: int):
-    cluster = create_float_cluster(n_machines, n_jobs)
+    cluster = generate_single_slot_cluster(n_machines, n_jobs)
     obs = cluster.get_observation()
 
     machines_obs = obs["machines"]
@@ -28,8 +30,8 @@ def test_float_cluster_creation(n_machines: int, n_jobs: int):
 
 @pytest.mark.usefixtures
 def test_reproducibility(n_machines: int, n_jobs: int):
-    cluster1 = create_float_cluster(n_machines, n_jobs, seed=42)
-    cluster2 = create_float_cluster(n_machines, n_jobs, seed=42)
+    cluster1 = generate_single_slot_cluster(n_machines, n_jobs, seed=42)
+    cluster2 = generate_single_slot_cluster(n_machines, n_jobs, seed=42)
 
     jobs1 = cluster1.get_observation()["jobs"].copy()
     jobs2 = cluster2.get_observation()["jobs"].copy()
@@ -40,7 +42,7 @@ def test_reproducibility(n_machines: int, n_jobs: int):
 def test_schedule_available(n_machines: int, n_jobs: int) -> None:
     m_idx, j_idx = (0, 2)
 
-    cluster = create_float_cluster(n_machines, n_jobs)
+    cluster = generate_single_slot_cluster(n_machines, n_jobs)
     start_observation = cluster.get_observation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -49,12 +51,11 @@ def test_schedule_available(n_machines: int, n_jobs: int) -> None:
     after_schedule_observation = cluster.get_observation()
     assert np.equal(after_schedule_observation["machines"][m_idx], start_observation["machines"][m_idx] - start_observation["jobs"][j_idx])
 
-
 @pytest.mark.usefixtures
 def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
     m_idx, j_idx = (0, 2)
 
-    cluster = create_float_cluster(n_machines, n_jobs)
+    cluster = generate_single_slot_cluster(n_machines, n_jobs)
     start_observation = cluster.get_observation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -72,7 +73,7 @@ def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
 @pytest.mark.usefixtures
 def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
     m_idx, j_idx = (0, 2)
-    cluster = create_float_cluster(n_machines, n_jobs)
+    cluster = generate_single_slot_cluster(n_machines, n_jobs)
     start_observation = cluster.get_observation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -89,7 +90,7 @@ def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
 
 @pytest.mark.usefixtures
 def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
-    cluster = create_float_cluster(n_machines, n_jobs)
+    cluster = generate_single_slot_cluster(n_machines, n_jobs)
 
     start_observation = cluster.get_observation()
 
@@ -98,4 +99,56 @@ def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
 
     assert np.all(start_observation["machines"] == after_tick_observation["machines"])
     assert np.all(start_observation["jobs"] == after_tick_observation["jobs"])
+
+@pytest.mark.usefixtures
+def test_single_machine_multiple_one_size_jobs(
+    n_jobs = 20,
+    n_machines = 1
+):
+    cluster = Cluster(
+        static_workload_creator(n_jobs),
+        static_machine_creator(n_machines),
+        can_run=can_run,
+        seed=None
+    )
+
+    for j_idx in range(cluster.n_jobs):
+        assert not cluster.is_finished()
+        assert cluster.schedule(m_idx=0, j_idx=j_idx)
+        assert not cluster.schedule(m_idx=0, j_idx=j_idx), "After schedule machine should not be allowed to run another jobs."
+        assert cluster._jobs[j_idx].status == JobStatus.Running
+        cluster.execute_clock_tick()
+        assert cluster._jobs[j_idx].status == JobStatus.Completed
+        assert cluster._machines[0].free_space == 1.0
+
+    assert cluster.is_finished()
+    assert cluster._current_tick == cluster.n_jobs
+
+@pytest.mark.usefixtures
+def test_single_machine_multiple_half_size_jobs(
+    n_jobs = 20,
+    n_machines=1
+):
+    cluster = Cluster(
+        static_workload_creator(n_jobs, value=0.5),
+        static_machine_creator(n_machines),
+        can_run=can_run,
+        seed=None
+    )
+
+    for j_idx in range(0, cluster.n_jobs, 2):
+        assert not cluster.is_finished()
+        assert cluster.schedule(m_idx=0, j_idx=j_idx)
+        assert cluster._machines[0].free_space == 0.5
+        assert cluster.schedule(m_idx=0, j_idx=j_idx+1)
+        assert cluster._machines[0].free_space == 0.0
+        assert cluster._jobs[j_idx].status == JobStatus.Running
+        assert cluster._jobs[j_idx+1].status == JobStatus.Running
+        cluster.execute_clock_tick()
+        assert cluster._jobs[j_idx].status == JobStatus.Completed
+        assert cluster._jobs[j_idx+1].status == JobStatus.Completed
+        assert cluster._machines[0].free_space == 1.0
+
+    assert cluster.is_finished()
+    assert cluster._current_tick == (cluster.n_jobs // 2)
 

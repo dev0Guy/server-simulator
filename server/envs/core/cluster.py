@@ -1,12 +1,16 @@
 import typing as tp
 
-from server.envs.core.proto.job import JobCollection, Status as JobStatus
-from server.envs.core.proto.machine import MachineCollection
-from server.envs.core.types import SupportsSubBool
+from server.envs.core.proto.job import Job, JobCollection, Status as JobStatus
+from server.envs.core.proto.machine import MachineCollection, Machine
+from server.envs.core.types import SupportsSub
 import gymnasium as gym
 
 
-T = tp.TypeVar('T', bound=SupportsSubBool)
+T = tp.TypeVar('T', bound=SupportsSub)
+
+
+@classmethod
+def bigger_than_zero_element(cls, value: "SupportsSub") -> bool: ...
 
 
 class Cluster(tp.Generic[T]):
@@ -15,10 +19,12 @@ class Cluster(tp.Generic[T]):
         self,
         workload_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], JobCollection[T]],
         cluster_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], MachineCollection[T]],
+        can_run: tp.Callable[[Machine[T], Job[T]], bool],
         seed: tp.Optional[tp.SupportsFloat] = None
     ) -> None:
         self._current_tick = 0
         self._workload_creator = workload_creator
+        self._can_run = can_run
 
         self._machines = cluster_creator(seed)
         self._jobs = self._workload_creator(seed)
@@ -54,8 +60,7 @@ class Cluster(tp.Generic[T]):
         if job.status != JobStatus.Pending:
             return False
 
-        can_run = bool(machine.free_space - job.usage)
-        if not can_run:
+        if not self._can_run(machine, job):
             return False
 
         machine.free_space -= job.usage

@@ -10,10 +10,6 @@ from server.envs.core.types import SupportsSub
 T = tp.TypeVar("T", bound=SupportsSub)
 
 
-@classmethod
-def bigger_than_zero_element(cls, value: "SupportsSub") -> bool: ...
-
-
 class Cluster(tp.Generic[T]):
 
     def __init__(
@@ -21,7 +17,7 @@ class Cluster(tp.Generic[T]):
         workload_creator: tp.Callable[
             [tp.Optional[tp.SupportsFloat]], JobCollection[T]
         ],
-        cluster_creator: tp.Callable[
+        machine_creator: tp.Callable[
             [tp.Optional[tp.SupportsFloat]], MachineCollection[T]
         ],
         can_run: tp.Callable[[Machine[T], Job[T]], bool],
@@ -31,7 +27,7 @@ class Cluster(tp.Generic[T]):
         self._workload_creator = workload_creator
         self._can_run = can_run
 
-        self._machines = cluster_creator(seed)
+        self._machines = machine_creator(seed)
         self._jobs = self._workload_creator(seed)
         self._jobs.execute_clock_tick(self._current_tick)
 

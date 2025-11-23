@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 
 from server.envs.core.proto.job import Status
-from server.envs.deep_rm import generate_deeprm_cluster
-import numpy as np
+from server.envs.deep_rm import generate_deeprm_cluster, can_run
 
 
 def test_float_cluster_creation():
@@ -22,7 +22,7 @@ def test_float_cluster_creation():
         n_ticks,
         is_offline,
         poisson_lambda=poisson_lambda,
-        seed=None
+        seed=None,
     )
 
     observation = cluster.get_observation()
@@ -35,6 +35,7 @@ def test_float_cluster_creation():
     for job in cluster._jobs:
         assert job.status == Status.Pending or job.status == Status.NotCreated
 
+
 def test_reproducibility():
     cluster1 = generate_deeprm_cluster(1, 3, 2, 4, 5, seed=123)
     cluster2 = generate_deeprm_cluster(1, 3, 2, 4, 5, seed=123)
@@ -44,20 +45,57 @@ def test_reproducibility():
 
     np.testing.assert_array_equal(jobs1, jobs2)
 
-def test_schedule_available(n_machines: int, n_jobs: int) -> None:
-    raise NotImplementedError
 
-def test_schedule_full_machine(n_machines: int, n_jobs: int) -> None:
-    raise NotImplementedError
+def test_schedule_available(
+    m_idx: int = 0,
+    j_idx: int = 0,
+    cluster = generate_deeprm_cluster(1, 2, 1, 2, 2, seed=123)
+) -> None:
+    before_free_space =  cluster._machines[m_idx].free_space
+    assert cluster._jobs[j_idx].status == Status.Pending
+    assert cluster.schedule(m_idx, j_idx)
+    assert cluster._jobs[j_idx].status == Status.Running
+    assert np.all(cluster._machines[m_idx].free_space == before_free_space | ~cluster._jobs[j_idx].usage)
 
-def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
-    raise NotImplementedError
 
-def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
-    raise NotImplementedError
+def test_schedule_same_machine(
+    m_idx: int = 0,
+    j_idx: int = 0,
+    cluster=generate_deeprm_cluster(1, 2, 1, 2, 2, seed=123)
+) -> None:
+    before_free_space = cluster._machines[m_idx].free_space
+    assert cluster._jobs[j_idx].status == Status.Pending
+    assert cluster.schedule(m_idx, j_idx)
+    assert cluster._jobs[j_idx].status == Status.Running
+    assert np.all(cluster._machines[m_idx].free_space == before_free_space | ~cluster._jobs[j_idx].usage)
 
-def test_single_machine_multiple_one_size_jobs(n_jobs=20, n_machines=1):
-    raise NotImplementedError
+    assert not cluster.schedule(m_idx, j_idx)
+    assert cluster._jobs[j_idx].status == Status.Running
+    assert np.all(cluster._machines[m_idx].free_space == before_free_space | ~cluster._jobs[j_idx].usage)
 
-def test_single_machine_multiple_half_size_jobs(n_jobs=20, n_machines=1):
-    raise NotImplementedError
+
+def test_tick_without_schedule(
+    tick_num: int = 3,
+    machine_idx: int = 1,
+    cluster=generate_deeprm_cluster(3, 2, 2, 1, 5, seed=123)
+) -> None:
+    cluster._machines._machines_usage[machine_idx, :, :, :tick_num] = False
+    for _ in range(tick_num):
+        cluster.execute_clock_tick()
+    assert np.all(cluster._machines[0].free_space)
+
+
+def test_schedule_and_tick_until_completion(
+    m_idx: int = 0,
+    j_idx: int = 0,
+    cluster=generate_deeprm_cluster(1, 2, 1, 2, 2, seed=123)
+) -> None:
+    before_free_space = cluster._machines[m_idx].free_space
+    assert cluster._jobs[j_idx].status == Status.Pending
+    assert cluster.schedule(m_idx, j_idx)
+    assert cluster._jobs[j_idx].status == Status.Running
+    assert np.all(cluster._machines[m_idx].free_space == before_free_space | ~cluster._jobs[j_idx].usage)
+    for _ in range(cluster._jobs[j_idx].length):
+        assert cluster._jobs[j_idx].status == Status.Running
+        cluster.execute_clock_tick()
+    assert cluster._jobs[j_idx].status == Status.Completed

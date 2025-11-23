@@ -12,6 +12,8 @@ from server.envs.deep_rm.machines import DeepRMMachine, DeepRMMachines
 def can_run(m: DeepRMMachine, j: DeepRMJobSlot) -> bool:
     return np.all(m.free_space | ~j.usage)
 
+def deep_rm_allocation(m: DeepRMMachine, j: DeepRMJobSlot):
+    m.free_space &= ~j.usage
 
 def generate_deeprm_random_jobs(
     n_jobs: int,
@@ -77,6 +79,8 @@ def generate_deeprm_random_jobs(
 
     return inner
 
+def generate_deeprm_homogeneous_jobs() -> None:
+    pass
 
 def create_homogeneous_machines(
     n_machines: int, n_resources: int, n_resource_units: int, n_ticks: int
@@ -90,6 +94,7 @@ def create_homogeneous_machines(
         return DeepRMMachines(machine_usage)
 
     return inner
+
 
 
 def generate_deeprm_cluster(
@@ -108,25 +113,9 @@ def generate_deeprm_cluster(
         ),
         create_homogeneous_machines(n_machines, n_resources, n_resource_unit, n_ticks),
         can_run=can_run, # type: ignore
+        allocate=deep_rm_allocation, # type: ignore
         seed=seed,
     )
 
-
-#
-#
-#
-# if __name__ == '__main__':
-#
-#     jobs = generate_deeprm_random_jobs(
-#         n_jobs=2,
-#         n_resources=2,
-#         n_resource_unit=5,
-#         n_ticks=3,
-#         offline=False,
-#         poisson_lambda=6.0,
-#     )(6)
-#
-#     print(jobs._jobs_slots)
-#     print(jobs._job_status)
-#     print(jobs._job_arrivals_time)
-#
+def generate_const_deeprm_cluster() -> Cluster[_MACHINE_TYPE]:
+    pass

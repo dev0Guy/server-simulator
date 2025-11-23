@@ -9,6 +9,9 @@ from server.envs.core.types import SupportsSub
 
 T = tp.TypeVar("T", bound=SupportsSub)
 
+def default_allocation(m: Machine[T], j: Job[T]) -> None:
+    m.free_space -= j.usage
+
 
 class Cluster(tp.Generic[T]):
 
@@ -21,11 +24,13 @@ class Cluster(tp.Generic[T]):
             [tp.Optional[tp.SupportsFloat]], MachineCollection[T]
         ],
         can_run: tp.Callable[[Machine[T], Job[T]], bool],
+        allocate: tp.Callable[[Machine[T], Job[T]], None] = default_allocation,
         seed: tp.Optional[tp.SupportsFloat] = None,
     ) -> None:
         self._current_tick = 0
         self._workload_creator = workload_creator
         self._can_run = can_run
+        self._allocate = allocate
 
         self._machines = machine_creator(seed)
         self._jobs = self._workload_creator(seed)
@@ -66,7 +71,7 @@ class Cluster(tp.Generic[T]):
         if not self._can_run(machine, job):
             return False
 
-        machine.free_space -= job.usage
+        self._allocate(machine, job)
         job.status = JobStatus.Running
         return True
 

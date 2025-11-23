@@ -37,8 +37,6 @@ def create_single_slot_env(
     )
 
 
-gym.register(
-    id="server/SingleSlot-v0",
-    entry_point=create_single_slot_env,
-    max_episode_steps=300,
-)
+
+
+

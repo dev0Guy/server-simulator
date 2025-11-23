@@ -2,57 +2,69 @@ import typing as tp
 
 import numpy as np
 
-from server.envs.core.cluster import Cluster
-from server.envs.core.proto.job import Job
-from server.envs.core.proto.machine import Machine
-from server.envs.single_slot.jobs import SingleSlotJobs, Status
-from server.envs.single_slot.machines import SingleSlotMachines
+from server.envs.core.cluster import ClusterABC
+from server.envs.single_slot.jobs import SingleSlotJobs, Status, SingleSlotJob
+from server.envs.single_slot.machines import SingleSlotMachines, SingleSlotMachine
 
 
-def can_run(m: Machine, j: Job) -> bool:
-    left_space_after_allocation = m.free_space - j.usage
-    return left_space_after_allocation >= 0
+class SingleSlotClusterCreators:
+
+    @staticmethod
+    def static_workload_creator(
+            n_jobs: int, value: tp.SupportsFloat = 1.0
+    ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotJobs]:
+        def inner(_: tp.Optional[tp.SupportsFloat]) -> SingleSlotJobs:
+            job_usage = np.zeros(shape=(n_jobs,)) + value
+            job_status = [Status.Pending for _ in range(n_jobs)]
+            return SingleSlotJobs(job_usage, job_status)
+
+        return inner
+
+    @staticmethod
+    def random_workload_creator(
+            n_jobs: int,
+    ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotJobs]:
+        def inner(seed: tp.Optional[tp.SupportsFloat]) -> SingleSlotJobs:
+            np.random.seed(seed)
+            job_usage = np.random.rand(n_jobs)
+            job_status = [Status.Pending for _ in range(n_jobs)]
+            return SingleSlotJobs(job_usage, job_status)
+
+        return inner
+
+    @staticmethod
+    def static_machine_creator(
+            n_machines: int, value: tp.SupportsFloat = 1.0
+    ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotMachines]:
+        def inner(_: tp.Optional[tp.SupportsFloat]) -> SingleSlotMachines:
+            return SingleSlotMachines(machine_usage=np.zeros((n_machines,)) + value)
+
+        return inner
 
 
-def static_workload_creator(
-    n_jobs: int, value: tp.SupportsFloat = 1.0
-) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotJobs]:
 
-    def inner(_: tp.Optional[tp.SupportsFloat]) -> SingleSlotJobs:
-        job_usage = np.zeros(shape=(n_jobs,)) + value
-        job_status = [Status.Pending for _ in range(n_jobs)]
-        return SingleSlotJobs(job_usage, job_status)
+class SingleSlotCluster(ClusterABC[np.float64]):
 
-    return inner
+    def __init__(
+        self,
+        workload_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotJobs],
+        machine_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotMachines],
+        seed: tp.Optional[tp.SupportsFloat] = None,
+    ):
+        self._workload_creator = workload_creator
+        self._machine_creator = machine_creator
 
+        super().__init__(seed)
 
-def random_workload_creator(
-    n_jobs: int,
-) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotJobs]:
-    def inner(seed: tp.Optional[tp.SupportsFloat]) -> SingleSlotJobs:
-        np.random.seed(seed)
-        job_usage = np.random.rand(n_jobs)
-        job_status = [Status.Pending for _ in range(n_jobs)]
-        return SingleSlotJobs(job_usage, job_status)
+    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> SingleSlotJobs:
+        return self._workload_creator(seed)
 
-    return inner
+    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> SingleSlotMachines:
+        return self._machine_creator(seed)
 
+    def is_allocation_possible(self, machine: SingleSlotMachine, job: SingleSlotJob) -> bool:
+        left_space_after_allocation = machine.free_space - job.usage
+        return left_space_after_allocation >= 0
 
-def static_machine_creator(
-    n_machines: int, value: tp.SupportsFloat = 1.0
-) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotMachines]:
-    def inner(_: tp.Optional[tp.SupportsFloat]) -> SingleSlotMachines:
-        return SingleSlotMachines(machine_usage=np.zeros((n_machines,)) + value)
-
-    return inner
-
-
-def generate_single_slot_cluster(
-    n_machines: int, n_jobs: int, seed: tp.Optional[tp.SupportsFloat] = None
-) -> Cluster[tp.SupportsFloat]:
-    return Cluster[tp.SupportsFloat](
-        random_workload_creator(n_jobs),
-        static_machine_creator(n_machines),
-        can_run=can_run,
-        seed=seed,
-    )
+    def allocation(self, machine: SingleSlotMachine, job: SingleSlotJob) -> None:
+        machine.free_space -= job.usage

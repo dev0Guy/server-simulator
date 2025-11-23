@@ -2,8 +2,10 @@ import numpy as np
 import pytest
 
 from server.envs.core.proto.job import Status
-from server.envs.deep_rm import generate_deeprm_cluster, can_run
+from server.envs.deep_rm import DeepRMCreators
 
+
+# TODO: Fix Test to include more
 
 def test_float_cluster_creation():
     n_machines = 3
@@ -14,7 +16,7 @@ def test_float_cluster_creation():
     is_offline = True
     poisson_lambda = 6.0
 
-    cluster = generate_deeprm_cluster(
+    cluster = DeepRMCreators.generate_default_cluster(
         n_machines,
         n_jobs,
         n_resources,
@@ -37,8 +39,8 @@ def test_float_cluster_creation():
 
 
 def test_reproducibility():
-    cluster1 = generate_deeprm_cluster(1, 3, 2, 4, 5, seed=123)
-    cluster2 = generate_deeprm_cluster(1, 3, 2, 4, 5, seed=123)
+    cluster1 = DeepRMCreators.generate_default_cluster(1, 3, 2, 4, 5, seed=123)
+    cluster2 = DeepRMCreators.generate_default_cluster(1, 3, 2, 4, 5, seed=123)
 
     jobs1 = cluster1._jobs._jobs_slots.copy()
     jobs2 = cluster2._jobs._jobs_slots.copy()
@@ -49,7 +51,7 @@ def test_reproducibility():
 def test_schedule_available(
     m_idx: int = 0,
     j_idx: int = 0,
-    cluster = generate_deeprm_cluster(1, 2, 1, 2, 2, seed=123)
+    cluster=DeepRMCreators.generate_default_cluster(1, 2, 1, 2, 2, seed=123)
 ) -> None:
     before_free_space =  cluster._machines[m_idx].free_space
     assert cluster._jobs[j_idx].status == Status.Pending
@@ -61,7 +63,7 @@ def test_schedule_available(
 def test_schedule_same_machine(
     m_idx: int = 0,
     j_idx: int = 0,
-    cluster=generate_deeprm_cluster(1, 2, 1, 2, 2, seed=123)
+    cluster=DeepRMCreators.generate_default_cluster(1, 2, 1, 2, 2, seed=123)
 ) -> None:
     before_free_space = cluster._machines[m_idx].free_space
     assert cluster._jobs[j_idx].status == Status.Pending
@@ -77,7 +79,7 @@ def test_schedule_same_machine(
 def test_tick_without_schedule(
     tick_num: int = 3,
     machine_idx: int = 1,
-    cluster=generate_deeprm_cluster(3, 2, 2, 1, 5, seed=123)
+    cluster=DeepRMCreators.generate_default_cluster(3, 2, 2, 1, 5, seed=123)
 ) -> None:
     cluster._machines._machines_usage[machine_idx, :, :, :tick_num] = False
     for _ in range(tick_num):
@@ -88,7 +90,7 @@ def test_tick_without_schedule(
 def test_schedule_and_tick_until_completion(
     m_idx: int = 0,
     j_idx: int = 0,
-    cluster=generate_deeprm_cluster(1, 2, 1, 2, 2, seed=123)
+    cluster=DeepRMCreators.generate_default_cluster(1, 2, 1, 2, 2, seed=123)
 ) -> None:
     before_free_space = cluster._machines[m_idx].free_space
     assert cluster._jobs[j_idx].status == Status.Pending

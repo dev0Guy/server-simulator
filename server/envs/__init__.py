@@ -1,12 +1,10 @@
 import typing as tp
 
-import gymnasium as gym
 import numpy as np
 
 from server.envs.basic import BasicClusterEnv
 from server.envs.core.cluster import Cluster
 from server.envs.core.proto.job import Status
-from server.envs.single_slot import generate_single_slot_cluster
 
 
 class Information(tp.TypedDict):
@@ -25,16 +23,6 @@ def extract_reward(prev: Information, current: Information) -> tp.SupportsFloat:
     )
     return changed_to_completed
 
-
-def create_single_slot_env(
-    n_machines: int = 1, n_jobs: int = 5, seed: tp.Optional[tp.SupportsFloat] = None
-) -> BasicClusterEnv[tp.SupportsFloat, Information]:
-    cluster = generate_single_slot_cluster(n_machines, n_jobs, seed)
-    return BasicClusterEnv(
-        cluster,
-        reward_func=extract_reward,
-        info_func=extract_information,
-    )
 
 
 

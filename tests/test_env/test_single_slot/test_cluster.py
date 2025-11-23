@@ -1,28 +1,20 @@
 import numpy as np
 import pytest
 
-from server.envs.core.cluster import Cluster
-from server.envs.core.proto.job import Status
 from server.envs.core.proto.job import Status as JobStatus
-from server.envs.single_slot import (SingleSlotJobs, SingleSlotMachines,
-                                     can_run, generate_single_slot_cluster,
-                                     static_machine_creator,
-                                     static_workload_creator)
+from tests.test_env.test_single_slot.utils import random_machine_with_static_machine, static_machine_with_static_machine
+
+from hypothesis import given, strategies as st, settings
+
+machines_strategy = st.integers(min_value=1, max_value=5)
+jobs_strategy = st.integers(min_value=1, max_value=30)
+seed_strategy = st.integers(0, 10_000)
 
 
-@pytest.fixture
-def n_machines() -> int:
-    return 3
-
-
-@pytest.fixture
-def n_jobs() -> int:
-    return 5
-
-
-@pytest.mark.usefixtures
+@given(n_machines=machines_strategy, n_jobs=jobs_strategy)
+@settings(max_examples=40)
 def test_float_cluster_creation(n_machines: int, n_jobs: int):
-    cluster = generate_single_slot_cluster(n_machines, n_jobs)
+    cluster = random_machine_with_static_machine(n_machines, n_jobs)
     obs = cluster.get_observation()
 
     machines_obs = obs["machines"]
@@ -34,13 +26,15 @@ def test_float_cluster_creation(n_machines: int, n_jobs: int):
         jobs_obs <= 1.0
     ), "All cell value should be in range [0,1]"
     assert np.all(machines_obs) == 1.0
+
     assert all(job.status == JobStatus.Pending for job in cluster._jobs)
 
 
-@pytest.mark.usefixtures
-def test_reproducibility(n_machines: int, n_jobs: int):
-    cluster1 = generate_single_slot_cluster(n_machines, n_jobs, seed=42)
-    cluster2 = generate_single_slot_cluster(n_machines, n_jobs, seed=42)
+@given(n_machines=machines_strategy, n_jobs=jobs_strategy, seed=seed_strategy)
+@settings(max_examples=30)
+def test_reproducibility(n_machines: int, n_jobs: int, seed: int):
+    cluster1 = random_machine_with_static_machine(n_machines, n_jobs, seed=seed)
+    cluster2 = random_machine_with_static_machine(n_machines, n_jobs, seed=seed)
 
     jobs1 = cluster1.get_observation()["jobs"].copy()
     jobs2 = cluster2.get_observation()["jobs"].copy()
@@ -48,11 +42,12 @@ def test_reproducibility(n_machines: int, n_jobs: int):
     np.testing.assert_allclose(jobs1, jobs2)
 
 
-@pytest.mark.usefixtures
-def test_schedule_available(n_machines: int, n_jobs: int) -> None:
-    m_idx, j_idx = (0, 2)
+@given(n_machines=machines_strategy, n_jobs=jobs_strategy)
+@settings(max_examples=30)
+def test_schedule_available_last_job_to_first_machine(n_machines: int, n_jobs: int) -> None:
+    m_idx, j_idx = (0, n_jobs-1)
 
-    cluster = generate_single_slot_cluster(n_machines, n_jobs)
+    cluster = random_machine_with_static_machine(n_machines, n_jobs)
     start_observation = cluster.get_observation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -65,11 +60,12 @@ def test_schedule_available(n_machines: int, n_jobs: int) -> None:
     )
 
 
-@pytest.mark.usefixtures
+@given(n_machines=machines_strategy, n_jobs=jobs_strategy)
+@settings(max_examples=30)
 def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
-    m_idx, j_idx = (0, 2)
+    m_idx, j_idx = (0, n_jobs - 1)
 
-    cluster = generate_single_slot_cluster(n_machines, n_jobs)
+    cluster = random_machine_with_static_machine(n_machines, n_jobs)
     start_observation = cluster.get_observation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -93,10 +89,11 @@ def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
     ), "UnSchedule action change jobs state, which its shouldn't"
 
 
-@pytest.mark.usefixtures
+@given(n_machines=machines_strategy, n_jobs=jobs_strategy)
+@settings(max_examples=30)
 def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
-    m_idx, j_idx = (0, 2)
-    cluster = generate_single_slot_cluster(n_machines, n_jobs)
+    m_idx, j_idx = (0, n_jobs - 1)
+    cluster = random_machine_with_static_machine(n_machines, n_jobs)
     start_observation = cluster.get_observation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -117,9 +114,10 @@ def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
     ), "after tick schedule jobs should be finished and clear from machine"
 
 
-@pytest.mark.usefixtures
+@given(n_machines=machines_strategy, n_jobs=jobs_strategy)
+@settings(max_examples=30)
 def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
-    cluster = generate_single_slot_cluster(n_machines, n_jobs)
+    cluster = random_machine_with_static_machine(n_machines, n_jobs)
 
     start_observation = cluster.get_observation()
 
@@ -130,14 +128,10 @@ def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
     assert np.all(start_observation["jobs"] == after_tick_observation["jobs"])
 
 
-@pytest.mark.usefixtures
-def test_single_machine_multiple_one_size_jobs(n_jobs=20, n_machines=1):
-    cluster = Cluster(
-        static_workload_creator(n_jobs),
-        static_machine_creator(n_machines),
-        can_run=can_run,
-        seed=None,
-    )
+@given(n_jobs=st.integers(1, 20), n_machines=st.integers(1, 1))
+@settings(max_examples=20)
+def test_single_machine_multiple_one_size_jobs(n_jobs: int, n_machines: int):
+    cluster = static_machine_with_static_machine(n_machines, n_jobs)
 
     for j_idx in range(cluster.n_jobs):
         assert not cluster.is_finished()
@@ -154,14 +148,11 @@ def test_single_machine_multiple_one_size_jobs(n_jobs=20, n_machines=1):
     assert cluster._current_tick == cluster.n_jobs
 
 
-@pytest.mark.usefixtures
-def test_single_machine_multiple_half_size_jobs(n_jobs=20, n_machines=1):
-    cluster = Cluster(
-        static_workload_creator(n_jobs, value=0.5),
-        static_machine_creator(n_machines),
-        can_run=can_run,
-        seed=None,
-    )
+@given(n_jobs=st.integers(1, 10).map(lambda x: x * 2), n_machines=st.integers(1, 1))
+@settings(max_examples=20)
+def test_single_machine_multiple_half_size_jobs(n_jobs: int, n_machines: int):
+    static_value = 0.5
+    cluster = static_machine_with_static_machine(n_machines, n_jobs, static_value=static_value)
 
     for j_idx in range(0, cluster.n_jobs, 2):
         assert not cluster.is_finished()

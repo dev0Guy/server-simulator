@@ -1,6 +1,8 @@
 from server.envs.core.proto.job import Status
-from server.envs.metric_based import generate_metric_based_cluster
 import numpy as np
+
+from server.envs.metric_based import MetricClusterCreator
+
 
 def check_creation(
     n_machines: int,
@@ -10,7 +12,7 @@ def check_creation(
     is_offline: bool,
     poisson_lambda: float,
 ) -> None:
-    cluster = generate_metric_based_cluster(
+    cluster = MetricClusterCreator.generate_default(
         n_machines,
         n_jobs,
         n_resources,
@@ -54,27 +56,16 @@ def test_float_cluster_creation_online(
 
 
 def test_reproducibility():
-    cluster1 = generate_metric_based_cluster(1, 3, 2, 4, True, seed=123)
-    cluster2 = generate_metric_based_cluster(1, 3, 2, 4, True, seed=123)
+    cluster1 = MetricClusterCreator.generate_default(1, 3, 2, 4, True, seed=123)
+    cluster2 = MetricClusterCreator.generate_default(1, 3, 2, 4, True, seed=123)
 
     jobs1 = cluster1._jobs._jobs_slots.copy()
     jobs2 = cluster2._jobs._jobs_slots.copy()
 
     np.testing.assert_array_equal(jobs1, jobs2)
 
-
-# Test:
-# Test:
-# Test:
-# Test:
-# Test:
-# Test:
-# Test:
-
-
 def test_schedule_available() -> None:
-    cluster = generate_metric_based_cluster(1, 2, 1, 2, 2, seed=123)
-    assert cluster.schedule(0,0)
+    raise NotImplementedError
 
 def test_schedule_full_machine(n_machines: int, n_jobs: int) -> None:
     raise NotImplementedError

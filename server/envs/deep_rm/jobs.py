@@ -15,7 +15,7 @@ class DeepRMJobSlot(Job[_JOB_TYPE]):
         self._usage = usage
         self.arrival_time = arrival_time
         self.length = self._calculate_job_length(self._usage)
-        self.run_time = self.length
+        self.run_time = 0
 
     @property
     def usage(self) -> _JOB_TYPE:

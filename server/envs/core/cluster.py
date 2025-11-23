@@ -69,6 +69,7 @@ class ClusterABC(tp.Generic[T], abc.ABC):
 
         self.allocation(machine, job)
         job.status = JobStatus.Running
+        self._jobs.execute_clock_tick(self._current_tick)
         return True
 
     def execute_clock_tick(self) -> None:

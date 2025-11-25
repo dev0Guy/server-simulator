@@ -80,5 +80,3 @@ class DeepRMJobs(JobCollection[_JOB_TYPE]):
     def get_observation(self) -> gym.spaces.Space[gym.spaces.Box]:
         return self._jobs_slots
 
-    # def execute_clock_tick(self, current_time: int) -> None:
-    #     raise NotImplementedError

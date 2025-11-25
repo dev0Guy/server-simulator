@@ -31,6 +31,7 @@ class ClusterABC(tp.Generic[T], abc.ABC):
         self._machines = self.machine_creator(seed)
         self._jobs = self.workload_creator(seed)
         self._jobs.execute_clock_tick(self._current_tick)
+        self._running_job_to_machine: dict[int, int] = {}
 
     @property
     def n_jobs(self) -> int:
@@ -70,11 +71,18 @@ class ClusterABC(tp.Generic[T], abc.ABC):
         self.allocation(machine, job)
         job.status = JobStatus.Running
         self._jobs.execute_clock_tick(self._current_tick)
+        self._running_job_to_machine[m_idx] = j_idx
         return True
 
     def execute_clock_tick(self) -> None:
         self._current_tick += 1
         self._jobs.execute_clock_tick(self._current_tick)
+        running_jobs = {
+            j_idx
+            for j_idx, job in enumerate(iter(self._jobs))
+            if job.status != JobStatus.Running
+        }
+        self._running_job_to_machine = {k: v for k,v in self._running_job_to_machine.items() if k in running_jobs}
         self._machines.execute_clock_tick()
 
     def reset(self, seed: tp.Optional[tp.SupportsFloat]) -> None:

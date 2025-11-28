@@ -7,7 +7,7 @@ from server.envs.deep_rm import DeepRMCreators, DeepRMCluster
 from hypothesis import given, strategies as st, assume, reproduce_failure
 
 from server.envs.scheduler.basic import RandomScheduler
-from tests.test_env.test_deep_rm.utils import get_index_of_min_job_arrival_time, get_index_of_max_job_arrival_time
+from tests.test_env.test_deep_rm.utils import get_index_of_min_job_arrival_time
 from tests.test_env.test_single_slot.test_cluster import seed_strategy
 
 
@@ -58,7 +58,7 @@ def test_reproducibility(params: dict, seed: int):
     seed1=seed_strategy,
     seed2=seed_strategy
 )
-@pytest.mark.xfail(reason="Known flakiness", strict=False)
+@pytest.mark.xfail(reason="Different seeds can still create same cluster Thus flakiness", strict=False)
 def test_different_between_seeds(params: dict, seed1: int, seed2: int):
     assume(seed1 != seed2)
 
@@ -105,8 +105,6 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
         cluster.execute_clock_tick()
 
     assert cluster._jobs[j_idx].status == Status.Completed
-
-
 
 @given(cluster=cluster_strategy())
 def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMCluster) -> None:

@@ -39,7 +39,7 @@ class MetricMachines(MachineCollection[_MACHINE_TYPE]):
 
     def execute_clock_tick(self) -> None:
         self._machines_usage[:, :-1] = self._machines_usage[:, 1:]
-        self._machines_usage[:,  -1] = 0.0
+        self._machines_usage[:,  -1] = 1.0
 
     def observation_space(self) -> gym.spaces.Box:
         return gym.spaces.Box(

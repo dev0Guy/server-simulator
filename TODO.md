@@ -1,3 +1,3 @@
-- [ ] Implement Metric Based Tests
+- [X] Implement Metric Based Tests
 - [ ] Create Dilation Wrapper Interface
 - [ ] Implement Dilation Wrapper Interface

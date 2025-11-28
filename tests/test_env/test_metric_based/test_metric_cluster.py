@@ -1,9 +1,17 @@
+import pytest
+
 from src.envs.core.proto.job import Status
 import numpy as np
 
 from src.envs.metric_based import MetricClusterCreator
 from src.envs.metric_based import MetricCluster
-from hypothesis import given, strategies as st, assume, reproduce_failure
+from hypothesis import given, strategies as st, assume, reproduce_failure, settings, HealthCheck
+
+from src.envs.scheduler.basic import RandomScheduler
+from tests.test_env.test_single_slot.test_single_slot_cluster import seed_strategy
+import typing as tp
+
+EPSILON = np.finfo(float).eps
 
 
 def cluster_params_strategy():
@@ -11,7 +19,6 @@ def cluster_params_strategy():
         "n_machines": st.integers(1, 10),
         "n_jobs": st.integers(1, 20),
         "n_resources": st.integers(1, 5),
-        "n_resource_unit": st.integers(1, 20),
         "n_ticks": st.integers(2, 200),
         "is_offline": st.booleans(),
         "poisson_lambda": st.floats(
@@ -24,30 +31,16 @@ def cluster_params_strategy():
 
 def cluster_strategy():
     params = cluster_params_strategy()
-    return params.map(lambda p: MetricCluster.generate_default_cluster(**p))
+    return params.map(lambda p: MetricClusterCreator.generate_default(**p))
 
-def check_creation(
-    n_machines: int,
-    n_jobs: int,
-    n_resources: int,
-    n_ticks: int,
-    is_offline: bool,
-    poisson_lambda: float,
+@given(cluster=cluster_strategy())
+def test_cluster_creation(
+    cluster: MetricCluster
 ) -> None:
-    cluster = MetricClusterCreator.generate_default(
-        n_machines,
-        n_jobs,
-        n_resources,
-        n_ticks,
-        is_offline,
-        poisson_lambda=poisson_lambda,
-        seed=None,
-    )
-
     observation = cluster.get_observation()
 
-    assert observation["machines"].shape[0] == n_machines
-    assert observation["jobs"].shape[0] == n_jobs
+    assert observation["machines"].shape[0] == cluster.n_machines
+    assert observation["jobs"].shape[0] == cluster.n_jobs
     assert np.all(observation["machines"] == 1.0)
     assert np.all(observation["jobs"] >= 0.0)
 
@@ -55,48 +48,143 @@ def check_creation(
         assert job.status == Status.Pending or job.status == Status.NotCreated
 
 
-def test_float_cluster_creation_offline(
-    n_machines=3,
-    n_jobs = 5,
-    n_resources = 3,
-    n_ticks = 20,
-    is_offline = True,
-    poisson_lambda = 6.0,
+@given(
+    params=cluster_params_strategy(),
+    seed=seed_strategy,
+)
+def test_reproducibility(
+    params: dict,
+    seed:  tp.Optional[tp.SupportsFloat],
 ):
-    check_creation(n_machines, n_jobs, n_resources, n_ticks, is_offline, poisson_lambda)
-
-
-def test_float_cluster_creation_online(
-    n_machines=3,
-    n_jobs = 5,
-    n_resources = 3,
-    n_ticks = 20,
-    is_offline = False,
-    poisson_lambda = 6.0,
-):
-    check_creation(n_machines, n_jobs, n_resources, n_ticks, is_offline, poisson_lambda)
-
-
-def test_reproducibility():
-    cluster1 = MetricClusterCreator.generate_default(1, 3, 2, 4, True, seed=123)
-    cluster2 = MetricClusterCreator.generate_default(1, 3, 2, 4, True, seed=123)
+    cluster1 = MetricClusterCreator.generate_default(**params, seed=seed)
+    cluster2 = MetricClusterCreator.generate_default(**params, seed=seed)
 
     jobs1 = cluster1._jobs._jobs_slots.copy()
     jobs2 = cluster2._jobs._jobs_slots.copy()
 
     np.testing.assert_array_equal(jobs1, jobs2)
 
-def test_schedule_available() -> None:
-    raise NotImplementedError
+@given(
+    params=cluster_params_strategy(),
+    seed1=seed_strategy,
+    seed2=seed_strategy
+)
+@pytest.mark.xfail(reason="Different seeds can still create same cluster Thus flakiness", strict=False)
+def test_different_between_seeds(params: dict, seed1: int, seed2: int):
+    assume(seed1 != seed2)
 
-def test_schedule_full_machine(n_machines: int, n_jobs: int) -> None:
-    raise NotImplementedError
+    cluster_1 = MetricClusterCreator.generate_default(**params, seed=seed1)
+    cluster_2 = MetricClusterCreator.generate_default(**params, seed=seed2)
 
-def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick():
-    raise NotImplementedError
+    jobs_1 = cluster_1._jobs._jobs_slots.copy()
+    jobs_2 = cluster_2._jobs._jobs_slots.copy()
 
-def test_select_single_job_and_run_until_ticks_equal_to_job_length():
-    raise NotImplementedError
+    assert not np.array_equal(jobs_1, jobs_2), \
+        "Different seeds should produce different job matrices"
 
-def test_cluster_run_with_random_scheduler_until_completion():
-    raise NotImplementedError
+
+@given(
+    cluster=cluster_strategy(),
+    machine_idx=st.integers(0),
+    job_idx=st.integers(0)
+)
+def test_schedule_available_on_machine_when_job_pending(
+        cluster: MetricCluster,
+        machine_idx: int,
+        job_idx: int
+) -> None:
+    assume(machine_idx < cluster.n_machines)
+    assume(job_idx < cluster.n_jobs)
+    machine = cluster._machines[machine_idx]
+    job = cluster._jobs[job_idx]
+    assume(job.status == Status.Pending)
+    assume(np.all(machine.free_space >= job.usage))
+
+    assert cluster.is_allocation_possible(machine, job)
+    assert cluster.schedule(machine_idx, job_idx), "Schedule should be possible specially when `is_allocation_possible` is true"
+
+@given(
+    cluster=cluster_strategy(),
+    machine_idx=st.integers(0),
+    job_idx=st.integers(0)
+)
+def test_schedule_full_machine(
+        cluster: MetricCluster,
+        machine_idx: int,
+        job_idx: int
+) -> None:
+    assume(machine_idx < cluster.n_machines)
+    assume(job_idx < cluster.n_jobs)
+    machine = cluster._machines[machine_idx]
+    job = cluster._jobs[job_idx]
+    assume(job.status == Status.Pending)
+
+    machine.free_space = job.usage - EPSILON
+
+    assert not cluster.is_allocation_possible(machine,job)
+    assert not cluster.schedule(machine_idx, job_idx)
+
+
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@given(
+    cluster=cluster_strategy(),
+    job_idx=st.integers(0)
+)
+def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(
+        cluster: MetricCluster,
+        job_idx: int
+) -> None:
+    assume(job_idx < cluster.n_jobs)
+    job = cluster._jobs[job_idx]
+    assume(job.status != Status.Pending)
+
+    for _ in range(job.arrival_time):
+        assert job.status == Status.NotCreated
+        cluster.execute_clock_tick()
+
+    assert job.status == Status.Pending
+
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@given(
+    cluster=cluster_strategy(),
+    machine_idx=st.integers(0),
+    job_idx=st.integers(0),
+)
+def test_select_single_job_and_run_until_ticks_equal_to_job_length(
+        cluster: MetricCluster,
+        machine_idx: int,
+        job_idx: int
+) -> None:
+    assume(machine_idx < cluster.n_machines)
+    assume(job_idx < cluster.n_jobs)
+    machine = cluster._machines[machine_idx]
+    job = cluster._jobs[job_idx]
+    assume(job.status == Status.Pending)
+    assume(np.all(job.usage <= machine.free_space))
+
+    assert cluster.schedule(machine_idx, job_idx)
+    assert job.status == Status.Running
+
+    for _ in range(job.length):
+        assert job.status == Status.Running
+        cluster.execute_clock_tick()
+
+    assert job.status == Status.Completed
+    assert job.tick_left is None
+
+
+
+@given(cluster=cluster_strategy())
+def test_cluster_run_with_random_scheduler_until_completion(cluster: MetricCluster) -> None:
+    scheduler = RandomScheduler(cluster.is_allocation_possible)
+    while not cluster.is_finished():
+        output = scheduler.schedule(cluster._machines, cluster._jobs)
+        if output is None:
+            cluster.execute_clock_tick()
+        else:
+            is_schedule_succeed = cluster.schedule(*output)
+            assert is_schedule_succeed
+    assert all(
+        job.status == Status.Completed
+        for job in cluster._jobs
+    )

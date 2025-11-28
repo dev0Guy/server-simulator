@@ -3,13 +3,11 @@ import typing as tp
 import gymnasium as gym
 import abc
 
-from src.core.cluster.job import Job, JobCollection
-from src.core.cluster.job import Status as JobStatus
-from src.core.cluster.machine import Machine, MachineCollection
+from src.cluster.core.job import Job, JobCollection
+from src.cluster.core.job import Status as JobStatus
+from src.cluster.core.machine import Machine, MachineCollection
 
 T = tp.TypeVar("T")
-
-
 
 class ClusterABC(tp.Generic[T], abc.ABC):
 

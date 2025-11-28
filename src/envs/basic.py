@@ -3,7 +3,7 @@ import typing as tp
 import gymnasium as gym
 from gymnasium.core import ObsType
 
-from src.core.cluster.cluster import ClusterABC, T
+from src.cluster.core.cluster import ClusterABC, T
 
 InfoType = tp.TypeVar("InfoType", bound=dict)
 

@@ -1,8 +1,8 @@
 import typing as tp
 import abc
 
-from src.core.cluster.job import JobCollection, Job
-from src.core.cluster.machine import MachineCollection, Machine
+from src.cluster.core.job import JobCollection, Job
+from src.cluster.core.machine import MachineCollection, Machine
 
 T = tp.TypeVar("T")
 MachineT = tp.TypeVar("MachineT", bound=Machine)

@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.core.cluster.job import Status as JobStatus
-from tests.test_envs.test_single_slot.utils import random_machine_with_static_machine, static_machine_with_static_machine
+from src.cluster.core.job import Status as JobStatus
+from tests.test_cluster.test_implementation.test_single_slot.utils import random_machine_with_static_machine, static_machine_with_static_machine
 
 from hypothesis import given, strategies as st, settings
 

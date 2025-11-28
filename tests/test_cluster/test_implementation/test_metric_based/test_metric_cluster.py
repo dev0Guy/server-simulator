@@ -1,14 +1,14 @@
 import pytest
 
-from src.core.cluster.job import Status
+from src.cluster.core.job import Status
 import numpy as np
 
-from src.envs.metric_based import MetricClusterCreator
-from src.envs.metric_based import MetricCluster
+from src.cluster.implementation.metric_based import MetricClusterCreator
+from src.cluster.implementation.metric_based import MetricCluster
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 
-from src.core.scheduler.random_scheduler import RandomScheduler
-from tests.test_envs.test_single_slot.test_single_slot_cluster import seed_strategy
+from src.scheduler.random_scheduler import RandomScheduler
+from tests.test_cluster.test_implementation.test_single_slot.test_single_slot_cluster import seed_strategy
 import typing as tp
 
 EPSILON = np.finfo(float).eps

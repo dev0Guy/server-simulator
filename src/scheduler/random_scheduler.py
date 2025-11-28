@@ -1,9 +1,9 @@
 import typing as tp
 import random
 
-from src.core.cluster.job import JobCollection, Status, Job
-from src.core.cluster.machine import MachineCollection, Machine
-from src.core.scheduler.base_scheduler import ABCScheduler, T
+from src.cluster.core.job import JobCollection, Status
+from src.cluster.core.machine import MachineCollection
+from src.scheduler.base_scheduler import ABCScheduler, T
 
 
 class RandomScheduler(ABCScheduler[T]):

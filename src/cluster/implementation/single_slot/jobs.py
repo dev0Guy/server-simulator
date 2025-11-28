@@ -1,7 +1,7 @@
 import gymnasium as gym
 import numpy as np
 
-from src.core.cluster.job import Job, JobCollection, Status
+from src.cluster.core.job import Job, JobCollection, Status
 
 
 class SingleSlotJob(Job[np.float64]):

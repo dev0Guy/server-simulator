@@ -1,4 +1,4 @@
-from src.envs.single_slot import SingleSlotCluster, SingleSlotClusterCreators
+from src.cluster.implementation.single_slot import SingleSlotCluster, SingleSlotClusterCreators
 
 
 def random_machine_with_static_machine(n_machines: int, n_jobs: int, seed = None) -> SingleSlotCluster:

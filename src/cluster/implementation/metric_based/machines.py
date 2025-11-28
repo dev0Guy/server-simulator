@@ -1,8 +1,8 @@
 import gymnasium as gym
 import typing as tp
 
-from src.core.cluster.machine import Machine, MachineCollection
-from src.envs.metric_based.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
+from src.cluster.core.machine import Machine, MachineCollection
+from src.cluster.implementation.metric_based.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
 
 
 

@@ -2,9 +2,9 @@ import typing as tp
 
 import numpy as np
 
-from server.envs.basic import BasicClusterEnv
-from server.envs.core.cluster import Cluster
-from server.envs.core.proto.job import Status
+from src.envs.basic import BasicClusterEnv
+from src.envs.core.cluster import Cluster
+from src.envs.core.proto.job import Status
 
 
 class Information(tp.TypedDict):

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from server.envs.core.proto.job import Status as JobStatus
+from src.envs.core.proto.job import Status as JobStatus
 from tests.test_env.test_single_slot.utils import random_machine_with_static_machine, static_machine_with_static_machine
 
 from hypothesis import given, strategies as st, settings

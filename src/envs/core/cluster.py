@@ -3,10 +3,10 @@ import typing as tp
 import gymnasium as gym
 import abc
 
-from server.envs.core.proto.job import Job, JobCollection
-from server.envs.core.proto.job import Status as JobStatus
-from server.envs.core.proto.machine import Machine, MachineCollection
-from server.envs.core.types import SupportsSub
+from src.envs.core.proto.job import Job, JobCollection
+from src.envs.core.proto.job import Status as JobStatus
+from src.envs.core.proto.machine import Machine, MachineCollection
+from src.envs.core.types import SupportsSub
 
 T = tp.TypeVar("T", bound=SupportsSub)
 

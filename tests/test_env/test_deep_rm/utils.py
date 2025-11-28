@@ -1,4 +1,4 @@
-from server.envs.deep_rm import DeepRMJobs
+from src.envs.deep_rm import DeepRMJobs
 
 
 def get_index_of_min_job_arrival_time(jobs: DeepRMJobs):

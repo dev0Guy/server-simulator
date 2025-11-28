@@ -4,17 +4,22 @@ import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
-from server.envs.core.proto.job import Job, Status, JobCollection, ObsType
-from server.envs.metric_based.custom_type import _JOBS_TYPE, _JOB_TYPE
+from src.envs.core.proto.job import Job, JobCollection, Status
+from src.envs.deep_rm.custom_type import _JOB_TYPE, _JOBS_TYPE, _N_JOBS
 
-class MetricJobSlot(Job[_JOB_TYPE]):
+
+class DeepRMJobSlot(Job[_JOB_TYPE]):
 
     def __init__(self, usage: _JOB_TYPE, status: Status, arrival_time: int):
-        self._usage = usage
         self.status = status
+        self._usage = usage
         self.arrival_time = arrival_time
         self.length = self._calculate_job_length(self._usage)
-        self.run_time = self.length
+        self.run_time = 0
+
+    @property
+    def usage(self) -> _JOB_TYPE:
+        return self._usage
 
     @classmethod
     def _calculate_job_length(cls, job: _JOB_TYPE) -> int:
@@ -22,17 +27,14 @@ class MetricJobSlot(Job[_JOB_TYPE]):
         idx = np.where(active)[0]
         return int(idx[-1] - idx[0] + 1) if idx.size > 0 else 0
 
-    @property
-    def usage(self) -> _JOB_TYPE:
-        return self._usage
 
+class DeepRMJobs(JobCollection[_JOB_TYPE]):
 
-class MetricJobs(JobCollection[_JOB_TYPE]):
     def __init__(
-            self,
-            job_slots: _JOBS_TYPE,
-            job_status: npt.NDArray[int],
-            job_arrivals_time: npt.NDArray[int],
+        self,
+        job_slots: _JOBS_TYPE,
+        job_status: npt.NDArray[int],
+        job_arrivals_time: npt.NDArray[int],
     ) -> None:
         n_jobs_slot, n_job_status, n_arrival = (
             job_slots.shape[0],
@@ -41,17 +43,18 @@ class MetricJobs(JobCollection[_JOB_TYPE]):
         )
 
         assert (
-                n_jobs_slot == n_job_status
+            n_jobs_slot == n_job_status
         ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job status ({n_job_status})"
         assert (
-                n_jobs_slot == n_arrival
+            n_jobs_slot == n_arrival
         ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
 
         self._jobs_slots = job_slots
         self._job_status = job_status
         self._job_arrivals_time = job_arrivals_time
-        self._jobs = self._jobs = [
-            MetricJobSlot(slot_usage, status, arrival_time)
+
+        self._jobs = [
+            DeepRMJobSlot(slot_usage, status, arrival_time)
             for slot_usage, status, arrival_time in zip(
                 self._jobs_slots[:], self._job_status, self._job_arrivals_time
             )
@@ -60,13 +63,13 @@ class MetricJobs(JobCollection[_JOB_TYPE]):
     def __len__(self) -> int:
         return len(self._jobs)
 
-    def __getitem__(self, item: int) -> MetricJobSlot:
+    def __getitem__(self, item: int) -> DeepRMJobSlot:
         return self._jobs[item]
 
-    def __iter__(self) -> tp.Iterable[MetricJobSlot]:
+    def __iter__(self) -> tp.Iterable[DeepRMJobSlot]:
         return iter(self._jobs)
 
-    def observation_space(self) -> gym.spaces.Space[ObsType]:
+    def observation_space(self) -> gym.spaces.Box:
         return gym.spaces.Box(
             low=0.0,
             high=1.0,
@@ -76,3 +79,4 @@ class MetricJobs(JobCollection[_JOB_TYPE]):
 
     def get_observation(self) -> gym.spaces.Space[gym.spaces.Box]:
         return self._jobs_slots
+

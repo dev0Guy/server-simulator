@@ -2,11 +2,11 @@ import numpy as np
 import pytest
 from hypothesis.strategies import DataObject
 
-from server.envs.core.proto.job import Status
-from server.envs.deep_rm import DeepRMCreators, DeepRMCluster
+from src.envs.core.proto.job import Status
+from src.envs.deep_rm import DeepRMCreators, DeepRMCluster
 from hypothesis import given, strategies as st, assume, reproduce_failure
 
-from server.envs.scheduler.basic import RandomScheduler
+from src.envs.scheduler.basic import RandomScheduler
 from tests.test_env.test_deep_rm.utils import get_index_of_min_job_arrival_time
 from tests.test_env.test_single_slot.test_single_slot_cluster import seed_strategy
 

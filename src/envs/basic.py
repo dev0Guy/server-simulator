@@ -3,7 +3,7 @@ import typing as tp
 import gymnasium as gym
 from gymnasium.core import ObsType
 
-from server.envs.core.cluster import Cluster, T
+from src.envs.core.cluster import Cluster, T
 
 InfoType = tp.TypeVar("InfoType", bound=dict)
 

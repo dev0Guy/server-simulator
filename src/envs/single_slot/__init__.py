@@ -2,9 +2,9 @@ import typing as tp
 
 import numpy as np
 
-from server.envs.core.cluster import ClusterABC
-from server.envs.single_slot.jobs import SingleSlotJobs, Status, SingleSlotJob
-from server.envs.single_slot.machines import SingleSlotMachines, SingleSlotMachine
+from src.envs.core.cluster import ClusterABC
+from src.envs.single_slot.jobs import SingleSlotJobs, Status, SingleSlotJob
+from src.envs.single_slot.machines import SingleSlotMachines, SingleSlotMachine
 
 
 class SingleSlotClusterCreators:

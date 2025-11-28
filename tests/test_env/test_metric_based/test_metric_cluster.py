@@ -1,8 +1,8 @@
-from server.envs.core.proto.job import Status
+from src.envs.core.proto.job import Status
 import numpy as np
 
-from server.envs.metric_based import MetricClusterCreator
-from server.envs.metric_based import MetricCluster
+from src.envs.metric_based import MetricClusterCreator
+from src.envs.metric_based import MetricCluster
 from hypothesis import given, strategies as st, assume, reproduce_failure
 
 

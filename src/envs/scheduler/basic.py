@@ -2,8 +2,8 @@ import random
 import typing as tp
 import abc
 
-from server.envs.core.proto.job import JobCollection, Status, Job
-from server.envs.core.proto.machine import MachineCollection, Machine
+from src.envs.core.proto.job import JobCollection, Status, Job
+from src.envs.core.proto.machine import MachineCollection, Machine
 
 T = tp.TypeVar("T")
 MachineT = tp.TypeVar("MachineT", bound=Machine)

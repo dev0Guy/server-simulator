@@ -3,7 +3,7 @@ import typing as tp
 import gymnasium as gym
 from gymnasium.core import ObsType
 
-from src.envs.core.cluster import Cluster, T
+from src.envs.core.cluster import ClusterABC, T
 
 InfoType = tp.TypeVar("InfoType", bound=dict)
 
@@ -12,9 +12,9 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
     def __init__(
         self,
-        cluster: Cluster[T],
+        cluster: ClusterABC[T],
         reward_func: tp.Callable[[InfoType, InfoType], tp.SupportsFloat],
-        info_func: tp.Callable[[Cluster[T]], InfoType],
+        info_func: tp.Callable[[ClusterABC[T]], InfoType],
     ):
         self._cluster = cluster
         self._reward_func = reward_func

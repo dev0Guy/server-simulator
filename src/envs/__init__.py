@@ -3,7 +3,7 @@ import typing as tp
 import numpy as np
 
 from src.envs.basic import BasicClusterEnv
-from src.envs.core.cluster import Cluster
+from src.envs.core.cluster import ClusterABC
 from src.envs.core.proto.job import Status
 
 
@@ -11,7 +11,7 @@ class Information(tp.TypedDict):
     jobs_status: np.ndarray
 
 
-def extract_information(cluster: Cluster[tp.SupportsFloat]) -> Information:
+def extract_information(cluster: ClusterABC[tp.SupportsFloat]) -> Information:
     job_status = np.array([job.status for job in cluster._jobs])
     return Information(jobs_status=job_status)
 

@@ -1,8 +1,6 @@
 import abc
 import typing as tp
 
-import gymnasium as gym
-
 T = tp.TypeVar("T")
 ObsType = tp.TypeVar("ObsType")
 

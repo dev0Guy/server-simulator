@@ -2,7 +2,7 @@ import typing as tp
 
 import numpy as np
 
-from src.envs.core.cluster import ClusterABC
+from src.core.cluster.cluster import ClusterABC
 from src.envs.single_slot.jobs import SingleSlotJobs, Status, SingleSlotJob
 from src.envs.single_slot.machines import SingleSlotMachines, SingleSlotMachine
 

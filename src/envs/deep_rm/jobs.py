@@ -4,8 +4,8 @@ import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
-from src.envs.core.proto.job import Job, JobCollection, Status
-from src.envs.deep_rm.custom_type import _JOB_TYPE, _JOBS_TYPE, _N_JOBS
+from src.core.cluster.job import Job, JobCollection, Status
+from src.envs.deep_rm.custom_type import _JOB_TYPE, _JOBS_TYPE
 
 
 class DeepRMJobSlot(Job[_JOB_TYPE]):

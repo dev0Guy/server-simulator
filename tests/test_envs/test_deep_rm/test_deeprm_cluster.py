@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
-from src.envs.core.proto.job import Status
+from src.core.cluster.job import Status
 from src.envs.deep_rm import DeepRMCreators, DeepRMCluster
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 
-from src.envs.scheduler.basic import RandomScheduler
-from tests.test_env.test_single_slot.test_single_slot_cluster import seed_strategy
+from src.core.scheduler.random_scheduler import RandomScheduler
+from tests.test_envs.test_single_slot.test_single_slot_cluster import seed_strategy
 
 
 def cluster_params_strategy():

@@ -3,7 +3,7 @@ import typing as tp
 import gymnasium as gym
 import numpy as np
 
-from src.envs.core.proto.machine import Machine, MachineCollection
+from src.core.cluster.machine import Machine, MachineCollection
 
 
 class SingleSlotMachine(Machine[np.float64]):

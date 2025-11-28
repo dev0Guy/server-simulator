@@ -2,7 +2,7 @@ import typing as tp
 
 import gymnasium as gym
 
-from src.envs.core.proto.machine import Machine, MachineCollection
+from src.core.cluster.machine import Machine, MachineCollection
 from src.envs.deep_rm.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
 
 

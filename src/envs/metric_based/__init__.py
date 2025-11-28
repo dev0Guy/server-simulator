@@ -2,12 +2,12 @@ import typing as tp
 
 import numpy as np
 
-from src.envs.core.proto.job import Status
+from src.core.cluster.job import Status
 from src.envs.metric_based.custom_type import _JOBS_TYPE, _MACHINE_TYPE, _DTYPE
 from src.envs.metric_based.jobs import MetricJobSlot, MetricJobs
 from src.envs.metric_based.machines import MetricMachine, MetricMachines
 
-from src.envs.core.cluster import ClusterABC
+from src.core.cluster.cluster import ClusterABC
 
 class MetricCluster(ClusterABC[_DTYPE]):
 

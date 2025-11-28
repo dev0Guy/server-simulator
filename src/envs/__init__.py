@@ -3,8 +3,8 @@ import typing as tp
 import numpy as np
 
 from src.envs.basic import BasicClusterEnv
-from src.envs.core.cluster import ClusterABC
-from src.envs.core.proto.job import Status
+from src.core.cluster.cluster import ClusterABC
+from src.core.cluster.job import Status
 
 
 class Information(tp.TypedDict):

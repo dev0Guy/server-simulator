@@ -2,12 +2,12 @@ import typing as tp
 
 import numpy as np
 
-from src.envs.core.proto.job import Status
+from src.core.cluster.job import Status
 from src.envs.deep_rm.custom_type import _JOBS_TYPE, _MACHINE_TYPE, _DTYPE
 from src.envs.deep_rm.jobs import DeepRMJobs, DeepRMJobSlot
 from src.envs.deep_rm.machines import DeepRMMachine, DeepRMMachines
 
-from src.envs.core.cluster import ClusterABC
+from src.core.cluster.cluster import ClusterABC
 
 class DeepRMCluster(ClusterABC[_DTYPE]):
 

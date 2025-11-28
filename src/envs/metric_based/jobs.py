@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
-from src.envs.core.proto.job import Job, Status, JobCollection, ObsType
+from src.core.cluster.job import Job, Status, JobCollection, ObsType
 from src.envs.metric_based.custom_type import _JOBS_TYPE, _JOB_TYPE
 
 class MetricJobSlot(Job[_JOB_TYPE]):

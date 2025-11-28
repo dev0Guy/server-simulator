@@ -4,7 +4,7 @@ from hypothesis.strategies import DataObject
 
 from src.envs.core.proto.job import Status
 from src.envs.deep_rm import DeepRMCreators, DeepRMCluster
-from hypothesis import given, strategies as st, assume, reproduce_failure
+from hypothesis import given, strategies as st, assume, reproduce_failure, settings, HealthCheck
 
 from src.envs.scheduler.basic import RandomScheduler
 from tests.test_env.test_deep_rm.utils import get_index_of_min_job_arrival_time
@@ -71,40 +71,49 @@ def test_different_between_seeds(params: dict, seed1: int, seed2: int):
     assert not np.array_equal(jobs_1, jobs_2), \
         "Different seeds should produce different job matrices"
 
-@given(cluster=cluster_strategy())
-def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(cluster: DeepRMCluster) -> None:
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@given(cluster=cluster_strategy(), j_idx=st.integers(0))
+def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(cluster: DeepRMCluster, j_idx: int) -> None:
+    assume(j_idx < cluster.n_jobs)
+    job = cluster._jobs[j_idx]
+    assume(job.status == Status.NotCreated)
 
-    j_idx = get_index_of_min_job_arrival_time(cluster._jobs)
-
-    for _ in range(cluster._jobs[j_idx].arrival_time):
-        assert cluster._jobs[j_idx].status == Status.NotCreated
+    for _ in range(job.arrival_time):
+        assert job.status == Status.NotCreated
         cluster.execute_clock_tick()
 
-    assert cluster._jobs[j_idx].status == Status.Pending
+    assert job.status == Status.Pending
 
-@given(data=st.data(), params=cluster_params_strategy(), seed=seed_strategy)
+
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@given(
+    cluster=cluster_strategy(),
+    m_idx=st.integers(0),
+    j_idx=st.integers(0),
+)
 def test_select_single_job_and_run_until_ticks_equal_to_job_length(
-    data: DataObject,
-    params: dict,
-    seed: int
+    cluster: DeepRMCluster,
+    m_idx: int,
+    j_idx: int,
 ) -> None:
-    cluster = DeepRMCreators.generate_default_cluster(**params, seed=seed)
-    j_idx = get_index_of_min_job_arrival_time(cluster._jobs)
+    assume(m_idx < cluster.n_machines)
+    assume(j_idx < cluster.n_jobs)
+    job = cluster._jobs[j_idx]
+    assume(job.status == Status.Pending)
 
-    m_idx = data.draw(st.integers(min_value=0, max_value=params["n_machines"] - 1))
-    for _ in range(cluster._jobs[j_idx].arrival_time):
-        assert cluster._jobs[j_idx].status == Status.NotCreated
+    for _ in range(job.arrival_time):
+        assert job.status == Status.NotCreated
         cluster.execute_clock_tick()
 
-    assert cluster._jobs[j_idx].status == Status.Pending
+    assert job.status == Status.Pending
     assert cluster.schedule(m_idx, j_idx)
-    assert cluster._jobs[j_idx].status == Status.Running
+    assert job.status == Status.Running
 
-    for _ in range(cluster._jobs[j_idx].length):
-        assert cluster._jobs[j_idx].status == Status.Running
+    for _ in range(job.length):
+        assert job.status == Status.Running
         cluster.execute_clock_tick()
 
-    assert cluster._jobs[j_idx].status == Status.Completed
+    assert job.status == Status.Completed
 
 @given(cluster=cluster_strategy())
 def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMCluster) -> None:
@@ -121,5 +130,4 @@ def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMClust
     assert all(
         job.status == Status.Completed
         for job in cluster._jobs
-
     )

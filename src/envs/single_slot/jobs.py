@@ -45,12 +45,3 @@ class SingleSlotJobs(JobCollection[np.float64]):
     def get_observation(self) -> "ObsType":
         return np.array([j.usage for j in self])
 
-    def execute_clock_tick(self, current_time: int) -> None:
-        for job in self:
-            match job.status:
-                case Status.NotCreated:
-                    job.status = Status.Pending
-                case Status.Running:
-                    job.status = Status.Completed
-                case _:
-                    ...

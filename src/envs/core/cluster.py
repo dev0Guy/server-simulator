@@ -70,7 +70,7 @@ class ClusterABC(tp.Generic[T], abc.ABC):
 
         self.allocation(machine, job)
         job.status = JobStatus.Running
-        self._jobs.execute_clock_tick(self._current_tick)
+        job.run_time = 1 # Assume that if start running the in next one will finish
         self._running_job_to_machine[m_idx] = j_idx
         return True
 

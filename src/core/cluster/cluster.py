@@ -6,9 +6,8 @@ import abc
 from src.core.cluster.job import Job, JobCollection
 from src.core.cluster.job import Status as JobStatus
 from src.core.cluster.machine import Machine, MachineCollection
-from src.core.cluster.types import SupportsSub
 
-T = tp.TypeVar("T", bound=SupportsSub)
+T = tp.TypeVar("T")
 
 
 

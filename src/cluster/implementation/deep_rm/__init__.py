@@ -9,7 +9,7 @@ from src.cluster.implementation.deep_rm.machines import DeepRMMachine, DeepRMMac
 
 from src.cluster.core.cluster import ClusterABC
 
-class DeepRMCluster(ClusterABC[_DTYPE]):
+class DeepRMCluster(ClusterABC[DeepRMMachines, DeepRMJobs]):
 
     def __init__(
         self,

@@ -1,6 +1,5 @@
 import typing as tp
 
-import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
@@ -28,7 +27,7 @@ class DeepRMJobSlot(Job[_JOB_TYPE]):
         return int(idx[-1] - idx[0] + 1) if idx.size > 0 else 0
 
 
-class DeepRMJobs(JobCollection[_JOB_TYPE]):
+class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
 
     def __init__(
         self,
@@ -69,14 +68,6 @@ class DeepRMJobs(JobCollection[_JOB_TYPE]):
     def __iter__(self) -> tp.Iterable[DeepRMJobSlot]:
         return iter(self._jobs)
 
-    def observation_space(self) -> gym.spaces.Box:
-        return gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=self._jobs_slots.shape,
-            dtype=self._jobs_slots.dtype,
-        )
-
-    def get_observation(self) -> gym.spaces.Space[gym.spaces.Box]:
+    def get_representation(self) -> npt.NDArray[_JOB_TYPE]:
         return self._jobs_slots
 

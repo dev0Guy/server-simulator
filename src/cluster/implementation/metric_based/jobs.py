@@ -1,10 +1,9 @@
 import typing as tp
 
-import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
-from src.cluster.core.job import Job, Status, JobCollection, ObsType
+from src.cluster.core.job import Job, Status, JobCollection
 from src.cluster.implementation.metric_based.custom_type import _JOBS_TYPE, _JOB_TYPE
 
 class MetricJobSlot(Job[_JOB_TYPE]):
@@ -27,7 +26,7 @@ class MetricJobSlot(Job[_JOB_TYPE]):
         return self._usage
 
 
-class MetricJobs(JobCollection[_JOB_TYPE]):
+class MetricJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
     def __init__(
             self,
             job_slots: _JOBS_TYPE,
@@ -66,13 +65,6 @@ class MetricJobs(JobCollection[_JOB_TYPE]):
     def __iter__(self) -> tp.Iterable[MetricJobSlot]:
         return iter(self._jobs)
 
-    def observation_space(self) -> gym.spaces.Space[ObsType]:
-        return gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=self._jobs_slots.shape,
-            dtype=self._jobs_slots.dtype,
-        )
 
-    def get_observation(self) -> gym.spaces.Space[gym.spaces.Box]:
+    def get_representation(self) -> npt.NDArray[_JOB_TYPE]:
         return self._jobs_slots

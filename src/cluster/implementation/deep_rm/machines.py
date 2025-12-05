@@ -1,6 +1,5 @@
 import typing as tp
-
-import gymnasium as gym
+import numpy.typing as npt
 
 from src.cluster.core.machine import Machine, MachineCollection
 from src.cluster.implementation.deep_rm.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
@@ -12,7 +11,7 @@ class DeepRMMachine(Machine[_MACHINE_TYPE]):
         self.free_space = free_space
 
 
-class DeepRMMachines(MachineCollection[_MACHINE_TYPE]):
+class DeepRMMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
 
     def __init__(self, machines_usage: _MACHINES_TYPE) -> None:
         assert (
@@ -40,13 +39,5 @@ class DeepRMMachines(MachineCollection[_MACHINE_TYPE]):
         self._machines_usage[:, :, :, :-1] = self._machines_usage[:, :, :, 1:]
         self._machines_usage[:, :, :, -1] = True
 
-    def observation_space(self) -> gym.spaces.Box:
-        return gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=self._machines_usage.shape,
-            dtype=self._machines_usage.dtype,
-        )
-
-    def get_observation(self) -> gym.spaces.Space[gym.spaces.Box]:
+    def get_representation(self) -> npt.NDArray[_MACHINE_TYPE]:
         return self._machines_usage[:]

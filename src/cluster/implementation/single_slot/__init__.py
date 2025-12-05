@@ -1,6 +1,8 @@
 import typing as tp
 
+import gymnasium as gym
 import numpy as np
+import numpy.typing as npt
 
 from src.cluster.core.cluster import ClusterABC
 from src.cluster.implementation.single_slot.jobs import SingleSlotJobs, Status, SingleSlotJob
@@ -42,8 +44,7 @@ class SingleSlotClusterCreators:
         return inner
 
 
-
-class SingleSlotCluster(ClusterABC[np.float64]):
+class SingleSlotCluster(ClusterABC[SingleSlotMachines, SingleSlotJobs]):
 
     def __init__(
         self,

@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 
 from src.cluster.core.machine import Machine, MachineCollection
-
+import numpy.typing as npt
 
 class SingleSlotMachine(Machine[np.float64]):
 
@@ -12,7 +12,8 @@ class SingleSlotMachine(Machine[np.float64]):
         self.free_space = free_space
 
 
-class SingleSlotMachines(MachineCollection[np.float64]):
+class SingleSlotMachines(MachineCollection[npt.NDArray[np.float64]]):
+    MAX_FREE_SPACE = 1.0
 
     def __init__(
         self,
@@ -29,13 +30,11 @@ class SingleSlotMachines(MachineCollection[np.float64]):
 
     def clean_and_reset(self, seed: tp.Optional[int]) -> None:
         for idx, machine in enumerate(self._machines):
-            machine.free_space = 1
+            machine.free_space = self.MAX_FREE_SPACE
+
+    def get_representation(self) -> np.array:
+        return np.array([m.free_space for m in self._machines])
 
     def execute_clock_tick(self) -> None:
-        self.clean_and_reset(None)
-
-    def observation_space(self) -> "ObsType":
-        return gym.spaces.Box(low=0.0, high=0.0, shape=self.machine_usage.shape)
-
-    def get_observation(self) -> "ObsType":
-        return np.array([m.free_space for m in self._machines])
+        for machine in self._machines:
+            machine.free_space = self.MAX_FREE_SPACE

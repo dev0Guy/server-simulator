@@ -1,4 +1,4 @@
-import gymnasium as gym
+import numpy.typing as npt
 import numpy as np
 
 from src.cluster.core.job import Job, JobCollection, Status
@@ -18,7 +18,7 @@ class SingleSlotJob(Job[np.float64]):
         return self._value
 
 
-class SingleSlotJobs(JobCollection[np.float64]):
+class SingleSlotJobs(JobCollection[npt.NDArray[np.float64]]):
 
     def __init__(self, job_usage: np.ndarray, job_status: list[Status]) -> None:
         assert job_usage.shape[0] == len(job_status)
@@ -37,9 +37,6 @@ class SingleSlotJobs(JobCollection[np.float64]):
     def __iter__(self):
         return iter(self._jobs)
 
-    def observation_space(self) -> gym.spaces.Space[np.ndarray]:
-        return gym.spaces.Box(low=0.0, high=0.0, shape=(len(self),))
-
-    def get_observation(self) -> "ObsType":
+    def get_representation(self) -> np.array:
         return np.array([j.usage for j in self])
 

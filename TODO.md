@@ -1,4 +1,4 @@
 - [X] Implement Metric Based Tests
-- [ ] Move gym dependency outside of cluster (the state definition)
+- [X] Move gym dependency outside of cluster (the state definition)
 - [ ] Create Dilation Wrapper Interface
 - [ ] Implement Dilation Wrapper Interface

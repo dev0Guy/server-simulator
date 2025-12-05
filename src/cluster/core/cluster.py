@@ -9,13 +9,16 @@ from src.cluster.core.machine import Machine, MachineCollection
 
 T = tp.TypeVar("T")
 
-class ClusterABC(tp.Generic[T], abc.ABC):
+Machines = tp.TypeVar("Machines", bound=MachineCollection[T])
+Jobs = tp.TypeVar("Jobs", bound=JobCollection[T])
+
+class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
     @abc.abstractmethod
-    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> JobCollection[T]: ...
+    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
 
     @abc.abstractmethod
-    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> MachineCollection[T]: ...
+    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
 
     @abc.abstractmethod
     def is_allocation_possible(self, machine: Machine[T], job: Job[T]) -> bool: ...
@@ -41,18 +44,10 @@ class ClusterABC(tp.Generic[T], abc.ABC):
     def is_finished(self) -> bool:
         return all(job.status == JobStatus.Completed for job in self._jobs)
 
-    def get_observation_space(self) -> gym.spaces.Dict:
-        return gym.spaces.Dict(
-            {
-                "machines": self._machines.observation_space(),
-                "jobs": self._jobs.observation_space(),
-            }
-        )
-
     def get_observation(self) -> dict:
         return {
-            "machines": self._machines.get_observation(),
-            "jobs": self._jobs.get_observation(),
+            "machines": self._machines.get_representation(),
+            "jobs": self._jobs.get_representation(),
         }
 
     def schedule(self, m_idx: int, j_idx: int) -> bool:

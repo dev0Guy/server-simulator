@@ -5,7 +5,7 @@ import typing as tp
 import gymnasium as gym
 
 T = tp.TypeVar("T")
-ObsType = tp.TypeVar("ObsType")
+JobsRepresentation = tp.TypeVar("JobsRepresentation", bound=tp.Iterable[T])
 
 
 class Status(enum.IntEnum):
@@ -35,7 +35,7 @@ class Job(tp.Protocol[T]):
 
 
 @tp.runtime_checkable
-class JobCollection(tp.Protocol[T]):
+class JobCollection(tp.Protocol[JobsRepresentation]):
 
     @abc.abstractmethod
     def __len__(self) -> int: ...
@@ -45,9 +45,6 @@ class JobCollection(tp.Protocol[T]):
 
     @abc.abstractmethod
     def __iter__(self) -> tp.Iterable[Job[T]]: ...
-
-    @abc.abstractmethod
-    def observation_space(self) -> gym.spaces.Space[ObsType]: ...
 
     def execute_clock_tick(self, current_time: int) -> None:
         for job in self:
@@ -62,4 +59,4 @@ class JobCollection(tp.Protocol[T]):
                     ...
 
     @abc.abstractmethod
-    def get_observation(self) -> ObsType: ...
+    def get_representation(self) -> JobsRepresentation: ...

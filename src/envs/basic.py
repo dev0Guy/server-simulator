@@ -7,7 +7,7 @@ from src.cluster.core.cluster import ClusterABC, T
 
 InfoType = tp.TypeVar("InfoType", bound=dict)
 
-
+# TODO: fix this to be better, Add test for this as well
 class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
     def __init__(

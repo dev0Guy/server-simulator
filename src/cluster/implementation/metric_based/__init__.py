@@ -9,7 +9,7 @@ from src.cluster.implementation.metric_based.machines import MetricMachine, Metr
 
 from src.cluster.core.cluster import ClusterABC
 
-class MetricCluster(ClusterABC[_DTYPE]):
+class MetricCluster(ClusterABC[MetricMachines, MetricJobs]):
 
     def __init__(
         self,

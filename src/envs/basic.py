@@ -1,16 +1,18 @@
 import typing as tp
 
 import gymnasium as gym
-from gymnasium.core import ObsType
+import numpy.typing as npt
 
 from src.cluster.core.cluster import ClusterABC, Machines, Jobs
 
 
+InputActType = int
 InfoType = tp.TypeVar("InfoType", bound=dict)
 T = tp.TypeVar("T")
+ObsType = npt.NDArray[T]
 
 
-class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
+class BasicClusterEnv(gym.Env[ObsType, InputActType], tp.Generic[T, InfoType]):
 
     def __init__(
         self,

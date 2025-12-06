@@ -37,7 +37,7 @@ def cluster_strategy():
 def test_cluster_creation(
     cluster: MetricCluster
 ) -> None:
-    observation = cluster.get_observation()
+    observation = cluster.get_representation()
 
     assert observation["machines"].shape[0] == cluster.n_machines
     assert observation["jobs"].shape[0] == cluster.n_jobs

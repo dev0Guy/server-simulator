@@ -11,7 +11,7 @@ class Information(tp.TypedDict):
     jobs_status: np.ndarray
 
 
-def extract_information(cluster: ClusterABC[tp.SupportsFloat]) -> Information:
+def extract_information(cluster: ClusterABC) -> Information:
     job_status = np.array([job.status for job in cluster._jobs])
     return Information(jobs_status=job_status)
 

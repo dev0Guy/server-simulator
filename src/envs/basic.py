@@ -3,27 +3,48 @@ import typing as tp
 import gymnasium as gym
 from gymnasium.core import ObsType
 
-from src.cluster.core.cluster import ClusterABC, T
+from src.cluster.core.cluster import ClusterABC, Machines, Jobs
+
 
 InfoType = tp.TypeVar("InfoType", bound=dict)
+T = tp.TypeVar("T")
 
-# TODO: fix this to be better, Add test for this as well
+
 class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
 
     def __init__(
         self,
-        cluster: ClusterABC[T],
+        cluster: ClusterABC[Machines, Jobs],
         reward_func: tp.Callable[[InfoType, InfoType], tp.SupportsFloat],
-        info_func: tp.Callable[[ClusterABC[T]], InfoType],
+        info_func: tp.Callable[[ClusterABC[Machines, Jobs]], InfoType],
     ):
         self._cluster = cluster
         self._reward_func = reward_func
         self._info_func = info_func
 
-        self.observation_space = self._cluster.get_observation_space()
+        self.observation_space = self._get_observation_space()
 
         self._action_combination = (self._cluster.n_machines * self._cluster.n_jobs) + 1
         self.action_space = gym.spaces.Discrete(self._action_combination)
+
+    def _get_observation_space(self) -> gym.spaces.Dict:
+        machines_space = gym.spaces.Box(
+            low=0.0,
+            high=1.0,
+            shape=self._cluster._machines.get_representation().shape,
+            dtype=self._cluster._machines.get_representation().dtype
+        )
+        jobs_space = gym.spaces.Box(
+            low=0.0,
+            high=1.0,
+            shape=self._cluster._jobs.get_representation().shape,
+            dtype=self._cluster._jobs.get_representation().dtype
+        )
+        return gym.spaces.Dict(dict(
+            machines=machines_space,
+            jobs=jobs_space,
+        ))
+
 
     def reset(
         self,
@@ -34,7 +55,7 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
         super().reset(seed=seed)
         self._cluster.reset(seed)
 
-        observation = self._cluster.get_observation()
+        observation = self._cluster.get_representation()
         info = self._info_func(self._cluster)
 
         return observation, info
@@ -52,7 +73,7 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
             case _:
                 raise AssertionError("Expected code to be unreachable")
 
-        observation = self._cluster.get_observation()
+        observation = self._cluster.get_representation()
         info = self._info_func(self._cluster)
         terminated = self._cluster.is_finished()
         reward = self._reward_func(prev_info, info)
@@ -74,3 +95,6 @@ class BasicClusterEnv(gym.Env, tp.Generic[T, InfoType]):
         j_idx = adapted_action // self._cluster.n_machines
 
         return m_idx, j_idx
+
+    def create_action_from(self, m_idx: int, j_idx: int) -> int:
+        return 1 + (m_idx + j_idx * self._cluster.n_machines)

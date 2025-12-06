@@ -44,7 +44,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
     def is_finished(self) -> bool:
         return all(job.status == JobStatus.Completed for job in self._jobs)
 
-    def get_observation(self) -> dict:
+    def get_representation(self) -> dict:
         return {
             "machines": self._machines.get_representation(),
             "jobs": self._jobs.get_representation(),

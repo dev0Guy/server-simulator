@@ -14,7 +14,7 @@ seed_strategy = st.integers(0, 10_000)
 @settings(max_examples=40)
 def test_float_cluster_creation(n_machines: int, n_jobs: int):
     cluster = random_machine_with_static_machine(n_machines, n_jobs)
-    obs = cluster.get_observation()
+    obs = cluster.get_representation()
 
     machines_obs = obs["machines"]
     jobs_obs = obs["jobs"]
@@ -35,8 +35,8 @@ def test_reproducibility(n_machines: int, n_jobs: int, seed: int):
     cluster1 = random_machine_with_static_machine(n_machines, n_jobs, seed=seed)
     cluster2 = random_machine_with_static_machine(n_machines, n_jobs, seed=seed)
 
-    jobs1 = cluster1.get_observation()["jobs"].copy()
-    jobs2 = cluster2.get_observation()["jobs"].copy()
+    jobs1 = cluster1.get_representation()["jobs"].copy()
+    jobs2 = cluster2.get_representation()["jobs"].copy()
 
     np.testing.assert_allclose(jobs1, jobs2)
 
@@ -47,12 +47,12 @@ def test_schedule_available_last_job_to_first_machine(n_machines: int, n_jobs: i
     m_idx, j_idx = (0, n_jobs-1)
 
     cluster = random_machine_with_static_machine(n_machines, n_jobs)
-    start_observation = cluster.get_observation()
+    start_observation = cluster.get_representation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
     assert cluster._jobs[j_idx].status == JobStatus.Running
 
-    after_schedule_observation = cluster.get_observation()
+    after_schedule_observation = cluster.get_representation()
     assert np.equal(
         after_schedule_observation["machines"][m_idx],
         start_observation["machines"][m_idx] - start_observation["jobs"][j_idx],
@@ -65,12 +65,12 @@ def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
     m_idx, j_idx = (0, n_jobs - 1)
 
     cluster = random_machine_with_static_machine(n_machines, n_jobs)
-    start_observation = cluster.get_observation()
+    start_observation = cluster.get_representation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
     assert cluster._jobs[j_idx].status == JobStatus.Running
 
-    after_schedule_observation = cluster.get_observation()
+    after_schedule_observation = cluster.get_representation()
     assert np.equal(
         after_schedule_observation["machines"][m_idx],
         start_observation["machines"][m_idx] - start_observation["jobs"][j_idx],
@@ -78,7 +78,7 @@ def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
 
     assert not cluster.schedule(m_idx, j_idx), "scheduling should be available"
 
-    after_second_schedule_observation = cluster.get_observation()
+    after_second_schedule_observation = cluster.get_representation()
     assert np.all(
         after_schedule_observation["machines"]
         == after_second_schedule_observation["machines"]
@@ -93,11 +93,11 @@ def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
 def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
     m_idx, j_idx = (0, n_jobs - 1)
     cluster = random_machine_with_static_machine(n_machines, n_jobs)
-    start_observation = cluster.get_observation()
+    start_observation = cluster.get_representation()
 
     assert cluster.schedule(m_idx, j_idx), "scheduling should be available"
 
-    after_schedule_observation = cluster.get_observation()
+    after_schedule_observation = cluster.get_representation()
     assert np.equal(
         after_schedule_observation["machines"][m_idx],
         start_observation["machines"][m_idx] - start_observation["jobs"][j_idx],
@@ -105,7 +105,7 @@ def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
     assert not cluster.schedule(m_idx, j_idx), "scheduling should be available"
 
     cluster.execute_clock_tick()
-    after_tick_observation = cluster.get_observation()
+    after_tick_observation = cluster.get_representation()
 
     assert cluster._jobs[j_idx].status == JobStatus.Completed
     assert np.all(
@@ -118,10 +118,10 @@ def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
 def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
     cluster = random_machine_with_static_machine(n_machines, n_jobs)
 
-    start_observation = cluster.get_observation()
+    start_observation = cluster.get_representation()
 
     cluster.execute_clock_tick()
-    after_tick_observation = cluster.get_observation()
+    after_tick_observation = cluster.get_representation()
 
     assert np.all(start_observation["machines"] == after_tick_observation["machines"])
     assert np.all(start_observation["jobs"] == after_tick_observation["jobs"])

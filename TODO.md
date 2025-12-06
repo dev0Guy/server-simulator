@@ -1,4 +1,6 @@
 - [X] Implement Metric Based Tests
 - [X] Move gym dependency outside of cluster (the state definition)
+- [X] Implement Test For Basic Env
 - [ ] Create Dilation Wrapper Interface
+- [ ] Implement Render technics to represent and visualize cluster result 
 - [ ] Implement Dilation Wrapper Interface

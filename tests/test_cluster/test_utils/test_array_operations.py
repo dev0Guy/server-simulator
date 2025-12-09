@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import hypothesis.strategies as st
 import pytest
@@ -14,10 +16,10 @@ kernel_strategy = st.tuples(
 
 array_strategy = st.builds(
     lambda m_x, m_y, n_res, n_ticks: np.random.rand(m_x, m_y, n_res, n_ticks).astype(np.float64),
-    m_x=st.integers(min_value=1, max_value=20),
-    m_y=st.integers(min_value=1, max_value=20),
-    n_res=st.integers(min_value=1, max_value=5),
-    n_ticks=st.integers(min_value=1, max_value=5)
+    m_x=st.integers(min_value=1, max_value=50),
+    m_y=st.integers(min_value=1, max_value=50),
+    n_res=st.integers(min_value=1, max_value=10),
+    n_ticks=st.integers(min_value=1, max_value=10)
 )
 
 def block_mean(array, kernel):
@@ -150,3 +152,38 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
         "First level of hierarchical pooling does not match expected block-wise mean "
         f"for kernel {kernel}. Check padding and pooling computation."
     )
+
+
+@given(array=array_strategy, kernel=kernel_strategy)
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
+def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int]):
+    k_x, k_y = kernel
+    m_x, m_y = array.shape[:2]
+
+    assume(k_x > 1 and k_y > 1)
+    assume(m_x >= k_x and m_y >= k_y)
+    assume(m_x % k_x == 0 and m_y % k_y == 0)
+
+    outputs = array_operations.hierarchical_pooling(array, kernel, fill_value=0)
+    max_level = len(outputs) - 1
+
+    if max_level == 0:
+        return
+
+    level = random.randint(1, max_level)
+
+    level_array = outputs[level]
+    n_cells_x, n_cells_y = level_array.shape[:2]
+
+    cx = random.randint(1, n_cells_x-1)
+    cy = random.randint(1, n_cells_y -1)
+    cell = (cx, cy)
+
+    window = array_operations.get_window_from_cell(outputs, level, cell, kernel)
+
+    assert window.shape[0] == kernel[0], f"Window x-dimension {window.shape[0]} != kernel {kernel[0]}"
+    assert window.shape[1] == kernel[1], f"Window y-dimension {window.shape[1]} != kernel {kernel[1]}"
+
+    prev_level = outputs[level - 1]
+    expected_window = prev_level[cx*k_x:(cx+1)*k_x, cy*k_y:(cy+1)*k_y, ...]
+    assert np.allclose(window, expected_window), "Values in window do not match expected block in previous level"

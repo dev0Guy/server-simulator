@@ -143,3 +143,24 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
             break
 
     return outputs
+
+
+def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]],level: int, cell: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> npt.NDArray[tp.Any]:
+    """
+    Given hierarchical outputs, a level, and a cell (x,y) at that level,
+    return the corresponding window of size `kernel` in the previous level.
+    """
+    k_x, k_y = kernel
+    cx, cy = cell
+
+    if level == 0:
+        raise ValueError("Level 0 is the first pooled level; no previous window exists")
+
+    prev_level = outputs[level - 1]
+
+    start_x = cx * k_x
+    start_y = cy * k_y
+    end_x = start_x + k_x
+    end_y = start_y + k_y
+
+    return prev_level[start_x:end_x, start_y:end_y, ...]

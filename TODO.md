@@ -1,6 +1,14 @@
 - [X] Implement Metric Based Tests
 - [X] Move gym dependency outside of cluster (the state definition)
 - [X] Implement Test For Basic Env
-- [ ] Create Dilation Wrapper Interface
-- [ ] Implement Render technics to represent and visualize cluster result 
-- [ ] Implement Dilation Wrapper Interface
+- [-] Create Dilation Wrapper
+- [-] Create Test for dilation Wrapper
+- [ ] Implement Render technics to represent and visualize cluster result
+- [ ] Implement different reward Wrapper:
+  -  [ ] Need To talk 
+----
+## Notice:
+- If not finish the dilation process the reward is 0
+- On each job has reward of 1 if change status to running 
+- Dilation is not real like running window but running window of 1 * kernel size.
+- Dilation is only zoom in for now 

@@ -148,7 +148,7 @@ def test_single_machine_multiple_one_size_jobs(n_jobs: int, n_machines: int):
 
 
 @given(n_jobs=st.integers(1, 10).map(lambda x: x * 2), n_machines=st.integers(1, 1))
-@settings(max_examples=20) # TODO: Investegate error
+@settings(max_examples=20)
 def test_single_machine_multiple_half_size_jobs(n_jobs: int, n_machines: int):
     static_value = 0.5
     cluster = static_machine_with_static_machine(n_machines, n_jobs, static_value=static_value)

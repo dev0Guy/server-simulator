@@ -33,7 +33,7 @@ def compute_levels(shape: npt.ArrayLike, kernel: tp.Tuple[int, int]) -> tp.Tuple
     return levels_x, levels_y
 
 
-def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int]) -> npt.NDArray[tp.Any]:
+def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation) -> npt.NDArray[tp.Any]:
     """
     arr shape: (WindowX, WindowY, OtherDim, OtherDim)
     kernel: (k_h, k_w)
@@ -58,26 +58,8 @@ def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int,
 
     adjusted_array = arr.reshape(m_x// k_x, k_x, m_y // k_y, k_y, n_resources, n_ticks)
 
-    return adjusted_array.mean(axis=(1, 3))
+    return operation(adjusted_array, axis=(1, 3))
 
-
-# def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *, fill_value: float = 0) -> np.ndarray:
-#     """
-#     Pads the first two dimensions of arr so they are multiples of kernel.
-#     Pads with zeros at the end of each axis.
-#     """
-#     m_x, m_y = array.shape[:2]
-#     k_x, k_y = kernel
-#
-#     n_x, n_y = _smallest_n((m_x, m_y), kernel)
-#     n_xy = max(n_x, n_y)
-#
-#     pad_x = n_xy * k_x - m_x
-#     pad_y = n_xy * k_y - m_y
-#
-#     pad_width = ((0, pad_x), (0, pad_y)) + ((0, 0),) * (array.ndim - 2)
-#
-#     return np.pad(array, pad_width=pad_width, mode='constant', constant_values=fill_value)
 
 def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *, fill_value: float = 0) -> np.ndarray:
     """
@@ -95,10 +77,9 @@ def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *,
     if k_x < 1 or k_y < 1:
         raise ValueError("Kernel dimensions must be >= 1")
 
-    # Compute how many recursive levels we can pool (ignoring rounding)
     def max_recursive_levels(dim, k):
         if k == 1:
-            return 0  # No reduction possible
+            return 0
         levels = 0
         while dim > 1:
             dim = math.ceil(dim / k)
@@ -109,11 +90,9 @@ def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *,
     levels_y = max_recursive_levels(m_y, k_y)
     max_levels = max(levels_x, levels_y)
 
-    # Compute total required size to sustain all levels
     target_m_x = k_x ** max_levels
     target_m_y = k_y ** max_levels
 
-    # Ensure we at least match original size
     target_m_x = max(target_m_x, m_x)
     target_m_y = max(target_m_y, m_y)
 
@@ -124,7 +103,7 @@ def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *,
     return np.pad(array, pad_width=pad_width, mode='constant', constant_values=fill_value)
 
 
-def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], fill_value: float = 0) -> tp.List[npt.NDArray[tp.Any]]:
+def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable , fill_value: float = 0, ) -> tp.List[npt.NDArray[tp.Any]]:
     """
     Recursively applies pool_2d_first_two_dimensions on arr.
     Pads once using minimal padding so that all levels are divisible by kernel.
@@ -136,7 +115,7 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
     current = padded
 
     for _ in range(max(max_levels)):
-        current = pool_2d_first_two_dimensions(current, kernel)
+        current = pool_2d_first_two_dimensions(current, kernel, operation=operation)
         outputs.append(current)
 
         if current.shape[0] < kernel[0] or current.shape[1] < kernel[1]:

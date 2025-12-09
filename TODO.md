@@ -3,8 +3,8 @@
 - [X] Implement Test For Basic Env
 - [X] Implement Array operations that mimic dilation
 - [X] Tests Array operations 
-- [-] Create Custom Dilator for Metric Server
-- [-] Create Test for Dilator
+- [-] Create Custom Dilator for Metric Server [FINISHED NEED TO WAIT FOR TEST TO PASS]
+- [-] Create Test for Dilator [Implemented by causes some errors]
 - [-] Create Dilation Wrapper
 - [ ] Create Test for dilation Wrapper
 - [ ] Create Dilation for DeepRM

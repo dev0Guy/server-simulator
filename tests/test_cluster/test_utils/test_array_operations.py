@@ -21,30 +21,32 @@ array_strategy = st.builds(
     n_res=st.integers(min_value=1, max_value=10),
     n_ticks=st.integers(min_value=1, max_value=10)
 )
+reduction_operation_strategy = st.sampled_from([np.mean, np.max, np.min, np.average])
 
-def block_mean(array, kernel):
+
+def block_mean(array, kernel , operation):
     k_x, k_y = kernel
     m_x, m_y = array.shape[:2]
     n_x, n_y = m_x // k_x, m_y // k_y
     reshaped = array[:n_x*k_x, :n_y*k_y].reshape(n_x, k_x, n_y, k_y, *array.shape[2:])
-    return reshaped.mean(axis=(1,3))
+    return operation(reshaped, axis=(1,3))
 
-@given(arr=array_strategy, kernel=kernel_strategy)
-def test_pool_independent(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int]):
+@given(arr=array_strategy, kernel=kernel_strategy, operation=reduction_operation_strategy)
+def test_pool_independent(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y = arr.shape[:2]
 
     assume(m_x % k_x == 0 and m_y % k_y == 0)
 
-    out = array_operations.pool_2d_first_two_dimensions(arr, kernel)
+    out = array_operations.pool_2d_first_two_dimensions(arr, kernel, operation)
 
     assert out.shape == (m_x // k_x, m_y // k_y, arr.shape[2], arr.shape[3])
 
-    block_mean = arr[:k_x, :k_y, 0, 0].mean()
+    block_mean = operation(arr[:k_x, :k_y, 0, 0])
     assert np.isclose(out[0, 0, 0, 0], block_mean)
 
-@given(arr=array_strategy, kernel=kernel_strategy)
-def test_value_error_when_array_is_not_divisible_by_kernel(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int]):
+@given(arr=array_strategy, kernel=kernel_strategy, operation=reduction_operation_strategy)
+def test_value_error_when_array_is_not_divisible_by_kernel(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y, n_res, n_ticks = arr.shape
 
@@ -53,8 +55,8 @@ def test_value_error_when_array_is_not_divisible_by_kernel(arr: npt.NDArray[tp.A
     arr = np.random.rand(m_x, m_y, n_res, n_ticks).astype(np.float64)
     kernel = (k_x, k_y)
 
-    with pytest.raises(ValueError) as exc_info:
-        array_operations.pool_2d_first_two_dimensions(arr, kernel)
+    with pytest.raises(ValueError):
+        array_operations.pool_2d_first_two_dimensions(arr, kernel, operation=operation)
 
 @given(arr=array_strategy, kernel=kernel_strategy, fill_value=st.floats(-10, 10))
 def test_pad_for_hierarchy(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], fill_value: float):
@@ -109,9 +111,9 @@ def test_compute_max_levels(array, kernel):
         f"kernel={kernel}, original dimensions={array.shape[:2]}"
     )
 
-@given(array=array_strategy, kernel=kernel_strategy)
+@given(array=array_strategy, kernel=kernel_strategy, operation=reduction_operation_strategy)
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
-def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int]):
+def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int], operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y = array.shape[:2]
 
@@ -119,7 +121,7 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     assume(m_x >= k_x and m_y >= k_y)
     assume(m_x % k_x == 0 and m_y % k_y == 0)
 
-    outputs = array_operations.hierarchical_pooling(array, kernel)
+    outputs = array_operations.hierarchical_pooling(array, kernel, operation=operation)
 
     assert isinstance(outputs, list), f"hierarchical_pooling should return a list, got {type(outputs)} instead"
     assert len(outputs) > 0, "hierarchical_pooling returned an empty list; at least one level of pooling is expected"
@@ -134,7 +136,6 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
             "should be divisible by kernel or smaller than kernel"
         )
 
-    # Check that each level spatial dimensions shrink correctly
     padded = array_operations.pad_for_hierarchy(array, kernel)
     prev_shape = padded.shape[:2]
     for i, level in enumerate(outputs):
@@ -147,16 +148,16 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
         )
         prev_shape = new_shape
 
-    expected_first_level = block_mean(padded, kernel)
+    expected_first_level = block_mean(padded, kernel, operation=operation)
     assert np.allclose(outputs[0], expected_first_level), (
         "First level of hierarchical pooling does not match expected block-wise mean "
         f"for kernel {kernel}. Check padding and pooling computation."
     )
 
 
-@given(array=array_strategy, kernel=kernel_strategy)
+@given(array=array_strategy, kernel=kernel_strategy, fill_value=st.floats(-10, 10), operation=reduction_operation_strategy)
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
-def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int]):
+def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int], fill_value: float, operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y = array.shape[:2]
 
@@ -164,7 +165,7 @@ def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     assume(m_x >= k_x and m_y >= k_y)
     assume(m_x % k_x == 0 and m_y % k_y == 0)
 
-    outputs = array_operations.hierarchical_pooling(array, kernel, fill_value=0)
+    outputs = array_operations.hierarchical_pooling(array, kernel, operation=operation, fill_value=fill_value)
     max_level = len(outputs) - 1
 
     if max_level == 0:

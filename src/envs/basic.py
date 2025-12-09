@@ -2,11 +2,11 @@ import typing as tp
 
 import gymnasium as gym
 import numpy.typing as npt
-
+import numpy as np
 from src.cluster.core.cluster import ClusterABC, Machines, Jobs
 
 
-InputActType = int
+InputActType = np.int64
 InfoType = tp.TypeVar("InfoType", bound=dict)
 T = tp.TypeVar("T")
 ObsType = npt.NDArray[T]

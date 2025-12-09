@@ -1,22 +1,20 @@
 import enum
 import typing as tp
-import numpy as np
 import numpy.typing as npt
-import gymnasium as gym
 import abc
 
 K = tp.TypeVar("K")
 State = tp.TypeVar("State", bound=npt.NDArray)
-Action = tp.TypeVar("Action", bound=np.int64)
+Action = tp.TypeVar("Action", bound=int)
 
 class DilationOperation(enum.IntEnum):
     ZoomOut = enum.auto()
     ZoomIn = enum.auto()
     Execute = enum.auto()
 
-class DilationOperationReturnType(tp.NamedTuple[State]):
+class DilationOperationReturnType(tp.NamedTuple):
     operation: DilationOperation
-    state: State
+    state: tp.Optional[State]
 
 class DilationProtocol(tp.Protocol[K, State]):
 
@@ -27,10 +25,7 @@ class DilationProtocol(tp.Protocol[K, State]):
     def update(self, original: State) -> State: ...
 
     @abc.abstractmethod
-    def get_selected_machine_idx(self) -> Action: ...
+    def get_selected_machine_idx(self) -> tp.Optional[Action]: ...
 
     @abc.abstractmethod
-    def get_observation_space_from(self, space: gym.Space[State]): ...
-
-    @abc.abstractmethod
-    def get_action_space_from(self, space: gym.Space[Action]) -> gym.Space[Action]: ...
+    def kernel_shape(self) -> tp.Tuple[int, int]: ...

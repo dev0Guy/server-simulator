@@ -175,8 +175,8 @@ def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     level_array = outputs[level]
     n_cells_x, n_cells_y = level_array.shape[:2]
 
-    cx = random.randint(1, n_cells_x-1)
-    cy = random.randint(1, n_cells_y -1)
+    cx = random.randint(0, max(0, n_cells_x - 1))
+    cy = random.randint(0, max(0, n_cells_y - 1))
     cell = (cx, cy)
 
     window = array_operations.get_window_from_cell(outputs, level, cell, kernel)
@@ -187,3 +187,31 @@ def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     prev_level = outputs[level - 1]
     expected_window = prev_level[cx*k_x:(cx+1)*k_x, cy*k_y:(cy+1)*k_y, ...]
     assert np.allclose(window, expected_window), "Values in window do not match expected block in previous level"
+
+
+@given(
+    prev_cell=st.tuples(st.integers(0, 10), st.integers(0, 10)),
+    current_index=st.tuples(st.integers(0, 5), st.integers(0, 5)),
+    kernel=kernel_strategy
+)
+def test_global_cell_from_local(prev_cell: tp.Tuple[int,int], current_index: tp.Tuple[int,int], kernel: tp.Tuple[int,int]):
+    px, py = prev_cell
+    cx, cy = current_index
+    kx, ky = kernel
+
+    assume(cx < kx and cy < ky)
+
+    global_cell = array_operations.global_cell_from_local(prev_cell, current_index, kernel)
+
+    assert isinstance(global_cell, tuple)
+    assert len(global_cell) == 2
+
+    expected_x = px * kx + cx
+    expected_y = py * ky + cy
+    assert global_cell == (expected_x, expected_y), (
+        f"Expected {(expected_x, expected_y)}, got {global_cell}. "
+        f"prev_cell={prev_cell}, current_index={current_index}, kernel={kernel}"
+    )
+
+    assert global_cell[0] >= 0
+    assert global_cell[1] >= 0

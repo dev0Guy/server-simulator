@@ -139,7 +139,7 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
         current = pool_2d_first_two_dimensions(current, kernel)
         outputs.append(current)
 
-        if current.shape[0] <= kernel[0] or current.shape[1] <= kernel[1]:
+        if current.shape[0] < kernel[0] or current.shape[1] < kernel[1]:
             break
 
     return outputs
@@ -154,7 +154,7 @@ def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]],level: int, cell:
     cx, cy = cell
 
     if level == 0:
-        raise ValueError("Level 0 is the first pooled level; no previous window exists")
+        raise ValueError("Already on Bottom level; no next window exists")
 
     prev_level = outputs[level - 1]
 
@@ -164,3 +164,20 @@ def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]],level: int, cell:
     end_y = start_y + k_y
 
     return prev_level[start_x:end_x, start_y:end_y, ...]
+
+
+def global_cell_from_local(prev_cell: tp.Tuple[int, int],
+                           current_index: tp.Tuple[int, int],
+                           kernel: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+    """
+    Given a previous cell (prev_cell) at higher level and a current local cell
+    (current_index) inside that cell, return the global cell coordinates.
+    """
+    k_x, k_y = kernel
+    px, py = prev_cell
+    cx, cy = current_index
+
+    global_x = px * k_x + cx
+    global_y = py * k_y + cy
+
+    return global_x, global_y

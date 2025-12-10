@@ -3,28 +3,40 @@ Base Status
 We've created 3 Environment for scheduling, which implement the `ClusterABC` with `JobCollection` and `MachineCollection` protocols: 
 
 
-- **SingleSlot**: <br>
-    **description:** <br>
-    **states:** <br>
-        **machines:** [resource usage], simple one cell nd array that represent usage in current time (no memory, value between 0 to 1).<br>
-        **jobs:** [resource usage], simple one cell nd array that represent usage in current time (no memory, value between 0 to 1).<br>
-    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).<br>
+### SingleSlot Environment
 
+| Component | Details |
+|----------|---------|
+| **Description** | Minimal scheduling environment with no temporal memory; each machine and job exposes only its current resource usage. |
+| **State: Machines** | Shape: **[resource_usage]** — a single-cell array indicating current resource utilization (value between 0–1). |
+| **State: Jobs** | Shape: **[resource_usage]** — a single-cell array indicating the current resource requirement (value between 0–1). |
+| **Actions** | Discrete integer: **0 … (num_machines × num_jobs) + 1**. |
+| **Action 0** | Interrupt / time tick (move to next timestamp). |
+| **Action 1+** | Scheduling decision mapping to a specific **(machine, job)** pair. |
 
-- **DeepRM**: <br>
-    **description:** <br>
-    **states:** <br>
-        **machines:** [number_of_machines, number_of_resource, number_of_resource_cell, number_of_ticks], where each value inside the metrics is for time `t` and resource `r` does resource unit number `r_unit` is in usage.<br>
-        **jobs:** [number_of_jobs, number_of_resource, number_of_resource_cell, number_of_ticks], where each value inside the metrics is for time `t` and resource `r` does resource unit number `r_unit` is in usage.<br>
-    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).<br>
+### DeepRM Environment
 
+| Component | Details |
+|----------|---------|
+| **Description** | Environment inspired by the DeepRM scheduling model, representing fine-grained resource units across time. |
+| **State: Machines** | Tensor shape: **[num_machines, num_resources, num_resource_cells, num_ticks]**. Each cell represents whether resource unit **r_unit** of resource **r** is occupied at time **t**. |
+| **State: Jobs** | Tensor shape: **[num_jobs, num_resources, num_resource_cells, num_ticks]**. Each cell represents whether the job requires resource unit **r_unit** of resource **r** at time **t**. |
+| **Actions** | Discrete integer: **0 … (num_machines × num_jobs) + 1**. |
+| **Action 0** | Interrupt / time tick (advance to next timestamp). |
+| **Action 1+** | Scheduling decision mapping to a specific **(machine, job)** pair. |
 
-- **MetricBased**: <br>
-    **description:** <br>
-    **states:** <br>
-        **machines:** [number_of_machines, n_resources, n_ticks], where each value inside the metrics is for time `t` and resource `r` is in usage (value between 0-1). <br>
-        **jobs:** [number_of_jobs, n_resources, n_ticks], where each value inside the metrics is for time `t` and resource `r` is in usage (value between 0-1). <br>
-    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp). <br>
+### MetricBased Environment
+
+| Component | Details |
+|----------|---------|
+| **Description** | Scheduling environment that models resource usage of machines and jobs over time. |
+| **State: Machines** | Tensor shape: **[num_machines, n_resources, n_ticks]**. Each value ∈ **[0–1]** representing machine resource usage for resource **r** at time **t**. |
+| **State: Jobs** | Tensor shape: **[num_jobs, n_resources, n_ticks]**. Each value ∈ **[0–1]** representing job resource demand for resource **r** at time **t**. |
+| **Actions** | Discrete integer: **0 … (num_machines × num_jobs) + 1**. |
+| **Action 0** | Represents an interrupt or a time tick (advance to next timestamp). |
+| **Action 1+** | Represents assigning job **j** to machine **m** (encoded according to environment mapping). |
+
+<br>
 
 **Dilation Operations:** assuming kernel size (in each dimension) is bigger than 1. By padding the input according to max zoom in possible the service can work for varying kernel sizes. 
 In addition, assume that use (in our case the DRL agent) can execute 3 operation with zoomingIn (going up one level -1) or zoomingOut (going out one level +1) or skipping to next timestamp, 

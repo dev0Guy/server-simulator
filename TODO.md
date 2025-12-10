@@ -3,31 +3,33 @@ Base Status
 We've created 3 Environment for scheduling, which implement the `ClusterABC` with `JobCollection` and `MachineCollection` protocols: 
 
 
-- SingleSlot: 
-    **description:** 
-    **states:**
-        **machines:** [resource usage], simple one cell nd array that represent usage in current time (no memory, value between 0 to 1).
-        **jobs:** [resource usage], simple one cell nd array that represent usage in current time (no memory, value between 0 to 1).
-    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).
+- **SingleSlot**: <br>
+    **description:** <br>
+    **states:** <br>
+        **machines:** [resource usage], simple one cell nd array that represent usage in current time (no memory, value between 0 to 1).<br>
+        **jobs:** [resource usage], simple one cell nd array that represent usage in current time (no memory, value between 0 to 1).<br>
+    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).<br>
 
-- DeepRM:
-    **description:** 
-    **states:**
-        **machines:** [number_of_machines, number_of_resource, number_of_resource_cell, number_of_ticks], where each value inside the metrics is for time `t` and resource `r` does resource unit number `r_unit` is in usage.
-        **jobs:** [number_of_jobs, number_of_resource, number_of_resource_cell, number_of_ticks], where each value inside the metrics is for time `t` and resource `r` does resource unit number `r_unit` is in usage.
-    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).
 
-- MetricBased:
-    **description:** 
-    **states:**
-        **machines:** [number_of_machines, n_resources, n_ticks], where each value inside the metrics is for time `t` and resource `r` is in usage (value between 0 to 1).
-        **jobs:** [number_of_jobs, n_resources, n_ticks], where each value inside the metrics is for time `t` and resource `r` is in usage (value between 0 to 1).
-    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).
+- **DeepRM**: <br>
+    **description:** <br>
+    **states:** <br>
+        **machines:** [number_of_machines, number_of_resource, number_of_resource_cell, number_of_ticks], where each value inside the metrics is for time `t` and resource `r` does resource unit number `r_unit` is in usage.<br>
+        **jobs:** [number_of_jobs, number_of_resource, number_of_resource_cell, number_of_ticks], where each value inside the metrics is for time `t` and resource `r` does resource unit number `r_unit` is in usage.<br>
+    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp).<br>
+
+
+- **MetricBased**: <br>
+    **description:** <br>
+    **states:** <br>
+        **machines:** [number_of_machines, n_resources, n_ticks], where each value inside the metrics is for time `t` and resource `r` is in usage (value between 0-1). <br>
+        **jobs:** [number_of_jobs, n_resources, n_ticks], where each value inside the metrics is for time `t` and resource `r` is in usage (value between 0-1). <br>
+    **actions:** discreate integer between 0 to (number of machine) * (number of jobs) + 1. where action 0 is for interrupt or ticking (moving to next timestamp). <br>
 
 **Dilation Operations:** assuming kernel size (in each dimension) is bigger than 1. By padding the input according to max zoom in possible the service can work for varying kernel sizes. 
 In addition, assume that use (in our case the DRL agent) can execute 3 operation with zoomingIn (going up one level -1) or zoomingOut (going out one level +1) or skipping to next timestamp, 
 notice that without executing real scheduling (when in last level and select a machine) can't stop and skip.
-Our algorithm represent the state as ndarray of `shape` to `[kernel_x, kernel_y, *shape[1:]]`.
+Our algorithm represent the state as ndarray of `shape` to `[kernel_x, kernel_y, *shape[1:]]`. <br>
 
 **Reward Functions:** for now the only reward function is +1 for scheduling job and changing the job status from pending into running.
 

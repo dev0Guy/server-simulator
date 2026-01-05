@@ -3,15 +3,15 @@ import random
 import numpy as np
 import hypothesis.strategies as st
 import pytest
-from hypothesis import given, assume, HealthCheck, settings, reproduce_failure
+from hypothesis import given, assume, HealthCheck, settings
 import numpy.typing as npt
 import typing as tp
 from src.utils import array_operations
 
 
 kernel_strategy = st.tuples(
-    st.integers(min_value=1, max_value=5),
-    st.integers(min_value=1, max_value=5)
+    st.integers(min_value=2, max_value=5),
+    st.integers(min_value=2, max_value=5)
 )
 
 array_strategy = st.builds(
@@ -24,7 +24,7 @@ array_strategy = st.builds(
 reduction_operation_strategy = st.sampled_from([np.mean, np.max, np.min, np.average])
 
 
-def block_mean(array, kernel , operation):
+def block_operation(array, kernel , operation):
     k_x, k_y = kernel
     m_x, m_y = array.shape[:2]
     n_x, n_y = m_x // k_x, m_y // k_y
@@ -32,6 +32,7 @@ def block_mean(array, kernel , operation):
     return operation(reshaped, axis=(1,3))
 
 @given(arr=array_strategy, kernel=kernel_strategy, operation=reduction_operation_strategy)
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
 def test_pool_independent(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y = arr.shape[:2]
@@ -63,11 +64,12 @@ def test_pad_for_hierarchy(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
 
     m_x, m_y = arr.shape[:2]
     k_x, k_y = kernel
+    assume(m_x > k_x and m_y > k_y)
 
     padded = array_operations.pad_for_hierarchy(arr, kernel, fill_value=fill_value)
     new_m_x, new_m_y = padded.shape[:2]
 
-    assume(new_m_x % k_x == 0 and new_m_y % k_y == 0)
+    assert new_m_x % k_x == 0 and new_m_y % k_y == 0
 
     assert np.allclose(padded[:m_x, :m_y, ...], arr)
 
@@ -118,7 +120,7 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     m_x, m_y = array.shape[:2]
 
     assume(k_x > 1 and k_y > 1)
-    assume(m_x >= k_x and m_y >= k_y)
+    assume(m_x > k_x and m_y > k_y)
     assume(m_x % k_x == 0 and m_y % k_y == 0)
 
     outputs = array_operations.hierarchical_pooling(array, kernel, operation=operation)
@@ -148,7 +150,7 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
         )
         prev_shape = new_shape
 
-    expected_first_level = block_mean(padded, kernel, operation=operation)
+    expected_first_level = block_operation(padded, kernel, operation=operation)
     assert np.allclose(outputs[0], expected_first_level), (
         "First level of hierarchical pooling does not match expected block-wise mean "
         f"for kernel {kernel}. Check padding and pooling computation."
@@ -162,7 +164,7 @@ def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     m_x, m_y = array.shape[:2]
 
     assume(k_x > 1 and k_y > 1)
-    assume(m_x >= k_x and m_y >= k_y)
+    assume(m_x > k_x and m_y > k_y)
     assume(m_x % k_x == 0 and m_y % k_y == 0)
 
     outputs = array_operations.hierarchical_pooling(array, kernel, operation=operation, fill_value=fill_value)

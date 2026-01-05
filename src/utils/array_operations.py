@@ -115,16 +115,18 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
     current = padded
 
     for _ in range(max(max_levels)):
+        if current.shape[0] <= kernel[0] or current.shape[1] <= kernel[1]:
+            break
+
         current = pool_2d_first_two_dimensions(current, kernel, operation=operation)
         outputs.append(current)
 
-        if current.shape[0] < kernel[0] or current.shape[1] < kernel[1]:
-            break
+
 
     return outputs
 
 
-def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]],level: int, cell: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> npt.NDArray[tp.Any]:
+def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]], level: int, cell: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> npt.NDArray[tp.Any]:
     """
     Given hierarchical outputs, a level, and a cell (x,y) at that level,
     return the corresponding window of size `kernel` in the previous level.

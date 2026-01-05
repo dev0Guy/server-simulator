@@ -11,6 +11,7 @@ class DilationOperation(enum.IntEnum):
     ZoomOut = enum.auto()
     ZoomIn = enum.auto()
     Execute = enum.auto()
+    Error = enum.auto()
 
 class DilationOperationReturnType(tp.NamedTuple):
     operation: DilationOperation
@@ -25,7 +26,7 @@ class DilationProtocol(tp.Protocol[K, State]):
     def update(self, original: State) -> State: ...
 
     @abc.abstractmethod
-    def get_selected_machine_idx(self) -> tp.Optional[Action]: ...
+    def get_selected_machine_idx_in_original(self) -> tp.Optional[Action]: ...
 
     @abc.abstractmethod
     def kernel_shape(self) -> tp.Tuple[int, int]: ...

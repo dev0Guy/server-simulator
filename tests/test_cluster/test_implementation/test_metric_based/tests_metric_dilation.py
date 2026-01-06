@@ -86,12 +86,12 @@ def test_zoom_in_and_zoom_out(array, kernel_with_points, operation):
     original_state = dilator.update(array)
 
     selected_cell = points[0]
-    zi = dilator._zoom_in(selected_cell)
+    zi = dilator.zoom_in(selected_cell)
 
     assert isinstance(zi, DilationOperationReturnType)
     assert zi.state.shape[:2] == kernel
 
-    zo = dilator._zoom_out()
+    zo = dilator.zoom_out()
     assert isinstance(zo, DilationOperationReturnType)
     assert zo.state.shape[:2] == kernel
     assert np.allclose(original_state, zo.state)
@@ -120,10 +120,10 @@ def test_zoom_in_until_select_real_machine(array, kernel_with_points, operation)
 
     while dilator._current_dilation_level_ptr != 0:
         dilation_action = next(points_iter)
-        assert dilator._zoom_in(dilation_action).state.shape == (*kernel, n_resource, n_ticks)
+        assert dilator.zoom_in(dilation_action).state.shape == (*kernel, n_resource, n_ticks)
 
     selection_action = next(points_iter)
-    result = dilator._select_real_machine(selection_action)
+    result = dilator.select_real_machine(selection_action)
     assert result.operation == DilationOperation.Execute
     assert result.state.shape == (n_resource, n_ticks)
 
@@ -143,7 +143,7 @@ def test_zoom_out_on_initialize_state_return_error(array, kernel, operation):
     dilator = MetricBasedDilator(kernel=kernel, state=array, operation=operation)
 
     dilator._prev_selected_cell = [None for _ in range(dilator._n_levels)]
-    operation = dilator._zoom_out()
+    operation = dilator.zoom_out()
     assert operation.operation == DilationOperation.Error
 
 

@@ -30,7 +30,7 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
         self.update(state)
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
-    def _zoom_out(self) -> DilationOperationReturnType:
+    def zoom_out(self) -> DilationOperationReturnType:
         if self._current_dilation_level_ptr == self._n_levels -1:
             return DilationOperationReturnType(DilationOperation.Error, None)
 
@@ -53,7 +53,7 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
 
         return DilationOperationReturnType(DilationOperation.ZoomOut, current_window)
 
-    def _zoom_in(self, selected_cell: tp.Tuple[int, int]) -> DilationOperationReturnType:
+    def zoom_in(self, selected_cell: tp.Tuple[int, int]) -> DilationOperationReturnType:
         current_window = get_window_from_cell(
             outputs=self._dilation_levels,
             level=self._current_dilation_level_ptr,
@@ -66,7 +66,7 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
             raise ValueError(f"{self._current_dilation_level_ptr=} can't be negative")
         return DilationOperationReturnType(DilationOperation.ZoomIn, current_window)
 
-    def _select_real_machine(self, selected_cell: tp.Tuple[int, int]) -> DilationOperationReturnType:
+    def select_real_machine(self, selected_cell: tp.Tuple[int, int]) -> DilationOperationReturnType:
         self._prev_selected_cell[self._current_dilation_level_ptr] = selected_cell
         current_view = self._dilation_levels[self._current_dilation_level_ptr]
         real_machine = current_view[selected_cell[0], selected_cell[1]]
@@ -84,15 +84,15 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
 
         is_zoom_in_action = action > 0
         if not is_zoom_in_action:
-            return self._zoom_out()
+            return self.zoom_out()
 
         is_real_machine_select_action = self._current_dilation_level_ptr == 1
         selected_cell = (action // self._kernel[1], action % self._kernel[1])
 
         if is_real_machine_select_action:
-           return self._select_real_machine(selected_cell)
+           return self.select_real_machine(selected_cell)
 
-        return self._zoom_in(selected_cell)
+        return self.zoom_in(selected_cell)
 
     def get_selected_machine_idx_in_original(self) -> tp.Optional[Action]:
         # TODO: add testing to this function

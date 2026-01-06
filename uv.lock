@@ -326,6 +326,15 @@ wheels = [
 ]
 
 [[package]]
+name = "rust-enum"
+version = "1.1.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/eb/e6/c4bbf184660f962ce0670715678e42ad57cf24ac577e83d9ff8563a72af7/rust_enum-1.1.5.tar.gz", hash = "sha256:24459f7f70bc463a125f6b8dc203a3ad741c9f1c28a7306e046d741c869095cb", size = 2518 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9c/4a/f46290cd3b5f0d3cd7ef79b843ce3c56f48166d8396ed30221470bd9e95c/rust_enum-1.1.5-py3-none-any.whl", hash = "sha256:aa10e1a82f23c7f32348aed3c1d90cbd02c7bcfa8b4022634d36a5008677ae93", size = 2355 },
+]
+
+[[package]]
 name = "server-simulator"
 version = "0.1.0"
 source = { virtual = "." }
@@ -333,6 +342,7 @@ dependencies = [
     { name = "gymnasium" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "rust-enum" },
 ]
 
 [package.dev-dependencies]
@@ -347,6 +357,7 @@ dev = [
 requires-dist = [
     { name = "gymnasium", specifier = ">=1.2.1" },
     { name = "numpy", specifier = ">=2.2.6" },
+    { name = "rust-enum", specifier = ">=1.1.5" },
 ]
 
 [package.metadata.requires-dev]

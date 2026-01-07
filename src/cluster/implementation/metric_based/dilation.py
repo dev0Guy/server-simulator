@@ -51,14 +51,15 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
             self,
             *,
             kernel: tp.Tuple[int, int],
-            state: State,
+            array: State,
             fill_value: float = 0.0,
             operation: tp.Callable
     ) -> None:
         self._kernel = kernel
         self._fill_value = fill_value
         self._operation = operation
-        self.generate_dilation_expansion(state)
+        self.state = None
+        self.generate_dilation_expansion(array)
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
     def get_selected_machine_idx_in_original(self) -> tp.Optional[Action]:

@@ -3,7 +3,7 @@ import typing as tp
 import numpy.typing as npt
 import numpy as np
 
-from src.cluster.core.dilation import DilationProtocol, DilationSteps
+from src.cluster.core.dilation import DilationProtocol, DilationState
 from src.utils.array_operations import hierarchical_pooling, get_window_from_cell, global_cell_from_local
 
 Kernel = npt.NDArray[np.float64]
@@ -12,30 +12,30 @@ Action = int
 
 class MetricBasedDilator(DilationProtocol[Kernel, State]):
 
-    def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationSteps.Expanded, DilationSteps.FullyExpanded]:
+    def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]:
 
         match self.state:
-            case DilationSteps.FullyExpanded(_, _, _):
+            case DilationState.FullyExpanded(_, _, _):
                 raise ValueError("Cannot expand in fully expanded mode")
-            case DilationSteps.Initial(_, level) | DilationSteps.Expanded(_, _, level) if level==1:
+            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, level) if level == 1:
                 value = get_window_from_cell(self._dilation_levels, level=1, cell=cell, kernel=self._kernel)
-                self.state = DilationSteps.FullyExpanded(prev=self.state, value=value, level=0)
-            case DilationSteps.Initial(_, level) | DilationSteps.Expanded(_,_, level):
+                self.state = DilationState.FullyExpanded(prev=self.state, value=value, level=0)
+            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, level):
                 value = get_window_from_cell(self._dilation_levels, level=level, cell=cell, kernel=self._kernel)
-                self.state = DilationSteps.Expanded(prev=self.state, value=value, level=level - 1)
+                self.state = DilationState.Expanded(prev=self.state, value=value, level=level - 1)
 
         return self.state
 
-    def contract(self) -> tp.Union[DilationSteps.Initial, DilationSteps.Expanded]:
+    def contract(self) -> tp.Union[DilationState.Initial, DilationState.Expanded]:
         match self.state:
-            case DilationSteps.Initial(_):
+            case DilationState.Initial(_):
                 return self.state
-            case DilationSteps.Expanded(prev, _, _) | DilationSteps.FullyExpanded(prev, _, _):
+            case DilationState.Expanded(prev, _, _) | DilationState.FullyExpanded(prev, _, _):
                 return prev
             case _:
                 raise ValueError("Unreachable code")
 
-    def generate_dilation_expansion(self, original: State) -> DilationSteps.Initial:
+    def generate_dilation_expansion(self, original: State) -> DilationState.Initial:
         self._dilation_levels = hierarchical_pooling(original, self._kernel, fill_value=self._fill_value,operation=self._operation)
         self._n_levels = len(self._dilation_levels)
 
@@ -43,7 +43,7 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
             raise ValueError("Cannot call dilation on input with same size as kernel")
 
         level = self._n_levels-1
-        self.state = DilationSteps.Initial(value=self._dilation_levels[level], level=level)
+        self.state = DilationState.Initial(value=self._dilation_levels[level], level=level)
 
         return self.state
 
@@ -59,12 +59,13 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
         self._fill_value = fill_value
         self._operation = operation
         self.state = None
+        self._dilation_levels = None
+        self._n_levels = None
         self.generate_dilation_expansion(array)
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
+    # TODO: add testing to this function
     def get_selected_machine_idx_in_original(self) -> tp.Optional[Action]:
-        # TODO: add testing to this function
-
         assert self._current_dilation_level_ptr != 0,  f"When running get_selected_machine_idx level pointer should be equal to 0 and not {self._current_dilation_level_ptr}"
 
         # TODO: think about what happen if kernel is size of the input, in other word there is no real dilation, +1 out of bound

@@ -8,7 +8,7 @@ State = tp.TypeVar("State", bound=npt.NDArray)
 Action = tp.TypeVar("Action", bound=int)
 
 @enum
-class DilationSteps(tp.Generic[State]):
+class DilationState(tp.Generic[State]):
     Initial = Case(value=State, level=int)
     Expanded = Case(prev=tp.Union[Initial, 'Expanded'], value=State, level=int)
     FullyExpanded = Case(prev=Expanded, value=State, level=int)
@@ -17,13 +17,13 @@ class DilationSteps(tp.Generic[State]):
 class DilationProtocol(tp.Protocol[K, State]):
 
     @abc.abstractmethod
-    def generate_dilation_expansion(self, original: State) -> DilationSteps.Initial: ...
+    def generate_dilation_expansion(self, original: State) -> DilationState.Initial: ...
 
     @abc.abstractmethod
-    def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationSteps.Expanded, DilationSteps.FullyExpanded]: ...
+    def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]: ...
 
     @abc.abstractmethod
-    def contract(self) -> tp.Union[DilationSteps.Initial, DilationSteps.Expanded]: ...
+    def contract(self) -> tp.Union[DilationState.Initial, DilationState.Expanded]: ...
 
     @abc.abstractproperty
     def kernel(self) -> tp.Tuple[int, int]: ...

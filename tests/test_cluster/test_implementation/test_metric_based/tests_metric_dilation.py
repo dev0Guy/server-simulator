@@ -1,4 +1,4 @@
-from src.cluster.core.dilation import  DilationSteps
+from src.cluster.core.dilation import  DilationState
 from src.cluster.implementation.metric_based.dilation import MetricBasedDilator
 from src.utils import array_operations
 import numpy as np
@@ -65,7 +65,7 @@ def test_dilator_init(array, kernel, operation):
     assert dilator._n_levels == len(dilator._dilation_levels), "Number of levels mismatch"
 
     match dilator.state:
-        case DilationSteps.Initial(value, level):
+        case DilationState.Initial(value, level):
             assert level == dilator._n_levels - 1 ,"Pointer should start at top level"
             assert isinstance(value, np.ndarray)
             assert value.shape[:2] == kernel, "Kernel shape should match input kernel"
@@ -91,7 +91,7 @@ def test_expand_and_contract(array, kernel_with_points, operation):
     expanded_state = dilator.expand(points[0])
 
     match expanded_state:
-        case DilationSteps.Expanded(prev, value, level) | DilationSteps.FullyExpanded(prev, value, level):
+        case DilationState.Expanded(prev, value, level) | DilationState.FullyExpanded(prev, value, level):
             assert value.shape[:2] == original_state.value.shape[:2] == kernel
             assert level == dilator._n_levels - 2
         case _:
@@ -100,7 +100,7 @@ def test_expand_and_contract(array, kernel_with_points, operation):
     contracted_state = dilator.contract()
 
     match contracted_state:
-        case DilationSteps.Initial(value, level) | DilationSteps.Expanded(_, value, level):
+        case DilationState.Initial(value, level) | DilationState.Expanded(_, value, level):
             assert value.shape[:2] == original_state.value.shape[:2] == kernel
             assert level == dilator._n_levels - 1
             assert np.allclose(original_state.value, value)
@@ -129,9 +129,9 @@ def test_zoom_in_until_fully_expanded(array, kernel_with_points, operation):
 
     for cell in expand_cells:
         match dilator.expand(cell):
-            case DilationSteps.Expanded(prev, value, level):
+            case DilationState.Expanded(prev, value, level):
                 assert value.shape == (*kernel, *array.shape[2:])
-            case DilationSteps.FullyExpanded(prev, value, level):
+            case DilationState.FullyExpanded(prev, value, level):
                 assert value.shape == (*kernel, *array.shape[2:])
                 break
             case _:
@@ -149,7 +149,7 @@ def test_zoom_out_on_initialization_does_nothing(array, kernel, operation):
     dilator = MetricBasedDilator(kernel=kernel, state=array, operation=operation)
     dilator.generate_dilation_expansion(array)
     match dilator.contract():
-        case DilationSteps.Initial(_, _): ...
+        case DilationState.Initial(_, _): ...
         case _:
             raise AssertionError
 
@@ -175,12 +175,12 @@ def test_zoom_in_with_zoom_out_until_fully_expanded(array, kernel_with_points, o
 
     for idx, cell in enumerate(expand_cells):
         match dilator.expand(cell):
-            case DilationSteps.Expanded(prev, value, _):
+            case DilationState.Expanded(prev, value, _):
                 assert value.shape == (*kernel, *array.shape[2:])
                 if cell % 2 == 0:
                     prev_state = dilator.contract()
                     assert prev_state == prev
-            case DilationSteps.FullyExpanded(_, value, level):
+            case DilationState.FullyExpanded(_, value, level):
                 assert value.shape == (*kernel, *array.shape[2:])
                 assert level == 0
                 break

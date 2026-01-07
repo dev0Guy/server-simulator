@@ -8,7 +8,6 @@ K = tp.TypeVar("K")
 State = tp.TypeVar("State", bound=npt.NDArray)
 SelectCellAction = tp.Tuple[int, int]
 
-# TODO: need to add prev selection action to the enum, for calculating the global selected cell
 @enum
 class DilationState(tp.Generic[State]):
     Initial = Case(value=State, level=int)

@@ -8,7 +8,7 @@ from src.utils.array_operations import hierarchical_pooling, get_window_from_cel
 
 Kernel = npt.NDArray[np.float64]
 State = npt.NDArray[np.float64]
-Action = int
+Action = tp.Tuple[int, int]
 
 class MetricBasedDilator(AbstractDilation[Kernel, State]):
 
@@ -30,32 +30,26 @@ class MetricBasedDilator(AbstractDilation[Kernel, State]):
         self._operation = operation
         super().__init__(kernel, array)
 
-    # TODO: add testing to this function
+    # TODO: write TEST
     def get_selected_machine_idx_in_original(self) -> tp.Optional[Action]:
         """This function need to return the original action to execute (machine) given all the dilation option"""
 
         assert isinstance(self.state, DilationState.FullyExpanded), f"When running get_selected_machine_idx should be fully expanded {self.state}"
-        self._calculate_original_cell_recursive(self.state)
+        self._calculate_original_cell_recursive()
 
+    # TODO: write TEST
     def _calculate_original_cell_recursive(self) -> Action:
-        assert isinstance(self.state,DilationState.FullyExpanded), f"When running get_selected_machine_idx should be fully expanded {self.state}"
-        match self.state:
-            case DilationState.FullyExpanded(prev, value, level):
-                pass
-            case _:
-                raise AssertionError("This code should be unreachable")
-
-        # assert self._current_dilation_level_ptr != 0,  f"When running get_selected_machine_idx level pointer should be equal to 0 and not {self._current_dilation_level_ptr}"
-        #
-        # # TODO: think about what happen if kernel is size of the input, in other word there is no real dilation, +1 out of bound
-        # prev_selected = self._prev_selected_cell[self._current_dilation_level_ptr]
-        # current_selected = self._prev_selected_cell[self._current_dilation_level_ptr + 1]
-        #
-        # if prev_selected is None or current_selected is None:
-        #     raise ValueError("Selected cells are not properly initialized")
-        #
-        # global_cell = global_cell_from_local(prev_selected, current_selected, self._kernel)
-        #
-        # return global_cell[0] * self._kernel[0] + global_cell[1]
+        current_state = self.state
+        final_action = (0, 0)
+        while True:
+            match current_state:
+                case DilationState.FullyExpanded(prev_action, _, _, _) | DilationState.Expanded(prev_action, _, _, _):
+                    final_action[0] += prev_action[0] * self._kernel[0]
+                    final_action[1] += prev_action[1] * self._kernel[1]
+                case DilationState.Initial:
+                    break
+                case _:
+                    raise ValueError
+        return final_action
 
 

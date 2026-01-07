@@ -3,40 +3,20 @@ import typing as tp
 import numpy.typing as npt
 import numpy as np
 
-from src.cluster.core.dilation import DilationProtocol, DilationState
+from src.cluster.core.dilation import AbstractDilation, DilationState, SelectCellAction
 from src.utils.array_operations import hierarchical_pooling, get_window_from_cell, global_cell_from_local
 
 Kernel = npt.NDArray[np.float64]
 State = npt.NDArray[np.float64]
 Action = int
 
-class MetricBasedDilator(DilationProtocol[Kernel, State]):
+class MetricBasedDilator(AbstractDilation[Kernel, State]):
 
-    def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]:
+    def get_window_from_cell(self, cell: SelectCellAction, level: int) -> State:
+        return get_window_from_cell(self._dilation_levels, level=1, cell=cell, kernel=self._kernel)
 
-        match self.state:
-            case DilationState.FullyExpanded(_, _, _):
-                raise ValueError("Cannot expand in fully expanded mode")
-            case DilationState.Initial(_, _, level) | DilationState.Expanded(_, _, _, level) if level == 1:
-                value = get_window_from_cell(self._dilation_levels, level=1, cell=cell, kernel=self._kernel)
-                self.state = DilationState.FullyExpanded(prev_action=cell,prev_value=self.state, value=value, level=0)
-            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level):
-                value = get_window_from_cell(self._dilation_levels, level=level, cell=cell, kernel=self._kernel)
-                self.state = DilationState.Expanded(prev_action=cell,prev_value=self.state, value=value, level=level - 1)
-
-        return self.state
-
-    def generate_dilation_expansion(self, original: State) -> DilationState.Initial:
-        self._dilation_levels = hierarchical_pooling(original, self._kernel, fill_value=self._fill_value,operation=self._operation)
-        self._n_levels = len(self._dilation_levels)
-
-        if self._n_levels < 1:
-            raise ValueError("Cannot call dilation on input with same size as kernel")
-
-        level = self._n_levels-1
-        self.state = DilationState.Initial(value=self._dilation_levels[level], level=level)
-
-        return self.state
+    def generate_dilation_levels(self, original: State) -> tp.List[State]:
+        return hierarchical_pooling(original, self._kernel, fill_value=self._fill_value, operation=self._operation)
 
     def __init__(
             self,
@@ -46,14 +26,9 @@ class MetricBasedDilator(DilationProtocol[Kernel, State]):
             fill_value: float = 0.0,
             operation: tp.Callable
     ) -> None:
-        self._kernel = kernel
         self._fill_value = fill_value
         self._operation = operation
-        self.state = None
-        self._dilation_levels = None
-        self._n_levels = None
-        self.generate_dilation_expansion(array)
-        assert self._n_levels >= 1, "Dilation can't be called on two small values"
+        super().__init__(kernel, array)
 
     # TODO: add testing to this function
     def get_selected_machine_idx_in_original(self) -> tp.Optional[Action]:

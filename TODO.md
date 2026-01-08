@@ -52,13 +52,21 @@ EMPTY
 
 Tasks:
 -----
+
+#### Important: 
+
 - [-] Create Dilation Gym Environment Wrapper `DilationWrapper`.
-- [-] Test `DilationWrapper`.
-- [ ] Create Dilation for DeepRM
-- [ ] Create Tests for DeepRM
+- [ ] Test `DilationWrapper`.
 - [ ] Implement Render technics to represent and visualize cluster result
 - [ ] Implement different reward Wrapper:
   -  [ ] Need to decide which one ?? 
+
+
+#### Side Note:
+
+- [ ] Create Dilation for DeepRM
+- [ ] Create Tests for DeepRM
+
   
 Finished Tasks:
 -----
@@ -78,7 +86,7 @@ Finished Tasks:
 - [X] Implement Dilation numpy functionality (`hierarchical_pooling`, `get_window_from_cell`, etc..) `array_operation.py`.
 - [X] Test Dilation numpy functionality.
 - [X] Implement Dilation Service for Metric based cluster `MetricBasedDilator`.
-- [X] Test Dilation `MetricBasedDilator`. (need to improve tests)
+- [X] Test Dilation `MetricBasedDilator`.
 
 ## Assumption
 - Dilation assume that cluster state is bigger than dilation & the kernel has no 1 in each of its diminution

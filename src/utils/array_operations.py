@@ -110,7 +110,7 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
     Returns a list of outputs at each level.
     """
     padded = pad_for_hierarchy(array, kernel, fill_value=fill_value)
-    outputs = []
+    outputs = [padded]
     max_levels = compute_levels(padded.shape, kernel)
     current = padded
 
@@ -120,7 +120,6 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
 
         current = pool_2d_first_two_dimensions(current, kernel, operation=operation)
         outputs.append(current)
-
 
 
     return outputs

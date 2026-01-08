@@ -15,7 +15,7 @@ class DilationState(tp.Generic[State]):
     FullyExpanded = Case(prev_action=SelectCellAction, prev_value=Expanded, value=State, level=int)
 
 
-class AbstractDilation(tp.Protocol[K, State]):
+class AbstractDilation(abc.ABC):
     state: DilationState[State]
     _kernel: tp.Tuple[int, int]
     _dilation_levels: tp.List[State]
@@ -43,7 +43,7 @@ class AbstractDilation(tp.Protocol[K, State]):
             match self.state:
                 case DilationState.FullyExpanded(_, _, _):
                     raise ValueError("Cannot expand in fully expanded mode")
-                case DilationState.Initial(_, _, level) | DilationState.Expanded(_, _, _, level) if level == 1:
+                case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level == 1:
                     value = self.get_window_from_cell(level=1, cell=cell)
                     self.state = DilationState.FullyExpanded(prev_action=cell, prev_value=self.state, value=value,level=0)
                 case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level):
@@ -72,3 +72,25 @@ class AbstractDilation(tp.Protocol[K, State]):
         self.state = DilationState.Initial(value=self._dilation_levels[level], level=level)
 
         return self.state
+
+    def get_selected_machine_idx_in_original(self, action: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+        """This function need to return the original action to execute (machine) given all the dilation option"""
+
+        assert isinstance(self.state, DilationState.FullyExpanded), f"When running get_selected_machine_idx should be fully expanded {self.state}"
+        assert action[0] < self._kernel[0] and action[1] < self._kernel[1]
+        return self._calculate_original_cell_recursive(self.state, action, self._kernel)
+
+    @classmethod
+    def _calculate_original_cell_recursive(cls, current_state: DilationState.FullyExpanded, action: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+        final_action = [action[0], action[1]]
+        while True:
+            match current_state:
+                case DilationState.FullyExpanded(prev_action, prev_state, _, _) | DilationState.Expanded(prev_action,prev_state, _, _):
+                    final_action[0] += prev_action[0] * kernel[0]
+                    final_action[1] += prev_action[1] * kernel[1]
+                    current_state = prev_state
+                case DilationState.Initial(_, _):
+                    break
+                case _:
+                    raise ValueError
+        return final_action[0], final_action[1]

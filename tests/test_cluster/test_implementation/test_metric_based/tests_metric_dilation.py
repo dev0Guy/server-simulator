@@ -1,4 +1,4 @@
-from src.cluster.core.dilation import  DilationState
+from src.cluster.core.dilation import DilationState, AbstractDilation
 from src.cluster.implementation.metric_based.dilation import MetricBasedDilator
 from src.utils import array_operations
 import numpy as np
@@ -186,3 +186,34 @@ def test_zoom_in_with_zoom_out_until_fully_expanded(array, kernel_with_points, o
                 break
             case _:
                 raise AssertionError
+
+
+# TODO: make property based testing
+def test_get_selected_machine_idx_multiple_levels():
+    kernel = (2, 2)
+    array = np.random.rand(4, 3, 2, 3)
+    dilator = MetricBasedDilator(kernel, array, operation=np.max)
+
+    actions = [(1, 0), (0, 1)]
+    state = dilator.state
+    for action in actions:
+        match state:
+            case DilationState.FullyExpanded(_,_,_):
+                final = dilator.get_selected_machine_idx_in_original(action)
+                expected = (2, 1)
+
+                assert final == expected
+                break
+            case _:
+                state = dilator.expand(action)
+
+
+
+        # state = DilationState.Expanded(prev_action=action, prev=state, _, _)
+    #
+    # state = DilationState.FullyExpanded(prev_action=(2, 2), prev=state, _, _)
+    #
+    # expected_x = sum(a[0] * kernel[0] for a in actions + [(2, 2)])
+    # expected_y = sum(a[1] * kernel[1] for a in actions + [(2, 2)])
+    #
+    # assert dilator.get_selected_machine_idx_in_original() == (expected_x, expected_y)

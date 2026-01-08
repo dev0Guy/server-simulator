@@ -56,7 +56,7 @@ class AbstractDilation(abc.ABC):
         match self.state:
             case DilationState.Initial(_):
                 return self.state
-            case DilationState.Expanded(prev, _, _, _) | DilationState.FullyExpanded(prev, _, _, _):
+            case DilationState.Expanded(_, prev, _, _) | DilationState.FullyExpanded(_, prev, _, _):
                 return prev
             case _:
                 raise ValueError("Unreachable code")

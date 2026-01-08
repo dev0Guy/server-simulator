@@ -123,7 +123,7 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
     assume(m_x > k_x and m_y > k_y)
     assume(m_x % k_x == 0 and m_y % k_y == 0)
 
-    outputs = array_operations.hierarchical_pooling(array, kernel, operation=operation)
+    original, *outputs = array_operations.hierarchical_pooling(array, kernel, operation=operation)
 
     assert isinstance(outputs, list), f"hierarchical_pooling should return a list, got {type(outputs)} instead"
     assert len(outputs) > 0, "hierarchical_pooling returned an empty list; at least one level of pooling is expected"
@@ -139,6 +139,8 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
         )
 
     padded = array_operations.pad_for_hierarchy(array, kernel)
+    assert np.allclose(original, padded)
+
     prev_shape = padded.shape[:2]
     for i, level in enumerate(outputs):
         new_shape = level.shape[:2]

@@ -167,8 +167,6 @@ def test_zoom_out_on_initialization_does_nothing(array, kernel, operation):
         case _:
             raise AssertionError
 
-
-# TODO: FIX Unsatisfiable
 @given(
     parameters=dilator_kernel_and_points()
 )

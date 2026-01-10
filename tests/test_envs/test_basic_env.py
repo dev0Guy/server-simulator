@@ -1,6 +1,7 @@
 import numpy as np
 import typing as tp
 
+from src.cluster.core.cluster import ClusterAction
 from src.cluster.core.job import Status
 from src.envs.basic import BasicClusterEnv
 from src.cluster.implementation.single_slot import SingleSlotCluster
@@ -68,7 +69,8 @@ def test_env_reset(
 @given(env=cluster_env_strategy())
 def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
     _, prev_info = env.reset()
-    obs, reward, terminated, truncated, current_info = env.step(0)
+    skip_time_action = (1, (-1, -1))
+    obs, reward, terminated, truncated, current_info = env.step(skip_time_action)
     assert env._get_observation_space().contains(obs)
     assert prev_info["current_tick"] + 1 == current_info["current_tick"]
     assert all(
@@ -90,8 +92,8 @@ def test_step_schedule(
     assume(j_idx < env._cluster.n_jobs)
 
     prev_obs, prev_info = env.reset()
-    action = env.create_action_from(m_idx, j_idx)
-    current_obs, reward, terminated, truncated, current_info = env.step(action)
+    schedule_action = (0, (m_idx, j_idx))
+    current_obs, reward, terminated, truncated, current_info = env.step(schedule_action)
 
     assert env._get_observation_space().contains(current_obs)
     assert prev_info["jobs_status"][j_idx] == Status.Pending
@@ -106,8 +108,12 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.
     cluster = env._cluster
     scheduler = RandomScheduler(cluster.is_allocation_possible)
     while not cluster.is_finished():
-        output = scheduler.schedule(cluster._machines, cluster._jobs)
-        action = env.create_action_from(*output) if output is not None else 0
+        action = None
+        match scheduler.schedule(cluster._machines, cluster._jobs):
+            case None:
+                action = (1, (-1,-1))
+            case m_idx, j_idx:
+                action = (0, (m_idx, j_idx))
         current_obs, reward, terminated, truncated, current_info = env.step(action)
         assert env._get_observation_space().contains(current_obs)
         assert reward == none_pending_job_change_reward(prev_info, current_info)

@@ -1,6 +1,8 @@
 import typing as tp
 import abc
 
+from rust_enum import enum, Case
+
 from src.cluster.core.job import Job, JobCollection, JobsRepresentation
 from src.cluster.core.job import Status as JobStatus
 from src.cluster.core.machine import Machine, MachineCollection, MachinesRepresentation
@@ -13,6 +15,39 @@ Jobs = tp.TypeVar("Jobs", bound=JobCollection[T])
 class ClusterObservation(tp.TypedDict):
     machines: MachinesRepresentation
     jobs: JobsRepresentation
+
+@enum
+class ClusterAction:
+    SkipTime = Case()
+    Schedule = Case(machine=int, job=int)
+
+    @classmethod
+    def cast_schedule(cls, value: tp.Optional[tp.Tuple[int, int]]) -> 'ClusterAction':
+        if value is None:
+            return cls.SkipTime()
+
+        return cls.Schedule(*value)
+
+"""
+    def cast_action(self, action: int) -> tp.Optional[tuple[int, int]]:
+        if not (0 <= action <= self._action_combination):
+            raise ValueError(
+                f"Received action should be in range [{0},{self._action_combination}], which {action} don't fulfill."
+            )
+
+        if action == 0:
+            return None
+
+        adapted_action = action - 1
+        m_idx = adapted_action % self._cluster.n_machines
+        j_idx = adapted_action // self._cluster.n_machines
+
+        return m_idx, j_idx
+
+    def create_action_from(self, m_idx: int, j_idx: int) -> int:
+        return 1 + (m_idx + j_idx * self._cluster.n_machines)
+
+"""
 
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
@@ -46,7 +81,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
     def is_finished(self) -> bool:
         return all(job.status == JobStatus.Completed for job in self._jobs)
 
-    def get_representation(self) -> dict:
+    def get_representation(self) -> ClusterObservation:
         return ClusterObservation(
             machines= self._machines.get_representation(),
             jobs=self._jobs.get_representation()
@@ -83,3 +118,12 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
         self._current_tick = 0
         self._jobs = self.workload_creator(seed)
         self._machines.clean_and_reset(seed)
+
+    def execute(self, action: ClusterAction) -> tp.Optional[bool]:
+        match action:
+            case ClusterAction.SkipTime():
+                return self.execute_clock_tick()
+            case ClusterAction.Schedule(machine_idx, job_idx):
+                return self.schedule(machine_idx, job_idx)
+            case _:
+                raise AssertionError() # TODO: ADD Exception description

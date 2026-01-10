@@ -1,17 +1,25 @@
 import typing as tp
 
-import gymnasium as gym
 import numpy.typing as npt
 import numpy as np
-from src.cluster.core.cluster import ClusterABC, Machines, Jobs, ClusterObservation
+from rust_enum import enum, Case
+
+from src.cluster.core.cluster import ClusterABC, Machines, Jobs, ClusterObservation, ClusterAction
 
 InputActType = np.int64
 InfoType = tp.TypeVar("InfoType", bound=dict)
 T = tp.TypeVar("T", bound=type)
 
+import gymnasium as gym
+
+EnvAction = tp.Tuple[
+    int,
+    tp.Tuple[int, int]
+]
 
 
-class BasicClusterEnv(gym.Env[ClusterObservation, InputActType], tp.Generic[T, InfoType]):
+
+class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, InfoType]):
 
     def __init__(
         self,
@@ -23,10 +31,15 @@ class BasicClusterEnv(gym.Env[ClusterObservation, InputActType], tp.Generic[T, I
         self._reward_func = reward_func
         self._info_func = info_func
 
-        self.observation_space = self._get_observation_space
+        self.observation_space = self._get_observation_space()
 
-        self._action_combination = (self._cluster.n_machines * self._cluster.n_jobs) + 1
-        self.action_space = gym.spaces.Discrete(self._action_combination)
+        self.action_space = gym.spaces.Tuple((
+            gym.spaces.Discrete(2), # 0=NOOP, 1=APPLY
+            gym.spaces.Tuple((
+                gym.spaces.Discrete(self._cluster.n_machines),
+                gym.spaces.Discrete(self._cluster.n_jobs)
+            )),
+        ))
 
     def _get_observation_space(self) -> gym.spaces.Dict:
         machines_space = gym.spaces.Box(
@@ -46,7 +59,6 @@ class BasicClusterEnv(gym.Env[ClusterObservation, InputActType], tp.Generic[T, I
             jobs=jobs_space
         ))
 
-
     def reset(
         self,
         *,
@@ -62,17 +74,13 @@ class BasicClusterEnv(gym.Env[ClusterObservation, InputActType], tp.Generic[T, I
         return observation, info
 
     def step(
-        self, action: int
+        self, action: EnvAction
     ) -> tuple[ClusterObservation, tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
         prev_info = self._info_func(self._cluster)
 
-        match self.cast_action(action):
-            case None:
-                self._cluster.execute_clock_tick()
-            case (m_idx, j_idx):
-                self._cluster.schedule(m_idx, j_idx)
-            case _:
-                raise AssertionError("Expected code to be unreachable")
+        self._cluster.execute(
+            self.cast_action_to_cluster_action(action)
+        )
 
         observation = self._cluster.get_representation()
         info = self._info_func(self._cluster)
@@ -82,20 +90,12 @@ class BasicClusterEnv(gym.Env[ClusterObservation, InputActType], tp.Generic[T, I
 
         return observation, reward, terminated, truncated, info
 
-    def cast_action(self, action: int) -> tp.Optional[tuple[int, int]]:
-        if not (0 <= action <= self._action_combination):
-            raise ValueError(
-                f"Received action should be in range [{0},{self._action_combination}], which {action} don't fulfill."
-            )
 
-        if action == 0:
-            return None
+    @staticmethod
+    def cast_action_to_cluster_action(action: EnvAction) -> ClusterAction:
+        should_skip_time, (m_idx, j_idx) = action
+        if should_skip_time:
+            return ClusterAction.SkipTime()
 
-        adapted_action = action - 1
-        m_idx = adapted_action % self._cluster.n_machines
-        j_idx = adapted_action // self._cluster.n_machines
+        return ClusterAction.Schedule(m_idx, j_idx)
 
-        return m_idx, j_idx
-
-    def create_action_from(self, m_idx: int, j_idx: int) -> int:
-        return 1 + (m_idx + j_idx * self._cluster.n_machines)

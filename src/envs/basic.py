@@ -3,16 +3,15 @@ import typing as tp
 import gymnasium as gym
 import numpy.typing as npt
 import numpy as np
-from src.cluster.core.cluster import ClusterABC, Machines, Jobs
-
+from src.cluster.core.cluster import ClusterABC, Machines, Jobs, ClusterObservation
 
 InputActType = np.int64
 InfoType = tp.TypeVar("InfoType", bound=dict)
-T = tp.TypeVar("T")
-ObsType = npt.NDArray[T]
+T = tp.TypeVar("T", bound=type)
 
 
-class BasicClusterEnv(gym.Env[ObsType, InputActType], tp.Generic[T, InfoType]):
+
+class BasicClusterEnv(gym.Env[ClusterObservation, InputActType], tp.Generic[T, InfoType]):
 
     def __init__(
         self,
@@ -24,7 +23,7 @@ class BasicClusterEnv(gym.Env[ObsType, InputActType], tp.Generic[T, InfoType]):
         self._reward_func = reward_func
         self._info_func = info_func
 
-        self.observation_space = self._get_observation_space()
+        self.observation_space = self._get_observation_space
 
         self._action_combination = (self._cluster.n_machines * self._cluster.n_jobs) + 1
         self.action_space = gym.spaces.Discrete(self._action_combination)
@@ -42,9 +41,9 @@ class BasicClusterEnv(gym.Env[ObsType, InputActType], tp.Generic[T, InfoType]):
             shape=self._cluster._jobs.get_representation().shape,
             dtype=self._cluster._jobs.get_representation().dtype
         )
-        return gym.spaces.Dict(dict(
+        return gym.spaces.Dict(ClusterObservation(
             machines=machines_space,
-            jobs=jobs_space,
+            jobs=jobs_space
         ))
 
 
@@ -53,7 +52,7 @@ class BasicClusterEnv(gym.Env[ObsType, InputActType], tp.Generic[T, InfoType]):
         *,
         seed: int | None = None,
         options: dict[str, tp.Any] | None = None,
-    ) -> tuple[ObsType, dict[str, tp.Any]]:
+    ) -> tuple[ClusterObservation, dict[str, tp.Any]]:
         super().reset(seed=seed)
         self._cluster.reset(seed)
 
@@ -64,7 +63,7 @@ class BasicClusterEnv(gym.Env[ObsType, InputActType], tp.Generic[T, InfoType]):
 
     def step(
         self, action: int
-    ) -> tuple[ObsType, tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
+    ) -> tuple[ClusterObservation, tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
         prev_info = self._info_func(self._cluster)
 
         match self.cast_action(action):

@@ -1,16 +1,18 @@
 import typing as tp
-
-import gymnasium as gym
 import abc
 
-from src.cluster.core.job import Job, JobCollection
+from src.cluster.core.job import Job, JobCollection, JobsRepresentation
 from src.cluster.core.job import Status as JobStatus
-from src.cluster.core.machine import Machine, MachineCollection
+from src.cluster.core.machine import Machine, MachineCollection, MachinesRepresentation
 
 T = tp.TypeVar("T")
 
 Machines = tp.TypeVar("Machines", bound=MachineCollection[T])
 Jobs = tp.TypeVar("Jobs", bound=JobCollection[T])
+
+class ClusterObservation(tp.TypedDict):
+    machines: MachinesRepresentation
+    jobs: JobsRepresentation
 
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
@@ -45,10 +47,10 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
         return all(job.status == JobStatus.Completed for job in self._jobs)
 
     def get_representation(self) -> dict:
-        return {
-            "machines": self._machines.get_representation(),
-            "jobs": self._jobs.get_representation(),
-        }
+        return ClusterObservation(
+            machines= self._machines.get_representation(),
+            jobs=self._jobs.get_representation()
+        )
 
     def schedule(self, m_idx: int, j_idx: int) -> bool:
         job = self._jobs[j_idx]

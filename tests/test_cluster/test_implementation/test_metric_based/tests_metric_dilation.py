@@ -225,3 +225,7 @@ def test_get_selected_machine_idx_multiple_levels(array, kernel_with_points, ope
             case _:
                 state = dilator.expand(action)
 
+
+def test_execute_action() -> None:
+    # TODO: Implement
+    ...

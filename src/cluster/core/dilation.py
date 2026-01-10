@@ -14,8 +14,13 @@ class DilationState(tp.Generic[State]):
     Expanded = Case(prev_action=SelectCellAction, prev_value=tp.Union[Initial, 'Expanded'], value=State, level=int)
     FullyExpanded = Case(prev_action=SelectCellAction, prev_value=Expanded, value=State, level=int)
 
+@enum
+class DilationAction:
+    Expand = Case(x=int, y=int)
+    Contract = Case()
 
-class AbstractDilation(abc.ABC):
+
+class AbstractDilation(abc.ABC, tp.Generic[State]):
     state: DilationState[State]
     _kernel: tp.Tuple[int, int]
     _dilation_levels: tp.List[State]
@@ -60,6 +65,15 @@ class AbstractDilation(abc.ABC):
                 return prev
             case _:
                 raise ValueError("Unreachable code")
+
+    def execute(self, action: DilationAction) -> DilationState:
+        match action:
+            case DilationAction.Expand(x, y):
+                return self.expand((x,y))
+            case DilationAction.Contract():
+                return self.contract()
+            case _:
+                raise AssertionError()
 
     def generate_dilation_expansion(self, original: State) -> DilationState.Initial:
         self._dilation_levels = self.generate_dilation_levels(original)

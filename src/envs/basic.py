@@ -12,11 +12,26 @@ T = tp.TypeVar("T", bound=type)
 
 import gymnasium as gym
 
-EnvAction = tp.Tuple[
-    int,
-    tp.Tuple[int, int]
-]
+class EnvAction(tp.NamedTuple):
+    should_schedule: bool
+    schedule: tp.Tuple[int, int]
 
+    @staticmethod
+    def generate_space(n_machines: int, n_jobs: int) -> gym.spaces.Space['EnvAction']:
+        return gym.spaces.Tuple(( # type: ignore
+            gym.spaces.Discrete(2),
+            gym.spaces.Tuple((
+                gym.spaces.Discrete(n_machines),
+                gym.spaces.Discrete(n_jobs)
+            ))
+        ))
+
+    def to_cluster_action(self) -> ClusterAction:
+        if self.should_schedule:
+            return ClusterAction.SkipTime()
+
+        assert all(idx >= 0 for idx in self.schedule)
+        return ClusterAction.Schedule(*self.schedule)
 
 
 class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, InfoType]):
@@ -33,13 +48,7 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
 
         self.observation_space = self._get_observation_space()
 
-        self.action_space = gym.spaces.Tuple((
-            gym.spaces.Discrete(2), # 0=NOOP, 1=APPLY
-            gym.spaces.Tuple((
-                gym.spaces.Discrete(self._cluster.n_machines),
-                gym.spaces.Discrete(self._cluster.n_jobs)
-            )),
-        ))
+        self.action_space = EnvAction.generate_space(self._cluster.n_machines, self._cluster.n_jobs)
 
     def _get_observation_space(self) -> gym.spaces.Dict:
         machines_space = gym.spaces.Box(
@@ -76,11 +85,10 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
     def step(
         self, action: EnvAction
     ) -> tuple[ClusterObservation, tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
+        assert isinstance(action, EnvAction)
         prev_info = self._info_func(self._cluster)
-
-        self._cluster.execute(
-            self.cast_action_to_cluster_action(action)
-        )
+        cluster_action = action.to_cluster_action()
+        self._cluster.execute(cluster_action)
 
         observation = self._cluster.get_representation()
         info = self._info_func(self._cluster)
@@ -90,12 +98,4 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
 
         return observation, reward, terminated, truncated, info
 
-
-    @staticmethod
-    def cast_action_to_cluster_action(action: EnvAction) -> ClusterAction:
-        should_skip_time, (m_idx, j_idx) = action
-        if should_skip_time:
-            return ClusterAction.SkipTime()
-
-        return ClusterAction.Schedule(m_idx, j_idx)
 

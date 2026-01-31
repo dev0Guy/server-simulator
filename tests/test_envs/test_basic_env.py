@@ -3,7 +3,7 @@ import typing as tp
 
 from src.cluster.core.cluster import ClusterAction
 from src.cluster.core.job import Status
-from src.envs.basic import BasicClusterEnv
+from src.envs.basic import BasicClusterEnv, EnvAction
 from src.cluster.implementation.single_slot import SingleSlotCluster
 from hypothesis import given, strategies as st, assume
 
@@ -59,7 +59,7 @@ def test_env_reset(
     env: BasicClusterEnv[np.float64, InfoType]
 ):
    obs, info = env.reset()
-   assert env._get_observation_space().contains(obs)
+   assert env.generate_observation_space(env._cluster).contains(obs)
    assert isinstance(info, dict)
    assert info["n_machines"] == env._cluster.n_machines and info["n_jobs"] == env._cluster.n_jobs
    assert all(status == Status.Pending for status in info["jobs_status"])
@@ -69,9 +69,9 @@ def test_env_reset(
 @given(env=cluster_env_strategy())
 def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
     _, prev_info = env.reset()
-    skip_time_action = (1, (-1, -1))
+    skip_time_action = EnvAction(1, (-1, -1))
     obs, reward, terminated, truncated, current_info = env.step(skip_time_action)
-    assert env._get_observation_space().contains(obs)
+    assert env.generate_observation_space(env._cluster).contains(obs)
     assert prev_info["current_tick"] + 1 == current_info["current_tick"]
     assert all(
         prev_status == current_status
@@ -92,10 +92,10 @@ def test_step_schedule(
     assume(j_idx < env._cluster.n_jobs)
 
     prev_obs, prev_info = env.reset()
-    schedule_action = (0, (m_idx, j_idx))
+    schedule_action = EnvAction(False, (m_idx, j_idx))
     current_obs, reward, terminated, truncated, current_info = env.step(schedule_action)
 
-    assert env._get_observation_space().contains(current_obs)
+    assert env.generate_observation_space(env._cluster).contains(current_obs)
     assert prev_info["jobs_status"][j_idx] == Status.Pending
     assert current_info["jobs_status"][j_idx] == Status.Running
     assert current_obs["machines"][m_idx] == prev_obs["machines"][m_idx] - prev_obs["jobs"][j_idx]
@@ -111,11 +111,11 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.
         action = None
         match scheduler.schedule(cluster._machines, cluster._jobs):
             case None:
-                action = (1, (-1,-1))
+                action = EnvAction(True, (-1,-1))
             case m_idx, j_idx:
-                action = (0, (m_idx, j_idx))
+                action = EnvAction(False, (m_idx, j_idx))
         current_obs, reward, terminated, truncated, current_info = env.step(action)
-        assert env._get_observation_space().contains(current_obs)
+        assert env.generate_observation_space(env._cluster).contains(current_obs)
         assert reward == none_pending_job_change_reward(prev_info, current_info)
         prev_info = current_info
     assert terminated and all(

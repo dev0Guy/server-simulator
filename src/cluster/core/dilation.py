@@ -94,6 +94,9 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         assert action[0] < self._kernel[0] and action[1] < self._kernel[1]
         return self._calculate_original_cell_recursive(self.state, action, self._kernel)
 
+    def get_kernel(self) -> tp.Tuple[int, int]:
+        return self._kernel
+
     @classmethod
     def _calculate_original_cell_recursive(cls, current_state: DilationState.FullyExpanded, action: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
         final_action = [action[0], action[1]]

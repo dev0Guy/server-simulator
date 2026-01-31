@@ -28,28 +28,8 @@ class ClusterAction:
 
         return cls.Schedule(*value)
 
-"""
-    def cast_action(self, action: int) -> tp.Optional[tuple[int, int]]:
-        if not (0 <= action <= self._action_combination):
-            raise ValueError(
-                f"Received action should be in range [{0},{self._action_combination}], which {action} don't fulfill."
-            )
-
-        if action == 0:
-            return None
-
-        adapted_action = action - 1
-        m_idx = adapted_action % self._cluster.n_machines
-        j_idx = adapted_action // self._cluster.n_machines
-
-        return m_idx, j_idx
-
-    def create_action_from(self, m_idx: int, j_idx: int) -> int:
-        return 1 + (m_idx + j_idx * self._cluster.n_machines)
-
-"""
-
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
+
 
     @abc.abstractmethod
     def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...

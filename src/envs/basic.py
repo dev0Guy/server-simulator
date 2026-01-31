@@ -1,8 +1,5 @@
 import typing as tp
-
-import numpy.typing as npt
 import numpy as np
-from rust_enum import enum, Case
 
 from src.cluster.core.cluster import ClusterABC, Machines, Jobs, ClusterObservation, ClusterAction
 
@@ -36,6 +33,25 @@ class EnvAction(tp.NamedTuple):
 
 class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, InfoType]):
 
+    @staticmethod
+    def generate_observation_space(cluster: 'ClusterABC') -> gym.spaces.Dict:
+        machines_space = gym.spaces.Box(
+            low=0.0,
+            high=1.0,
+            shape=cluster._machines.get_representation().shape,
+            dtype=cluster._machines.get_representation().dtype
+        )
+        jobs_space = gym.spaces.Box(
+            low=0.0,
+            high=1.0,
+            shape=cluster._jobs.get_representation().shape,
+            dtype=cluster._jobs.get_representation().dtype
+        )
+        return gym.spaces.Dict(ClusterObservation( # type: ignore
+            machines=machines_space, # type: ignore
+            jobs=jobs_space # type: ignore
+        ))
+
     def __init__(
         self,
         cluster: ClusterABC[Machines, Jobs],
@@ -46,27 +62,10 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
         self._reward_func = reward_func
         self._info_func = info_func
 
-        self.observation_space = self._get_observation_space()
+        self.observation_space = self.generate_observation_space(self._cluster)
 
         self.action_space = EnvAction.generate_space(self._cluster.n_machines, self._cluster.n_jobs)
 
-    def _get_observation_space(self) -> gym.spaces.Dict:
-        machines_space = gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=self._cluster._machines.get_representation().shape,
-            dtype=self._cluster._machines.get_representation().dtype
-        )
-        jobs_space = gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=self._cluster._jobs.get_representation().shape,
-            dtype=self._cluster._jobs.get_representation().dtype
-        )
-        return gym.spaces.Dict(ClusterObservation(
-            machines=machines_space,
-            jobs=jobs_space
-        ))
 
     def reset(
         self,

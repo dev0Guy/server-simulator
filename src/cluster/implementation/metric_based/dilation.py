@@ -18,19 +18,28 @@ class MetricBasedDilator(AbstractDilation[State]):
     def generate_dilation_levels(self, original: State) -> tp.List[State]:
         return hierarchical_pooling(original, self._kernel, fill_value=self._fill_value, operation=self._operation)
 
-    def cast_into_dilation_format(self, array: State, grid_shape: tp.Tuple[int, int]) -> State:
+    @classmethod
+    def cast_into_dilation_format(cls, array: State, *, fill_value: float = 0.0) -> State:
         n_machines, n_resources, n_ticks =  array.shape
-        grid_size = grid_shape[0] * grid_shape[1]
+        reorganize_shape = cls._reorganize_array_shape(array)
+        grid_size = reorganize_shape[0] * reorganize_shape[1]
         if grid_size > n_machines:
             pad = grid_size - n_machines
             padding = ((0, pad), (0, 0), (0, 0))
-            array = np.pad(array, padding, mode="constant", constant_values=self._fill_value)
+            array = np.pad(array, padding, mode="constant", constant_values=fill_value)
 
         return array.reshape(
-            *grid_shape,
+            *reorganize_shape,
             n_resources,
             n_ticks,
         )
+
+    @staticmethod
+    def _reorganize_array_shape(array: State) -> tp.Tuple[int, int]:
+        n_machines = array.shape[0]
+        window_x = int(np.ceil(np.sqrt(n_machines)))
+        window_y = int(np.ceil(n_machines / window_x))
+        return window_x, window_y
 
     def __init__(
             self,
@@ -38,28 +47,20 @@ class MetricBasedDilator(AbstractDilation[State]):
             array: State,
             *,
             operation: tp.Callable,
-            fill_value: float = 0.0
+            fill_value: float = 0.0,
     ) -> None:
         self._fill_value = fill_value
         self._operation = operation
-        self._n_machines = array.shape[0]
-        window_x = int(np.ceil(np.sqrt(self._n_machines)))
-        window_y = int(np.ceil(self._n_machines / window_x))
-        self._original_2d_shape = (window_x, window_y)
-        grid = self.cast_into_dilation_format(array, grid_shape=self._original_2d_shape)
-        super().__init__(kernel, grid)
+        self._original_grid_shape: tp.Tuple[int, int] = array.shape[:2] # type: ignore
+        super().__init__(kernel, array)
 
-    def get_selected_machine(self, action: SelectCellAction) -> tp.Optional[int]:
+    def get_selected_machine(self, action: SelectCellAction) -> int:
         un_dilated_action = self.get_selected_initialize_cell(action)
-        return self._calculate_original_machine_index(un_dilated_action, self._original_2d_shape, self._n_machines)
+        return self._calculate_original_machine_index(un_dilated_action, self._original_grid_shape)
 
     @staticmethod
     def _calculate_original_machine_index(
         un_dilated_action: SelectCellAction,
         original_2d_shape: tp.Tuple[int,int],
-        number_of_machines: int
-    ) -> tp.Optional[int]:
-        machine_index = un_dilated_action[0] * original_2d_shape[1] + un_dilated_action[1]
-        if machine_index >= number_of_machines:
-            return None
-        return machine_index
+    ) -> int:
+        return un_dilated_action[0] * original_2d_shape[1] + un_dilated_action[1]

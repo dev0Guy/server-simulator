@@ -1,8 +1,8 @@
-import copy
 import typing as tp
 import numpy.typing as npt
 import abc
 from rust_enum import enum, Case
+import logging
 
 K = tp.TypeVar("K")
 State = tp.TypeVar("State", bound=npt.NDArray)
@@ -25,6 +25,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
     _kernel: tp.Tuple[int, int]
     _dilation_levels: tp.List[State]
     _n_levels: int
+    logger: logging.Logger
 
     @abc.abstractmethod
     def get_window_from_cell(self, cell: SelectCellAction, level:int) -> State: ...
@@ -35,11 +36,15 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
     @abc.abstractmethod
     def get_selected_machine(self, cell: SelectCellAction) -> tp.Optional[int]: ...
 
+    @abc.abstractclassmethod
+    def cast_into_dilation_format(cls, array: State) -> State: ...
+
     def __init__(
         self,
         kernel: tp.Tuple[int, int],
         array: State,
     ) -> None:
+        self.logger = logging.getLogger(type(self).__name__)
         self._kernel = kernel
         self._dilation_levels = None
         self._n_levels = None
@@ -47,24 +52,37 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
     def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]:
+        match self.state:
+            case DilationState.FullyExpanded(_, _, _):
+                raise ValueError("Cannot expand in fully expanded mode")
+            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level == 1:
+                value = self.get_window_from_cell(level=1, cell=cell)
+                self.logger.debug(
+                    "Expanding level: %d → %d",
+                    1,
+                    0,
+                )
+                self.state = DilationState.FullyExpanded(prev_action=cell, prev_value=self.state, value=value,level=0)
+            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level > 1:
+                value = self.get_window_from_cell(level=level, cell=cell)
+                self.logger.debug(
+                    "Expanding level: %d → %d",
+                    level,
+                    level - 1,
+                )
+                self.state = DilationState.Expanded(prev_action=cell, prev_value=self.state, value=value, level=level - 1)
+            case _:
+                raise AssertionError()
 
-            match self.state:
-                case DilationState.FullyExpanded(_, _, _):
-                    raise ValueError("Cannot expand in fully expanded mode")
-                case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level == 1:
-                    value = self.get_window_from_cell(level=1, cell=cell)
-                    self.state = DilationState.FullyExpanded(prev_action=cell, prev_value=self.state, value=value,level=0)
-                case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level):
-                    value = self.get_window_from_cell(level=level, cell=cell)
-                    self.state = DilationState.Expanded(prev_action=cell, prev_value=self.state, value=value, level=level - 1)
-
-            return self.state
+        return self.state
 
     def contract(self) -> tp.Union[DilationState.Initial, DilationState.Expanded]:
         match self.state:
             case DilationState.Initial(_):
+                self.logger.warning("Invalid action: cannot contract from initial (global) state")
                 return self.state
             case DilationState.Expanded(_, prev, _, _) | DilationState.FullyExpanded(_, prev, _, _):
+                self.logger.debug("Contracting to previous level")
                 return prev
             case _:
                 raise ValueError("Unreachable code")

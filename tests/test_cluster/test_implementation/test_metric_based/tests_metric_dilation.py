@@ -241,15 +241,11 @@ def test_calculate_original_machine_index(rows, cols, num_machines, x, y):
     original_2d_shape = (rows, cols)
     cell = (x, y)
 
-    idx = MetricBasedDilator._calculate_original_machine_index(cell, original_2d_shape, num_machines)
+    idx = MetricBasedDilator._calculate_original_machine_index(cell, original_2d_shape)
 
-    # Expected linear index
     expected_index = x * cols + y
 
-    if expected_index >= num_machines:
-        assert idx is None
-    else:
-        assert idx == expected_index
+    assert idx == expected_index
 
 
 def test_execute_action() -> None:

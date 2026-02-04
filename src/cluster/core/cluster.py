@@ -6,6 +6,7 @@ from rust_enum import enum, Case
 from src.cluster.core.job import Job, JobCollection, JobsRepresentation
 from src.cluster.core.job import Status as JobStatus
 from src.cluster.core.machine import Machine, MachineCollection, MachinesRepresentation
+import logging
 
 T = tp.TypeVar("T")
 
@@ -15,6 +16,8 @@ Jobs = tp.TypeVar("Jobs", bound=JobCollection)
 class ClusterObservation(tp.TypedDict):
     machines: MachinesRepresentation
     jobs: JobsRepresentation
+
+# TODO: Make the Init function get both workload_creator and machine_creator and seed
 
 @enum
 class ClusterAction:
@@ -48,6 +51,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
         self._jobs = self.workload_creator(seed)
         self._jobs.execute_clock_tick(self._current_tick)
         self._running_job_to_machine: dict[int, int] = {}
+        self.logger = logging.getLogger(type(self).__name__)
 
     @property
     def n_jobs(self) -> int:
@@ -71,18 +75,43 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
         machine = self._machines[m_idx]
 
         if job.status != JobStatus.Pending:
+            self.logger.warning(
+                "Invalid action: job %d has status %s (expected: Pending)",
+                j_idx,
+                job.status,
+            )
             return False
 
         if not self.is_allocation_possible(machine, job):
+            self.logger.warning(
+                "Schedule rejected: insufficient capacity | machine=%d job=%d",
+                m_idx,
+                j_idx,
+            )
             return False
 
         self.allocation(machine, job)
+        self.logger.info(
+            "Scheduling job %d on machine %d",
+            j_idx,
+            m_idx,
+        )
         job.status = JobStatus.Running
         job.run_time = 1 # Assume that if start running the in next one will finish
         self._running_job_to_machine[m_idx] = j_idx
+        self.logger.debug(
+            "Running job %d on machine %d",
+            j_idx,
+            m_idx,
+        )
         return True
 
     def execute_clock_tick(self) -> None:
+        self.logger.info(
+            "Executing clock tick: %d → %d",
+            self._current_tick,
+            self._current_tick + 1,
+        )
         self._current_tick += 1
         self._jobs.execute_clock_tick(self._current_tick)
         running_jobs = {

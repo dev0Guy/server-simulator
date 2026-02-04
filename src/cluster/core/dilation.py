@@ -32,6 +32,9 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
     @abc.abstractmethod
     def generate_dilation_levels(self, original: State) -> tp.List[State]: ...
 
+    @abc.abstractmethod
+    def get_selected_machine(self, cell: SelectCellAction) -> tp.Optional[int]: ...
+
     def __init__(
         self,
         kernel: tp.Tuple[int, int],
@@ -87,7 +90,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
 
         return self.state
 
-    def get_selected_machine_idx_in_original(self, action: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+    def get_selected_initialize_cell(self, action: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
         """This function need to return the original action to execute (machine) given all the dilation option"""
 
         assert isinstance(self.state, DilationState.FullyExpanded), f"When running get_selected_machine_idx should be fully expanded {self.state}"

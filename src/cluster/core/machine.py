@@ -2,7 +2,7 @@ import abc
 import typing as tp
 
 T = tp.TypeVar("T")
-MachinesRepresentation = tp.TypeVar("MachinesRepresentation", bound=tp.Iterable[T])
+MachinesRepresentation = tp.TypeVar("MachinesRepresentation", bound=tp.List)
 
 @tp.runtime_checkable
 class Machine(tp.Protocol[T]):

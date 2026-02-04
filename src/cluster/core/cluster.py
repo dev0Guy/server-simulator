@@ -9,8 +9,8 @@ from src.cluster.core.machine import Machine, MachineCollection, MachinesReprese
 
 T = tp.TypeVar("T")
 
-Machines = tp.TypeVar("Machines", bound=MachineCollection[T])
-Jobs = tp.TypeVar("Jobs", bound=JobCollection[T])
+Machines = tp.TypeVar("Machines", bound=MachineCollection)
+Jobs = tp.TypeVar("Jobs", bound=JobCollection)
 
 class ClusterObservation(tp.TypedDict):
     machines: MachinesRepresentation
@@ -29,7 +29,6 @@ class ClusterAction:
         return cls.Schedule(*value)
 
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
-
 
     @abc.abstractmethod
     def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...

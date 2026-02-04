@@ -197,7 +197,7 @@ def test_zoom_in_with_zoom_out_until_fully_expanded(parameters):
     operation=reduction_operation_strategy,
 )
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
-def test_get_selected_machine_idx_multiple_levels(array, kernel_with_points, operation):
+def test_get_selected_initialize_cell(array, kernel_with_points, operation):
     kernel, points = kernel_with_points
 
     assume_valid_dilation_case(array, kernel)
@@ -217,13 +217,39 @@ def test_get_selected_machine_idx_multiple_levels(array, kernel_with_points, ope
     for action in actions:
         match state:
             case DilationState.FullyExpanded(_,_,_):
-                final = dilator.get_selected_machine_idx_in_original(action)
+                final = dilator.get_selected_initialize_cell(action)
                 expected = (2, 1)
 
                 assert final == expected
                 break
             case _:
                 state = dilator.expand(action)
+
+
+@given(
+    rows=st.integers(min_value=1, max_value=10),
+    cols=st.integers(min_value=1, max_value=10),
+    num_machines=st.integers(min_value=1, max_value=100),
+    x=st.integers(min_value=0, max_value=9),
+    y=st.integers(min_value=0, max_value=9)
+)
+def test_calculate_original_machine_index(rows, cols, num_machines, x, y):
+    # TODO: Make sure its fine
+    x = min(x, rows - 1)
+    y = min(y, cols - 1)
+
+    original_2d_shape = (rows, cols)
+    cell = (x, y)
+
+    idx = MetricBasedDilator._calculate_original_machine_index(cell, original_2d_shape, num_machines)
+
+    # Expected linear index
+    expected_index = x * cols + y
+
+    if expected_index >= num_machines:
+        assert idx is None
+    else:
+        assert idx == expected_index
 
 
 def test_execute_action() -> None:

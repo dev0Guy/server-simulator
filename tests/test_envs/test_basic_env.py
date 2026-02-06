@@ -10,7 +10,7 @@ from src.scheduler.random_scheduler import RandomScheduler
 from tests.test_cluster.test_implementation.test_single_slot.utils import random_machine_with_static_machine
 
 machines_strategy = st.integers(min_value=1, max_value=5)
-jobs_strategy = st.integers(min_value=1, max_value=30)
+jobs_strategy = st.integers(min_value=1, max_value=31)
 seed_strategy = st.integers(0, 10_000)
 
 

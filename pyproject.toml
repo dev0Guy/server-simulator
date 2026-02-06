@@ -12,7 +12,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "coverage>=7.13.3",
     "hypothesis>=6.148.1",
+    "pyrefly>=0.51.1",
     "pytest>=8.4.2",
     "ruff>=0.14.0",
 ]

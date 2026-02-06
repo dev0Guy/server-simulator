@@ -132,5 +132,3 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.
         job.status == Status.Completed
         for job in cluster._jobs
     )
-
-## TODO: create Test for test env for each cluster option

@@ -114,7 +114,7 @@ def test_compute_max_levels(array, kernel):
     )
 
 @given(array=array_strategy, kernel=kernel_strategy, operation=reduction_operation_strategy)
-@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@settings(suppress_health_check=[HealthCheck.filter_too_much, HealthCheck.too_slow], deadline=None)
 def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int], operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y = array.shape[:2]

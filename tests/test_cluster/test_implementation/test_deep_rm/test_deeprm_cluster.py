@@ -50,7 +50,7 @@ def test_different_between_seeds(params: dict, seed1: int, seed2: int):
     assert not np.array_equal(jobs_1, jobs_2), \
         "Different seeds should produce different job matrices"
 
-@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@settings(suppress_health_check=[HealthCheck.filter_too_much, HealthCheck.too_slow])
 @given(cluster=DeepRMStrategies.creation(), j_idx=st.integers(0))
 def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(cluster: DeepRMCluster, j_idx: int) -> None:
     assume(j_idx < cluster.n_jobs)

@@ -1,1 +1,1 @@
-![Tests](https://github.com/<OWNER>/<REPO>/actions/workflows/coverage.yml/badge.svg)
+![Tests](https://github.com/dev0Guy/server-simulator/actions/workflows/tests.yml/badge.svg?branch=main)

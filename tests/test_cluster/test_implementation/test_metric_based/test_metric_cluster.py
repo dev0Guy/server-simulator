@@ -8,32 +8,15 @@ from src.cluster.implementation.metric_based import MetricCluster
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 
 from src.scheduler.random_scheduler import RandomScheduler
+from tests.strategies.cluster_strategies import MetricClusterStrategies
 from tests.test_cluster.test_implementation.test_single_slot.test_single_slot_cluster import seed_strategy
 import typing as tp
 
 EPSILON = np.finfo(float).eps
 
 
-def cluster_params_strategy():
-    return st.fixed_dictionaries({
-        "n_machines": st.integers(1, 10),
-        "n_jobs": st.integers(1, 20),
-        "n_resources": st.integers(1, 5),
-        "n_ticks": st.integers(2, 200),
-        "is_offline": st.booleans(),
-        "poisson_lambda": st.floats(
-            min_value=0.1,
-            max_value=15.0,
-            allow_nan=False,
-            allow_infinity=False,
-        )
-    })
 
-def cluster_strategy():
-    params = cluster_params_strategy()
-    return params.map(lambda p: MetricClusterCreator.generate_default(**p))
-
-@given(cluster=cluster_strategy())
+@given(cluster=MetricClusterStrategies.creation())
 def test_cluster_creation(
     cluster: MetricCluster
 ) -> None:
@@ -49,7 +32,7 @@ def test_cluster_creation(
 
 
 @given(
-    params=cluster_params_strategy(),
+    params=MetricClusterStrategies.initialization_parameters(),
     seed=seed_strategy,
 )
 def test_reproducibility(
@@ -65,7 +48,7 @@ def test_reproducibility(
     np.testing.assert_array_equal(jobs1, jobs2)
 
 @given(
-    params=cluster_params_strategy(),
+    params=MetricClusterStrategies.initialization_parameters(),
     seed1=seed_strategy,
     seed2=seed_strategy
 )
@@ -84,7 +67,7 @@ def test_different_between_seeds(params: dict, seed1: int, seed2: int):
 
 
 @given(
-    cluster=cluster_strategy(),
+    cluster=MetricClusterStrategies.creation(),
     machine_idx=st.integers(0),
     job_idx=st.integers(0)
 )
@@ -104,7 +87,7 @@ def test_schedule_available_on_machine_when_job_pending(
     assert cluster.schedule(machine_idx, job_idx), "Schedule should be possible specially when `is_allocation_possible` is true"
 
 @given(
-    cluster=cluster_strategy(),
+    cluster=MetricClusterStrategies.creation(),
     machine_idx=st.integers(0),
     job_idx=st.integers(0)
 )
@@ -127,7 +110,7 @@ def test_schedule_full_machine(
 
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
 @given(
-    cluster=cluster_strategy(),
+    cluster=MetricClusterStrategies.creation(),
     job_idx=st.integers(0)
 )
 def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(
@@ -146,7 +129,7 @@ def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(
 
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
 @given(
-    cluster=cluster_strategy(),
+    cluster=MetricClusterStrategies.creation(),
     machine_idx=st.integers(0),
     job_idx=st.integers(0),
 )
@@ -174,7 +157,7 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 
 
 
-@given(cluster=cluster_strategy())
+@given(cluster=MetricClusterStrategies.creation())
 def test_cluster_run_with_random_scheduler_until_completion(cluster: MetricCluster) -> None:
     scheduler = RandomScheduler(cluster.is_allocation_possible)
     while not cluster.is_finished():

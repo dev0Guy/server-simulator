@@ -1,7 +1,6 @@
 import numpy as np
 import typing as tp
 
-from src.cluster.core.cluster import ClusterAction
 from src.cluster.core.job import Status
 from src.envs.basic import BasicClusterEnv, EnvAction
 from src.cluster.implementation.single_slot import SingleSlotCluster
@@ -13,6 +12,7 @@ from tests.test_cluster.test_implementation.test_single_slot.utils import random
 machines_strategy = st.integers(min_value=1, max_value=5)
 jobs_strategy = st.integers(min_value=1, max_value=30)
 seed_strategy = st.integers(0, 10_000)
+
 
 class InfoType(tp.TypedDict):
     n_machines: int
@@ -28,7 +28,6 @@ def cluster_params_strategy():
         "seed": seed_strategy,
     })
 
-
 def none_pending_job_change_reward(prev_info: InfoType, current_info: InfoType) -> float:
     prev_not_pending_jobs_count = sum(s != Status.Pending for s in prev_info["jobs_status"])
     current_not_pending_jobs_count = sum(s != Status.Pending for s in current_info["jobs_status"])
@@ -43,14 +42,25 @@ def fixed_info_func(cluster: SingleSlotCluster) -> InfoType:
         current_tick=cluster._current_tick
     )
 
-def cluster_env_strategy():
-    params = cluster_params_strategy()
-    return params.map(
-        lambda p: BasicClusterEnv(
-            random_machine_with_static_machine(**p),
-            none_pending_job_change_reward,
-            fixed_info_func
-        )
+
+# TODO: part of the cluster env create deep_rm/metric_based/single_slot
+
+@st.composite
+def cluster_env_strategy(draw):
+    n_machines = draw(machines_strategy)
+    n_jobs = draw(jobs_strategy)
+    seed = draw(seed_strategy)
+
+    cluster = random_machine_with_static_machine(
+        n_machines=n_machines,
+        n_jobs=n_jobs,
+        seed=seed,
+    )
+
+    return BasicClusterEnv(
+        cluster,
+        none_pending_job_change_reward,
+        fixed_info_func,
     )
 
 
@@ -122,3 +132,5 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.
         job.status == Status.Completed
         for job in cluster._jobs
     )
+
+## TODO: create Test for test env for each cluster option

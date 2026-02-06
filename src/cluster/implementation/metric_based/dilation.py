@@ -23,6 +23,7 @@ class MetricBasedDilator(AbstractDilation[State]):
         n_machines, n_resources, n_ticks =  array.shape
         reorganize_shape = cls._reorganize_array_shape(array)
         grid_size = reorganize_shape[0] * reorganize_shape[1]
+
         if grid_size > n_machines:
             pad = grid_size - n_machines
             padding = ((0, pad), (0, 0), (0, 0))

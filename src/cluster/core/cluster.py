@@ -17,19 +17,12 @@ class ClusterObservation(tp.TypedDict):
     machines: MachinesRepresentation
     jobs: JobsRepresentation
 
-# TODO: Make the Init function get both workload_creator and machine_creator and seed
 
 @enum
 class ClusterAction:
     SkipTime = Case()
     Schedule = Case(machine=int, job=int)
 
-    @classmethod
-    def cast_schedule(cls, value: tp.Optional[tp.Tuple[int, int]]) -> 'ClusterAction':
-        if value is None:
-            return cls.SkipTime()
-
-        return cls.Schedule(*value)
 
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
@@ -45,7 +38,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
     @abc.abstractmethod
     def allocation(self, machine: Machine[T], job: Job[T]) -> None: ...
 
-    def __init__(self, seed: tp.Optional[tp.SupportsFloat] = None):
+    def __init__(self, seed: tp.Optional[tp.SupportsFloat]):
         self._current_tick = 0
         self._machines = self.machine_creator(seed)
         self._jobs = self.workload_creator(seed)

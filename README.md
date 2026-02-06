@@ -1,0 +1,1 @@
+![Tests](https://github.com/<OWNER>/<REPO>/actions/workflows/coverage.yml/badge.svg)

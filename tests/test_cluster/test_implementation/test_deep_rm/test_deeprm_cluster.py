@@ -9,6 +9,8 @@ from tests.test_cluster.test_implementation.test_single_slot.test_single_slot_cl
 from tests.strategies.cluster_strategies import DeepRMStrategies
 
 
+# TODO: add test for clean_and_reset
+
 @given(cluster=DeepRMStrategies.creation())
 def test_float_cluster_creation(cluster: DeepRMCluster):
     observation = cluster.get_representation()

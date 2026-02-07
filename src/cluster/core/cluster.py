@@ -126,5 +126,5 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
                 return self.execute_clock_tick()
             case ClusterAction.Schedule(machine_idx, job_idx):
                 return self.schedule(machine_idx, job_idx)
-            case _:
-                raise AssertionError() # TODO: ADD Exception description
+            case _action:
+                raise RuntimeError("Provided command should be %s or %s and not %s".format(ClusterAction.SkipTime.__class__, ClusterAction.Schedule.__class__, type(_action).__class__))

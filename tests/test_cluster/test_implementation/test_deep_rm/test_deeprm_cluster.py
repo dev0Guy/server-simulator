@@ -237,4 +237,7 @@ def test_cluster_reset_functionality(params: dict, seed: int) -> None:
     assert np.all(prev_jobs_status == after_rest_jobs_status)
     assert cluster._current_tick == 0
 
-# TODO add test where grid_size > n_machines:
+@given(cluster=DeepRMStrategies.creation())
+def test_cluster_execute_with_none_possible_action(cluster: DeepRMCluster) -> None:
+    with pytest.raises(RuntimeError):
+        cluster.execute(5)

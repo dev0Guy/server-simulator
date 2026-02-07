@@ -10,8 +10,6 @@ from src.scheduler.random_scheduler import RandomScheduler
 from tests.strategies.cluster_strategies.proto import ClusterStrategies
 from tests.strategies.cluster_strategies import MetricClusterStrategies, DeepRMStrategies, SingleSlotClusterStrategies
 
-
-
 CLUSTER_CLASS_OPTIONS: tp.Tuple[tp.Type[ClusterStrategies], ...] = (SingleSlotClusterStrategies, DeepRMStrategies, MetricClusterStrategies)
 
 
@@ -56,7 +54,8 @@ def cluster_env_strategy(draw):
 @st.composite
 def cluster_env_with_possible_allocation(draw) -> tp.Tuple[BasicClusterEnv, tp.Any, InfoType, int, int]:
     env = draw(cluster_env_strategy())
-    obs, info = env.reset()
+    seed = draw(st.integers(0, 10_000))
+    obs, info = env.reset(seed=seed)
 
     possible_pending_jobs = [
         idx

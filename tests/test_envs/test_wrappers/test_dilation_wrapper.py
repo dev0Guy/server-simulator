@@ -1,20 +1,17 @@
 import numpy as np
 import logging
 
-from tests.test_cluster.test_implementation.test_metric_based.tests_metric_dilation import kernel_strategy
-from tests.test_cluster.test_utils.test_array_operations import reduction_operation_strategy
-from tests.test_envs.test_basic_env import cluster_env_strategy
+# from tests.test_envs.test_basic_env import cluster_env_strategy
 
 logging.basicConfig(
     level=logging.DEBUG,  # minimum level to log
     format="[%(asctime)s][%(levelname)s][%(name)s] %(message)s",
 )
 
-from src.cluster.implementation.metric_based import MetricClusterCreator, MetricCluster
+from src.cluster.implementation.metric_based import MetricClusterCreator
 from src.envs import BasicClusterEnv
-from src.wrappers.dilation.dilation_wrapper import DilatorWrapper, EnvWrapperAction
+from src.envs.wrappers.dilation_wrapper import DilatorWrapper, EnvWrapperAction
 from src.cluster.implementation.metric_based.dilation import MetricBasedDilator
-from hypothesis import given, strategies as st, assume, settings, HealthCheck, reproduce_failure
 
 ## TODO: Create Composite that create the cluster
 

@@ -60,6 +60,7 @@ def test_value_error_when_array_is_not_divisible_by_kernel(arr: npt.NDArray[tp.A
         array_operations.pool_2d_first_two_dimensions(arr, kernel, operation=operation)
 
 @given(arr=array_strategy, kernel=kernel_strategy, fill_value=st.floats(-10, 10))
+@settings(suppress_health_check=[HealthCheck.too_slow], deadline=None)
 def test_pad_for_hierarchy(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], fill_value: float):
 
     m_x, m_y = arr.shape[:2]

@@ -9,6 +9,7 @@ from hypothesis import given, strategies as st, assume
 from src.scheduler.random_scheduler import RandomScheduler
 from tests.strategies.cluster_strategies.proto import ClusterStrategies
 from tests.strategies.cluster_strategies import MetricClusterStrategies, DeepRMStrategies, SingleSlotClusterStrategies
+from tests.strategies.env_strategies.basic_env_st import BasicGymEnvironmentStrategies, InfoType
 
 CLUSTER_CLASS_OPTIONS: tp.Tuple[tp.Type[ClusterStrategies], ...] = (SingleSlotClusterStrategies, DeepRMStrategies, MetricClusterStrategies)
 
@@ -16,69 +17,9 @@ CLUSTER_CLASS_OPTIONS: tp.Tuple[tp.Type[ClusterStrategies], ...] = (SingleSlotCl
 def machine_after_allocating_job(prev_obs: dict, m_idx, j_idx):
     return prev_obs["machines"][m_idx].astype(float) - prev_obs["jobs"][j_idx].astype(float)
 
-class InfoType(tp.TypedDict):
-    n_machines: int
-    n_jobs: int
-    jobs_status: list[Status]
-    current_tick: int
 
-def none_pending_job_change_reward(prev_info: InfoType, current_info: InfoType) -> float:
-    prev_not_pending_jobs_count = sum(s != Status.Pending for s in prev_info["jobs_status"])
-    current_not_pending_jobs_count = sum(s != Status.Pending for s in current_info["jobs_status"])
-    return current_not_pending_jobs_count - prev_not_pending_jobs_count
 
-def fixed_info_func(cluster: SingleSlotCluster) -> InfoType:
-    representation: dict = cluster.get_representation()
-    return InfoType(
-        n_machines=representation["machines"].shape[0],
-        n_jobs=representation["jobs"].shape[0],
-        jobs_status=[j.status for j in iter(cluster._jobs)],
-        current_tick=cluster._current_tick
-    )
-
-def is_allocation_possible(machine: np.ndarray, job: np.ndarray) -> bool:
-    leftover = machine.astype(float) - job.astype(float)
-    return np.all(leftover >= 0)
-
-@st.composite
-def cluster_env_strategy(draw):
-    cluster_class = draw(st.sampled_from(CLUSTER_CLASS_OPTIONS))
-    cluster = draw(cluster_class.creation())
-
-    return BasicClusterEnv(
-        cluster,
-        none_pending_job_change_reward,
-        fixed_info_func,
-    )
-
-@st.composite
-def cluster_env_with_possible_allocation(draw) -> tp.Tuple[BasicClusterEnv, tp.Any, InfoType, int, int]:
-    env = draw(cluster_env_strategy())
-    seed = draw(st.integers(0, 10_000))
-    obs, info = env.reset(seed=seed)
-
-    possible_pending_jobs = [
-        idx
-        for idx, status in enumerate(info["jobs_status"])
-        if status == Status.Pending
-    ]
-
-    assume(len(possible_pending_jobs) > 0)
-
-    j_idx = draw(st.sampled_from(possible_pending_jobs))
-
-    possible_machines = [
-        idx
-        for idx, machine in enumerate(obs["machines"])
-        if is_allocation_possible(machine, obs["jobs"][j_idx])
-    ]
-
-    assume(len(possible_machines) > 0)
-    m_idx = draw(st.sampled_from(possible_machines))
-
-    return env, obs, info, m_idx, j_idx
-
-@given(env=cluster_env_strategy())
+@given(env=BasicGymEnvironmentStrategies.creation())
 def test_env_reset(
     env: BasicClusterEnv[np.float64, InfoType]
 ): # READY
@@ -89,7 +30,7 @@ def test_env_reset(
    assert all(status in (Status.Pending, Status.NotCreated) for status in info["jobs_status"])
    assert info["current_tick"] == 0
 
-@given(env=cluster_env_strategy())
+@given(env=BasicGymEnvironmentStrategies.creation())
 def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
     acceptable_status_after_time_forward = [(Status.NotCreated, Status.NotCreated), (Status.NotCreated, Status.Pending), (Status.Pending, Status.Pending)]
     _, prev_info = env.reset()
@@ -103,10 +44,10 @@ def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
     )
     assert terminated is False
     assert truncated is False
-    assert reward == none_pending_job_change_reward(prev_info, current_info)
+    assert reward == BasicGymEnvironmentStrategies.none_pending_job_change_reward(prev_info, current_info)
 
 
-@given(params=cluster_env_with_possible_allocation())
+@given(params=BasicGymEnvironmentStrategies.creation_with_schedule_option())
 def test_step_schedule(
     params: tp.Tuple[BasicClusterEnv, tp.Any, InfoType, int, int]
 ):
@@ -134,7 +75,7 @@ def test_step_schedule(
     assert all_jobs_status_except_schedule_stay_the_same
     assert all_machines_free_space_stay_the_same
 
-@given(env=cluster_env_strategy())
+@given(env=BasicGymEnvironmentStrategies.creation())
 def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.float64, InfoType]) -> None:
     # TODO: Need to update scheduler
     _, prev_info  = env.reset()
@@ -149,7 +90,7 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.
                 action = EnvAction(False, (m_idx, j_idx))
         current_obs, reward, terminated, truncated, current_info = env.step(action)
         assert env.generate_observation_space(env._cluster).contains(current_obs)
-        assert reward == none_pending_job_change_reward(prev_info, current_info)
+        assert reward == BasicGymEnvironmentStrategies.none_pending_job_change_reward(prev_info, current_info)
         prev_info = current_info
     assert terminated and all(
         job.status == Status.Completed

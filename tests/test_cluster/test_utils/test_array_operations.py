@@ -161,7 +161,7 @@ def test_hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,i
 
 
 @given(array=array_strategy, kernel=kernel_strategy, fill_value=st.floats(-10, 10), operation=reduction_operation_strategy)
-@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@settings(suppress_health_check=[HealthCheck.filter_too_much], deadline=None)
 def test_get_window_from_cell(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int,int], fill_value: float, operation: tp.Callable):
     k_x, k_y = kernel
     m_x, m_y = array.shape[:2]

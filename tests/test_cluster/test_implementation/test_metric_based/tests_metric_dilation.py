@@ -247,7 +247,3 @@ def test_calculate_original_machine_index(rows, cols, num_machines, x, y):
 
     assert idx == expected_index
 
-
-def test_execute_action() -> None:
-    # TODO: Implement
-    ...

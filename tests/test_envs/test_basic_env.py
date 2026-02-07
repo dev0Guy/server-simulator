@@ -109,7 +109,7 @@ def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
 
 @given(params=cluster_env_with_possible_allocation())
 def test_step_schedule(
-    params: tp.Tuple[BasicClusterEnv, int, int]
+    params: tp.Tuple[BasicClusterEnv, tp.Any, InfoType, int, int]
 ):
     env, prev_obs, prev_info, m_idx, j_idx = params
 

@@ -15,6 +15,7 @@ dev = [
     "autopep8>=2.3.2",
     "coverage>=7.13.3",
     "hypothesis>=6.148.1",
+    "pre-commit>=4.5.1",
     "pyrefly>=0.51.1",
     "pytest>=8.4.2",
     "ruff>=0.14.0",

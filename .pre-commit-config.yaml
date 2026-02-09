@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v2.0.4
+    hooks:
+      - id: autopep8
+        args:
+          - --in-place
+          - --recursive
+          - --aggressive
+          - --aggressive
+
+#  - repo: https://github.com/facebook/pyrefly
+#    rev: main
+#    hooks:
+#      - id: pyrefly
+#        args: [check]
+
+  - repo: local
+    hooks:
+      - id: pytest-coverage
+        name: pytest with coverage
+        entry: bash -c 'COVERAGE_DISABLE_CACHE=1 coverage run -m pytest && coverage report -m --omit="*/tests/*" && coverage xml --omit="*/tests/*"'
+        language: system
+        pass_filenames: false
+        always_run: true

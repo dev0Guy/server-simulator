@@ -7,6 +7,7 @@ from src.cluster.core.cluster import ClusterABC
 
 Cluster = TypeVar('Cluster', bound=ClusterABC)
 
+
 @runtime_checkable
 class ClusterStrategies(Protocol[Cluster]):
 

@@ -32,8 +32,10 @@ def test_float_cluster_creation(n_machines: int, n_jobs: int):
 @given(n_machines=machines_strategy, n_jobs=jobs_strategy, seed=seed_strategy)
 @settings(max_examples=30)
 def test_reproducibility(n_machines: int, n_jobs: int, seed: int):
-    cluster1 = random_machine_with_static_machine(n_machines, n_jobs, seed=seed)
-    cluster2 = random_machine_with_static_machine(n_machines, n_jobs, seed=seed)
+    cluster1 = random_machine_with_static_machine(
+        n_machines, n_jobs, seed=seed)
+    cluster2 = random_machine_with_static_machine(
+        n_machines, n_jobs, seed=seed)
 
     jobs1 = cluster1.get_representation()["jobs"].copy()
     jobs2 = cluster2.get_representation()["jobs"].copy()
@@ -55,7 +57,8 @@ def test_schedule_available_last_job_to_first_machine(n_machines: int, n_jobs: i
     after_schedule_observation = cluster.get_representation()
     assert np.equal(
         after_schedule_observation["machines"][m_idx],
-        start_observation["machines"][m_idx] - start_observation["jobs"][j_idx],
+        start_observation["machines"][m_idx] -
+        start_observation["jobs"][j_idx],
     )
 
 
@@ -73,7 +76,8 @@ def test_schedule_twice_the_same(n_machines: int, n_jobs: int) -> None:
     after_schedule_observation = cluster.get_representation()
     assert np.equal(
         after_schedule_observation["machines"][m_idx],
-        start_observation["machines"][m_idx] - start_observation["jobs"][j_idx],
+        start_observation["machines"][m_idx] -
+        start_observation["jobs"][j_idx],
     )
 
     assert not cluster.schedule(m_idx, j_idx), "scheduling should be available"
@@ -100,7 +104,8 @@ def test_schedule_and_tick(n_machines: int, n_jobs: int) -> None:
     after_schedule_observation = cluster.get_representation()
     assert np.equal(
         after_schedule_observation["machines"][m_idx],
-        start_observation["machines"][m_idx] - start_observation["jobs"][j_idx],
+        start_observation["machines"][m_idx] -
+        start_observation["jobs"][j_idx],
     )
     assert not cluster.schedule(m_idx, j_idx), "scheduling should be available"
 
@@ -123,7 +128,8 @@ def test_tick_without_schedule(n_machines: int, n_jobs: int) -> None:
     cluster.execute_clock_tick()
     after_tick_observation = cluster.get_representation()
 
-    assert np.all(start_observation["machines"] == after_tick_observation["machines"])
+    assert np.all(start_observation["machines"]
+                  == after_tick_observation["machines"])
     assert np.all(start_observation["jobs"] == after_tick_observation["jobs"])
 
 
@@ -151,7 +157,8 @@ def test_single_machine_multiple_one_size_jobs(n_jobs: int, n_machines: int):
 @settings(max_examples=20)
 def test_single_machine_multiple_half_size_jobs(n_jobs: int, n_machines: int):
     static_value = 0.5
-    cluster = static_machine_with_static_machine(n_machines, n_jobs, static_value=static_value)
+    cluster = static_machine_with_static_machine(
+        n_machines, n_jobs, static_value=static_value)
 
     for j_idx in range(0, cluster.n_jobs, 2):
         assert not cluster.is_finished()

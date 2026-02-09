@@ -10,6 +10,7 @@ Kernel = npt.NDArray[np.float64]
 State = npt.NDArray[np.float64]
 Action = tp.Tuple[int, int]
 
+
 class MetricBasedDilator(AbstractDilation[State]):
 
     def get_window_from_cell(self, cell: SelectCellAction, level: int) -> State:
@@ -20,14 +21,15 @@ class MetricBasedDilator(AbstractDilation[State]):
 
     @classmethod
     def cast_into_dilation_format(cls, array: State, *, fill_value: float = 0.0) -> State:
-        n_machines, n_resources, n_ticks =  array.shape
+        n_machines, n_resources, n_ticks = array.shape
         reorganize_shape = cls._reorganize_array_shape(array)
         grid_size = reorganize_shape[0] * reorganize_shape[1]
 
         if grid_size > n_machines:
             pad = grid_size - n_machines
             padding = ((0, pad), (0, 0), (0, 0))
-            array = np.pad(array, padding, mode="constant", constant_values=fill_value)
+            array = np.pad(array, padding, mode="constant",
+                           constant_values=fill_value)
 
         return array.reshape(
             *reorganize_shape,
@@ -52,7 +54,9 @@ class MetricBasedDilator(AbstractDilation[State]):
     ) -> None:
         self._fill_value = fill_value
         self._operation = operation
-        self._original_grid_shape: tp.Tuple[int, int] = array.shape[:2] # type: ignore
+        self._original_grid_shape: tp.Tuple[int,
+                                            # type: ignore
+                                            int] = array.shape[:2]
         super().__init__(kernel, array)
 
     def get_selected_machine(self, action: SelectCellAction) -> int:
@@ -62,6 +66,6 @@ class MetricBasedDilator(AbstractDilation[State]):
     @staticmethod
     def _calculate_original_machine_index(
         un_dilated_action: SelectCellAction,
-        original_2d_shape: tp.Tuple[int,int],
+        original_2d_shape: tp.Tuple[int, int],
     ) -> int:
         return un_dilated_action[0] * original_2d_shape[1] + un_dilated_action[1]

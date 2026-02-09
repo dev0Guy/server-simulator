@@ -39,4 +39,3 @@ class SingleSlotJobs(JobCollection[npt.NDArray[np.float64]]):
 
     def get_representation(self) -> np.array:
         return np.array([j.usage for j in self])
-

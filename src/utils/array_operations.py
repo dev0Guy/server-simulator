@@ -3,6 +3,7 @@ import numpy.typing as npt
 import typing as tp
 import math
 
+
 def _smallest_n(shape: npt.ArrayLike, kernel: tp.Tuple[int, int]):
     m_x, m_y = shape[:2]
     k_x, k_y = kernel
@@ -42,7 +43,8 @@ def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int,
     """
 
     if len(arr.shape) != 4:
-        raise ValueError(f"Array shape should have 4 dimension of (WindowX, WindowY, OtherDim, OtherDim) and not {arr.shape}.")
+        raise ValueError(
+            f"Array shape should have 4 dimension of (WindowX, WindowY, OtherDim, OtherDim) and not {arr.shape}.")
     if len(kernel) != 2:
         raise ValueError(f"Kernel should be of size 2, not {len(kernel)}")
 
@@ -56,7 +58,8 @@ def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int,
             "to perform block operations."
         )
 
-    adjusted_array = arr.reshape(m_x// k_x, k_x, m_y // k_y, k_y, n_resources, n_ticks)
+    adjusted_array = arr.reshape(
+        m_x // k_x, k_x, m_y // k_y, k_y, n_resources, n_ticks)
 
     return operation(adjusted_array, axis=(1, 3))
 
@@ -103,7 +106,7 @@ def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *,
     return np.pad(array, pad_width=pad_width, mode='constant', constant_values=fill_value)
 
 
-def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable , fill_value: float = 0, ) -> tp.List[npt.NDArray[tp.Any]]:
+def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable, fill_value: float = 0, ) -> tp.List[npt.NDArray[tp.Any]]:
     """
     Recursively applies pool_2d_first_two_dimensions on arr.
     Pads once using minimal padding so that all levels are divisible by kernel.
@@ -118,9 +121,9 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
         if current.shape[0] <= kernel[0] or current.shape[1] <= kernel[1]:
             break
 
-        current = pool_2d_first_two_dimensions(current, kernel, operation=operation)
+        current = pool_2d_first_two_dimensions(
+            current, kernel, operation=operation)
         outputs.append(current)
-
 
     return outputs
 

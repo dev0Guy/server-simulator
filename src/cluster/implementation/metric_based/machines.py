@@ -5,7 +5,6 @@ from src.cluster.core.machine import Machine, MachineCollection
 from src.cluster.implementation.metric_based.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
 
 
-
 class MetricMachine(Machine[_MACHINE_TYPE]):
 
     def __init__(self, free_space: _MACHINE_TYPE) -> None:
@@ -16,10 +15,10 @@ class MetricMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
 
     def __init__(self, machines_usage: _MACHINES_TYPE) -> None:
         assert (
-                len(machines_usage.shape) == 3
+            len(machines_usage.shape) == 3
         ), "Machine shape should be 4 dim (n.machines, n.resource, n.ticks)."
         assert (
-                machines_usage.shape[2] > 1
+            machines_usage.shape[2] > 1
         ), "Machine should've more than single time slot (a.k.a time tick)."
         self._machines_usage = machines_usage
         self._machines = [

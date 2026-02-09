@@ -1,64 +1,35 @@
-import numpy as np
+from src.cluster.implementation.metric_based.dilation import MetricBasedDilator
+from src.envs.wrappers.dilation_wrapper import DilatorWrapper, EnvWrapperAction
+from typing import Tuple, Type
+from hypothesis import given, assume, settings, HealthCheck
 import logging
-
-# from tests.test_envs.test_basic_env import cluster_env_strategy
+from src.cluster.core.dilation import AbstractDilation
+from src.scheduler.random_scheduler import RandomScheduler
+from tests.strategies.dilation_strategies.metric_cluster_dilator_st import MetricClusterDilationStrategies
 
 logging.basicConfig(
     level=logging.DEBUG,  # minimum level to log
     format="[%(asctime)s][%(levelname)s][%(name)s] %(message)s",
 )
 
-from src.cluster.implementation.metric_based import MetricClusterCreator
-from src.envs import BasicClusterEnv
-from src.envs.wrappers.dilation_wrapper import DilatorWrapper, EnvWrapperAction
-from src.cluster.implementation.metric_based.dilation import MetricBasedDilator
 
-## TODO: Create Composite that create the cluster
-
-# @st.composite
-# def dilated_cluster_env_strategy(draw) -> DilatorWrapper:
-#     base_env = draw(cluster_env_strategy())
-#     kernel = draw(kernel_strategy)
-#     operation = draw(reduction_operation_strategy)
-#     wrapped_env = DilatorWrapper(
-#         base_env,
-#         dilator_type=MetricBasedDilator,
-#         kernel=kernel,
-#         operation=operation,
-#         fill_value=0.0,
-#     )
-#
-#     assume(wrapped_env._dilator._n_levels > 1)
-#     print(wrapped_env)
-#     return wrapped_env
-#
-# @given(dilated_cluster_env_strategy())
-# def test_example(env_wrapped) -> None:
-#     print(env_wrapped)
+DILATOR_CLASS_OPTIONS: Tuple[Type[AbstractDilation], ...] = (
+    MetricBasedDilator,)
 
 
-seed = 0
-cluster = MetricClusterCreator.generate_default(
-    n_machines=20,
-    n_jobs=4,
-    n_ticks=2,
-    n_resources=2,
-    is_offline=True,
-    seed=seed
-)
+@given(env=MetricClusterDilationStrategies.creation())
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
+def test_example_simple_run(env: DilatorWrapper):
+    action = EnvWrapperAction(
+        selected_machine_cell=(0, 0),
+        selected_job=0,
+        execute_schedule_command=False,
+        contract=False
+    )
 
-def reward_func(x, info)-> float:
-    return 0.0
+    scheduler = RandomScheduler(env.env._cluster.is_allocation_possible)
 
-original_env = BasicClusterEnv(cluster,reward_func=reward_func, info_func=lambda _: {})
-obs, _ = original_env.reset(seed=seed)
+    _, _ = env.reset()
 
-env = DilatorWrapper(original_env, dilator_type=MetricBasedDilator, kernel=(5,3), operation=np.max, fill_value=0.0)
-action = EnvWrapperAction(selected_machine_cell=(0,0), selected_job=3, execute_schedule_command=False, contract=False)
-
-_, _ = env.reset()
-
-while True:
     obs, *_ = env.step(action)
     obs, *_ = env.step(action)
-    break

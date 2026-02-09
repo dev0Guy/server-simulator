@@ -6,6 +6,7 @@ import numpy as np
 from src.cluster.core.machine import Machine, MachineCollection
 import numpy.typing as npt
 
+
 class SingleSlotMachine(Machine[np.float64]):
 
     def __init__(self, free_space: np.float64) -> None:

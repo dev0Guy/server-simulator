@@ -13,21 +13,16 @@ class RandomScheduler(ABCScheduler[T]):
         machines: MachineCollection[T],
         jobs: JobCollection[T]
     ) -> tp.Optional[tp.Tuple[int, int]]:
-        pending_jobs = [
-            j_idx
-            for j_idx, job in enumerate(iter(jobs))
-            if job.status == Status.Pending
-        ]
+
+        pending_jobs = self.pending_jobs(jobs)
 
         if not pending_jobs:
             return None
 
         selected_job = random.choice(pending_jobs)
-        possible_machines = [
-            m_idx
-            for m_idx, machine in enumerate(iter(machines))
-            if self._can_run_func(machine, jobs[selected_job])
-        ]
+
+        possible_machines = self.possible_machines(
+            jobs[selected_job], machines)
 
         if not possible_machines:
             return None

@@ -13,6 +13,7 @@ T = tp.TypeVar("T")
 Machines = tp.TypeVar("Machines", bound=MachineCollection)
 Jobs = tp.TypeVar("Jobs", bound=JobCollection)
 
+
 class ClusterObservation(tp.TypedDict):
     machines: MachinesRepresentation
     jobs: JobsRepresentation
@@ -27,13 +28,16 @@ class ClusterAction:
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
     @abc.abstractmethod
-    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
+    def workload_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
 
     @abc.abstractmethod
-    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
+    def machine_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
 
     @abc.abstractmethod
-    def is_allocation_possible(self, machine: Machine[T], job: Job[T]) -> bool: ...
+    def is_allocation_possible(
+        self, machine: Machine[T], job: Job[T]) -> bool: ...
 
     @abc.abstractmethod
     def allocation(self, machine: Machine[T], job: Job[T]) -> None: ...
@@ -59,7 +63,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
     def get_representation(self) -> ClusterObservation:
         return ClusterObservation(
-            machines= self._machines.get_representation(),
+            machines=self._machines.get_representation(),
             jobs=self._jobs.get_representation()
         )
 
@@ -90,7 +94,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
             m_idx,
         )
         job.status = JobStatus.Running
-        job.run_time = 1 # Assume that if start running the in next one will finish
+        job.run_time = 1  # Assume that if start running the in next one will finish
         self._running_job_to_machine[m_idx] = j_idx
         self.logger.debug(
             "Running job %d on machine %d",
@@ -112,7 +116,8 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
             for j_idx, job in enumerate(iter(self._jobs))
             if job.status != JobStatus.Running
         }
-        self._running_job_to_machine = {k: v for k,v in self._running_job_to_machine.items() if k in running_jobs}
+        self._running_job_to_machine = {
+            k: v for k, v in self._running_job_to_machine.items() if k in running_jobs}
         self._machines.execute_clock_tick()
 
     def reset(self, seed: tp.Optional[tp.SupportsFloat]) -> None:
@@ -127,4 +132,5 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
             case ClusterAction.Schedule(machine_idx, job_idx):
                 return self.schedule(machine_idx, job_idx)
             case _action:
-                raise RuntimeError("Provided command should be %s or %s and not %s".format(ClusterAction.SkipTime.__class__, ClusterAction.Schedule.__class__, type(_action).__class__))
+                raise RuntimeError("Provided command should be %s or %s and not %s".format(
+                    ClusterAction.SkipTime.__class__, ClusterAction.Schedule.__class__, type(_action).__class__))

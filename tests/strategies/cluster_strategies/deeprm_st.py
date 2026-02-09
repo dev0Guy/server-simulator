@@ -27,4 +27,3 @@ class DeepRMStrategies(ClusterStrategies[DeepRMCluster]):
     def creation() -> SearchStrategy[DeepRMCluster]:
         params = DeepRMStrategies.initialization_parameters()
         return params.map(lambda p: DeepRMCreators.generate_default_cluster(**p))
-

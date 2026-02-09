@@ -70,4 +70,3 @@ class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
 
     def get_representation(self) -> npt.NDArray[_JOB_TYPE]:
         return self._jobs_slots
-

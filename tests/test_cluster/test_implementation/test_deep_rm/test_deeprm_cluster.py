@@ -1,3 +1,8 @@
+from src.scheduler.random_scheduler import RandomScheduler
+from hypothesis import given, strategies as st, assume, settings, HealthCheck
+from src.cluster.implementation.deep_rm import DeepRMCreators, DeepRMCluster
+from src.cluster.core.job import Status
+import numpy as np
 import pytest
 from src.cluster.implementation.deep_rm import DeepRMCluster
 from hypothesis import given, strategies as st, settings, HealthCheck
@@ -29,6 +34,7 @@ def test_reproducibility(params: dict, seed: int):
 
     np.testing.assert_array_equal(jobs1, jobs2)
 
+
 @given(
     params=DeepRMStrategies.initialization_parameters(),
     seed1=seed_strategy,
@@ -46,6 +52,7 @@ def test_different_between_seeds(params: dict, seed1: int, seed2: int):
 
     assert not np.array_equal(jobs_1, jobs_2), \
         "Different seeds should produce different job matrices"
+
 
 @settings(suppress_health_check=[HealthCheck.filter_too_much, HealthCheck.too_slow])
 @given(cluster=DeepRMStrategies.creation(), j_idx=st.integers(0))
@@ -91,6 +98,7 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 
     assert job.status == Status.Completed
 
+
 @given(cluster=DeepRMStrategies.creation())
 def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMCluster) -> None:
     scheduler = RandomScheduler(cluster.is_allocation_possible)
@@ -107,17 +115,6 @@ def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMClust
         job.status == Status.Completed
         for job in cluster._jobs
     )
-
-
-import numpy as np
-import pytest
-from src.cluster.core.job import Status
-from src.cluster.implementation.deep_rm import DeepRMCreators, DeepRMCluster
-from hypothesis import given, strategies as st, assume, settings, HealthCheck
-
-from src.scheduler.random_scheduler import RandomScheduler
-from tests.test_cluster.test_implementation.test_single_slot.test_single_slot_cluster import seed_strategy
-from tests.strategies.cluster_strategies import DeepRMStrategies
 
 
 # TODO: add test for clean_and_reset
@@ -145,6 +142,7 @@ def test_reproducibility(params: dict, seed: int):
 
     np.testing.assert_array_equal(jobs1, jobs2)
 
+
 @given(
     params=DeepRMStrategies.initialization_parameters(),
     seed1=seed_strategy,
@@ -162,6 +160,7 @@ def test_different_between_seeds(params: dict, seed1: int, seed2: int):
 
     assert not np.array_equal(jobs_1, jobs_2), \
         "Different seeds should produce different job matrices"
+
 
 @settings(suppress_health_check=[HealthCheck.filter_too_much, HealthCheck.too_slow])
 @given(cluster=DeepRMStrategies.creation(), j_idx=st.integers(0))
@@ -207,6 +206,7 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 
     assert job.status == Status.Completed
 
+
 @given(cluster=DeepRMStrategies.creation())
 def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMCluster) -> None:
     scheduler = RandomScheduler(cluster.is_allocation_possible)
@@ -224,6 +224,7 @@ def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMClust
         for job in cluster._jobs
     )
 
+
 @given(params=DeepRMStrategies.initialization_parameters(), seed=seed_strategy)
 def test_cluster_reset_functionality(params: dict, seed: int) -> None:
     cluster = DeepRMCreators.generate_default_cluster(**params, seed=seed)
@@ -236,6 +237,7 @@ def test_cluster_reset_functionality(params: dict, seed: int) -> None:
 
     assert np.all(prev_jobs_status == after_rest_jobs_status)
     assert cluster._current_tick == 0
+
 
 @given(cluster=DeepRMStrategies.creation())
 def test_cluster_execute_with_none_possible_action(cluster: DeepRMCluster) -> None:

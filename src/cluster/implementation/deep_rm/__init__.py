@@ -9,6 +9,7 @@ from src.cluster.implementation.deep_rm.machines import DeepRMMachine, DeepRMMac
 
 from src.cluster.core.cluster import ClusterABC
 
+
 class DeepRMCluster(ClusterABC[DeepRMMachines, DeepRMJobs]):
 
     def __init__(
@@ -54,7 +55,8 @@ class DeepRMCreators:
 
             main_res = np.random.randint(0, n_resources, size=(n_jobs,))
             long_mask = np.zeros(n_jobs, dtype=bool)
-            long_mask[np.random.choice(n_jobs, int(0.2 * n_jobs), replace=False)] = True
+            long_mask[np.random.choice(n_jobs, int(
+                0.2 * n_jobs), replace=False)] = True
             durations = np.where(
                 long_mask,
                 np.random.randint(10, 15 + 1, size=n_jobs),
@@ -75,7 +77,8 @@ class DeepRMCreators:
                 np.random.uniform(0.5, 1.0, size=(n_jobs,)) * n_resource_unit
             ).astype(int)
             usage = np.ceil(
-                np.random.uniform(0.1, 0.2, size=(n_jobs, n_resources)) * n_resource_unit
+                np.random.uniform(0.1, 0.2, size=(
+                    n_jobs, n_resources)) * n_resource_unit
             ).astype(int)
             usage[np.arange(n_jobs), main_res] = main_usage_units
 
@@ -130,7 +133,9 @@ class DeepRMCreators:
         seed: tp.Optional[tp.SupportsFloat] = None,
     ) -> DeepRMCluster:
         return DeepRMCluster(
-            cls.generate_random_workload(n_jobs, n_resources, n_resource_unit, n_ticks, poisson_lambda, is_offline),
-            cls.generate_homogeneous_machines(n_machines, n_resources, n_resource_unit, n_ticks),
+            cls.generate_random_workload(
+                n_jobs, n_resources, n_resource_unit, n_ticks, poisson_lambda, is_offline),
+            cls.generate_homogeneous_machines(
+                n_machines, n_resources, n_resource_unit, n_ticks),
             seed=seed
         )

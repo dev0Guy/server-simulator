@@ -5,6 +5,7 @@ from src.envs import BasicClusterEnv
 from tests.strategies.cluster_strategies.proto import ClusterStrategies
 from src.cluster.implementation.single_slot import SingleSlotCluster, SingleSlotClusterCreators
 
+
 class SingleSlotClusterStrategies(ClusterStrategies[SingleSlotCluster]):
 
     @staticmethod

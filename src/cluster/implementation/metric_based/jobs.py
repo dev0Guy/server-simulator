@@ -6,6 +6,7 @@ import numpy.typing as npt
 from src.cluster.core.job import Job, Status, JobCollection
 from src.cluster.implementation.metric_based.custom_type import _JOBS_TYPE, _JOB_TYPE
 
+
 class MetricJobSlot(Job[_JOB_TYPE]):
 
     def __init__(self, usage: _JOB_TYPE, status: Status, arrival_time: int):
@@ -40,10 +41,10 @@ class MetricJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
         )
 
         assert (
-                n_jobs_slot == n_job_status
+            n_jobs_slot == n_job_status
         ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job status ({n_job_status})"
         assert (
-                n_jobs_slot == n_arrival
+            n_jobs_slot == n_arrival
         ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
 
         self._jobs_slots = job_slots
@@ -64,7 +65,6 @@ class MetricJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
 
     def __iter__(self) -> tp.Iterable[MetricJobSlot]:
         return iter(self._jobs)
-
 
     def get_representation(self) -> npt.NDArray[_JOB_TYPE]:
         return self._jobs_slots

@@ -19,18 +19,20 @@ class InfoType(TypedDict):
 
 
 class BasicGymEnvironmentStrategies:
-    CLUSTER_CLASS_OPTIONS = (SingleSlotClusterStrategies, DeepRMStrategies, MetricClusterStrategies)
+    CLUSTER_CLASS_OPTIONS = (SingleSlotClusterStrategies,
+                             DeepRMStrategies, MetricClusterStrategies)
 
     @staticmethod
     @st.composite
     def creation(draw):
-        cluster_class = draw(st.sampled_from(BasicGymEnvironmentStrategies.CLUSTER_CLASS_OPTIONS))
+        cluster_class = draw(st.sampled_from(
+            BasicGymEnvironmentStrategies.CLUSTER_CLASS_OPTIONS))
         cluster = draw(cluster_class.creation())
 
         return BasicClusterEnv(
             cluster,
-            BasicGymEnvironmentStrategies.none_pending_job_change_reward, # type: ignore
-            BasicGymEnvironmentStrategies.fixed_info_func, # type: ignore
+            BasicGymEnvironmentStrategies.none_pending_job_change_reward,  # type: ignore
+            BasicGymEnvironmentStrategies.fixed_info_func,  # type: ignore
         )
 
     @staticmethod
@@ -63,13 +65,15 @@ class BasicGymEnvironmentStrategies:
 
     @staticmethod
     def none_pending_job_change_reward(prev_info: InfoType, current_info: InfoType) -> float:
-        prev_not_pending_jobs_count = sum(s != Status.Pending for s in prev_info["jobs_status"])
-        current_not_pending_jobs_count = sum(s != Status.Pending for s in current_info["jobs_status"])
+        prev_not_pending_jobs_count = sum(
+            s != Status.Pending for s in prev_info["jobs_status"])
+        current_not_pending_jobs_count = sum(
+            s != Status.Pending for s in current_info["jobs_status"])
         return current_not_pending_jobs_count - prev_not_pending_jobs_count
 
     @staticmethod
     def fixed_info_func(cluster: SingleSlotCluster) -> InfoType:
-        representation: dict = cluster.get_representation() # type: ignore
+        representation: dict = cluster.get_representation()  # type: ignore
         return InfoType(
             n_machines=representation["machines"].shape[0],
             n_jobs=representation["jobs"].shape[0],

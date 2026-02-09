@@ -15,7 +15,6 @@ import typing as tp
 EPSILON = np.finfo(float).eps
 
 
-
 @given(cluster=MetricClusterStrategies.creation())
 def test_cluster_creation(
     cluster: MetricCluster
@@ -46,6 +45,7 @@ def test_reproducibility(
     jobs2 = cluster2._jobs._jobs_slots.copy()
 
     np.testing.assert_array_equal(jobs1, jobs2)
+
 
 @given(
     params=MetricClusterStrategies.initialization_parameters(),
@@ -84,7 +84,9 @@ def test_schedule_available_on_machine_when_job_pending(
     assume(np.all(machine.free_space >= job.usage))
 
     assert cluster.is_allocation_possible(machine, job)
-    assert cluster.schedule(machine_idx, job_idx), "Schedule should be possible specially when `is_allocation_possible` is true"
+    assert cluster.schedule(
+        machine_idx, job_idx), "Schedule should be possible specially when `is_allocation_possible` is true"
+
 
 @given(
     cluster=MetricClusterStrategies.creation(),
@@ -104,7 +106,7 @@ def test_schedule_full_machine(
 
     machine.free_space = job.usage - EPSILON
 
-    assert not cluster.is_allocation_possible(machine,job)
+    assert not cluster.is_allocation_possible(machine, job)
     assert not cluster.schedule(machine_idx, job_idx)
 
 
@@ -126,6 +128,7 @@ def test_job_status_change_to_pending_when_arrival_time_equal_to_current_tick(
         cluster.execute_clock_tick()
 
     assert job.status == Status.Pending
+
 
 @settings(suppress_health_check=[HealthCheck.filter_too_much])
 @given(
@@ -154,7 +157,6 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 
     assert job.status == Status.Completed
     assert job.tick_left is None
-
 
 
 @given(cluster=MetricClusterStrategies.creation())

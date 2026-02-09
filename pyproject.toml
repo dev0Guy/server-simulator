@@ -12,6 +12,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "autopep8>=2.3.2",
     "coverage>=7.13.3",
     "hypothesis>=6.148.1",
     "pyrefly>=0.51.1",

@@ -3,39 +3,33 @@ import typing as tp
 
 from src.cluster.core.job import Status
 from src.envs.basic import BasicClusterEnv, EnvAction
-from src.cluster.implementation.single_slot import SingleSlotCluster
-from hypothesis import given, strategies as st, assume
+from hypothesis import given
 
 from src.scheduler.random_scheduler import RandomScheduler
-from tests.strategies.cluster_strategies.proto import ClusterStrategies
-from tests.strategies.cluster_strategies import MetricClusterStrategies, DeepRMStrategies, SingleSlotClusterStrategies
 from tests.strategies.env_strategies.basic_env_st import BasicGymEnvironmentStrategies, InfoType
-
-CLUSTER_CLASS_OPTIONS: tp.Tuple[tp.Type[ClusterStrategies], ...] = (SingleSlotClusterStrategies, DeepRMStrategies, MetricClusterStrategies)
-
-
-def machine_after_allocating_job(prev_obs: dict, m_idx, j_idx):
-    return prev_obs["machines"][m_idx].astype(float) - prev_obs["jobs"][j_idx].astype(float)
-
 
 
 @given(env=BasicGymEnvironmentStrategies.creation())
 def test_env_reset(
     env: BasicClusterEnv[np.float64, InfoType]
-): # READY
-   obs, info = env.reset()
-   assert env.generate_observation_space(env._cluster).contains(obs)
-   assert isinstance(info, dict)
-   assert info["n_machines"] == env._cluster.n_machines and info["n_jobs"] == env._cluster.n_jobs
-   assert all(status in (Status.Pending, Status.NotCreated) for status in info["jobs_status"])
-   assert info["current_tick"] == 0
+):  # READY
+    obs, info = env.reset()
+    assert env.generate_observation_space(env._cluster).contains(obs)
+    assert isinstance(info, dict)
+    assert info["n_machines"] == env._cluster.n_machines and info["n_jobs"] == env._cluster.n_jobs
+    assert all(status in (Status.Pending, Status.NotCreated)
+               for status in info["jobs_status"])
+    assert info["current_tick"] == 0
+
 
 @given(env=BasicGymEnvironmentStrategies.creation())
 def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
-    acceptable_status_after_time_forward = [(Status.NotCreated, Status.NotCreated), (Status.NotCreated, Status.Pending), (Status.Pending, Status.Pending)]
+    acceptable_status_after_time_forward = [(Status.NotCreated, Status.NotCreated), (
+        Status.NotCreated, Status.Pending), (Status.Pending, Status.Pending)]
     _, prev_info = env.reset()
     skip_time_action = EnvAction(1, (-1, -1))
-    obs, reward, terminated, truncated, current_info = env.step(skip_time_action)
+    obs, reward, terminated, truncated, current_info = env.step(
+        skip_time_action)
     assert env.generate_observation_space(env._cluster).contains(obs)
     assert prev_info["current_tick"] + 1 == current_info["current_tick"]
     assert all(
@@ -44,7 +38,8 @@ def test_step_clock_tick(env: BasicClusterEnv[np.float64, InfoType]):
     )
     assert terminated is False
     assert truncated is False
-    assert reward == BasicGymEnvironmentStrategies.none_pending_job_change_reward(prev_info, current_info)
+    assert reward == BasicGymEnvironmentStrategies.none_pending_job_change_reward(
+        prev_info, current_info)
 
 
 @given(params=BasicGymEnvironmentStrategies.creation_with_schedule_option())
@@ -53,8 +48,9 @@ def test_step_schedule(
 ):
     env, prev_obs, prev_info, m_idx, j_idx = params
 
-    schedule_action = EnvAction(False, (m_idx, j_idx)) # schedule action
-    current_obs, reward, terminated, truncated, current_info = env.step(schedule_action)
+    schedule_action = EnvAction(False, (m_idx, j_idx))  # schedule action
+    current_obs, reward, terminated, truncated, current_info = env.step(
+        schedule_action)
 
     assert env.generate_observation_space(env._cluster).contains(current_obs)
     assert np.all(current_obs["machines"][m_idx] >= 0)
@@ -75,22 +71,26 @@ def test_step_schedule(
     assert all_jobs_status_except_schedule_stay_the_same
     assert all_machines_free_space_stay_the_same
 
+
 @given(env=BasicGymEnvironmentStrategies.creation())
 def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv[np.float64, InfoType]) -> None:
     # TODO: Need to update scheduler
-    _, prev_info  = env.reset()
+    _, prev_info = env.reset()
     cluster = env._cluster
     scheduler = RandomScheduler(cluster.is_allocation_possible)
     while not cluster.is_finished():
         action = None
         match scheduler.schedule(cluster._machines, cluster._jobs):
             case None:
-                action = EnvAction(True, (-1,-1))
+                action = EnvAction(True, (-1, -1))
             case m_idx, j_idx:
                 action = EnvAction(False, (m_idx, j_idx))
-        current_obs, reward, terminated, truncated, current_info = env.step(action)
-        assert env.generate_observation_space(env._cluster).contains(current_obs)
-        assert reward == BasicGymEnvironmentStrategies.none_pending_job_change_reward(prev_info, current_info)
+        current_obs, reward, terminated, truncated, current_info = env.step(
+            action)
+        assert env.generate_observation_space(
+            env._cluster).contains(current_obs)
+        assert reward == BasicGymEnvironmentStrategies.none_pending_job_change_reward(
+            prev_info, current_info)
         prev_info = current_info
     assert terminated and all(
         job.status == Status.Completed

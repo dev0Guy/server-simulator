@@ -1,3 +1,4 @@
+import gymnasium as gym
 import typing as tp
 import numpy as np
 
@@ -7,7 +8,6 @@ InputActType = np.int64
 InfoType = tp.TypeVar("InfoType", bound=dict)
 T = tp.TypeVar("T", bound=type)
 
-import gymnasium as gym
 
 class EnvAction(tp.NamedTuple):
     should_schedule: bool
@@ -15,7 +15,7 @@ class EnvAction(tp.NamedTuple):
 
     @staticmethod
     def generate_space(n_machines: int, n_jobs: int) -> gym.spaces.Space['EnvAction']:
-        return gym.spaces.Tuple(( # type: ignore
+        return gym.spaces.Tuple((  # type: ignore
             gym.spaces.Discrete(2),
             gym.spaces.Tuple((
                 gym.spaces.Discrete(n_machines),
@@ -47,9 +47,9 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
             shape=cluster._jobs.get_representation().shape,
             dtype=cluster._jobs.get_representation().dtype
         )
-        return gym.spaces.Dict(ClusterObservation( # type: ignore
-            machines=machines_space, # type: ignore
-            jobs=jobs_space # type: ignore
+        return gym.spaces.Dict(ClusterObservation(  # type: ignore
+            machines=machines_space,  # type: ignore
+            jobs=jobs_space  # type: ignore
         ))
 
     def __init__(
@@ -64,8 +64,8 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
 
         self.observation_space = self.generate_observation_space(self._cluster)
 
-        self.action_space = EnvAction.generate_space(self._cluster.n_machines, self._cluster.n_jobs)
-
+        self.action_space = EnvAction.generate_space(
+            self._cluster.n_machines, self._cluster.n_jobs)
 
     def reset(
         self,
@@ -96,5 +96,3 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
         truncated = False
 
         return observation, reward, terminated, truncated, info
-
-

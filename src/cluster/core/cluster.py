@@ -3,20 +3,15 @@ import abc
 
 from rust_enum import enum, Case
 
-from src.cluster.core.job import Job, JobCollection, JobsRepresentation
+from src.cluster.core.job import Job, JobCollection
 from src.cluster.core.job import Status as JobStatus
-from src.cluster.core.machine import Machine, MachineCollection, MachinesRepresentation
+from src.cluster.core.machine import Machine, MachineCollection
 import logging
 
 T = tp.TypeVar("T")
 
 Machines = tp.TypeVar("Machines", bound=MachineCollection)
 Jobs = tp.TypeVar("Jobs", bound=JobCollection)
-
-
-class ClusterObservation(tp.TypedDict):
-    machines: MachinesRepresentation
-    jobs: JobsRepresentation
 
 
 @enum
@@ -28,16 +23,14 @@ class ClusterAction:
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
     @abc.abstractmethod
-    def workload_creator(
-        self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
+    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs:
+        ...
 
     @abc.abstractmethod
-    def machine_creator(
-        self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
+    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
 
     @abc.abstractmethod
-    def is_allocation_possible(
-        self, machine: Machine[T], job: Job[T]) -> bool: ...
+    def is_allocation_possible(self, machine: Machine[T], job: Job[T]) -> bool: ...
 
     @abc.abstractmethod
     def allocation(self, machine: Machine[T], job: Job[T]) -> None: ...
@@ -60,12 +53,6 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
     def is_finished(self) -> bool:
         return all(job.status == JobStatus.Completed for job in self._jobs)
-
-    def get_representation(self) -> ClusterObservation:
-        return ClusterObservation(
-            machines=self._machines.get_representation(),
-            jobs=self._jobs.get_representation()
-        )
 
     def schedule(self, m_idx: int, j_idx: int) -> bool:
         job = self._jobs[j_idx]

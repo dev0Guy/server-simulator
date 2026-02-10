@@ -1,41 +1,45 @@
 import typing as tp
-
-import gymnasium as gym
+from typing import TypeAlias
+from typing_extensions import Unpack
 import numpy as np
+from src.cluster.core.machine import Machine, MachineCollection, MachineCollectionConvertor
 
-from src.cluster.core.machine import Machine, MachineCollection
-import numpy.typing as npt
+SingleSlotMachinesArgs: TypeAlias = np.ndarray
 
 
-class SingleSlotMachine(Machine[np.float64]):
+class SingleSlotMachine(Machine[float]):
+    free_space: float
 
-    def __init__(self, free_space: np.float64) -> None:
+    def __init__(self, free_space: float) -> None:
         self.free_space = free_space
 
 
-class SingleSlotMachines(MachineCollection[npt.NDArray[np.float64]]):
+class SingleSlotMachines(MachineCollection[float]):
     MAX_FREE_SPACE = 1.0
 
     def __init__(
         self,
-        machine_usage: np.ndarray,
+        *args: Unpack[SingleSlotMachinesArgs],
     ):
-        self.machine_usage = machine_usage
-        self._machines = [SingleSlotMachine(v) for v in self.machine_usage]
+        self._machines = [SingleSlotMachine(v) for v in args[0]]
 
     def __len__(self) -> int:
         return len(self._machines)
 
-    def __getitem__(self, item: int) -> Machine[np.float64]:
+    def __getitem__(self, item: int) -> Machine[float]:
         return self._machines[item]
 
     def clean_and_reset(self, seed: tp.Optional[int]) -> None:
         for idx, machine in enumerate(self._machines):
             machine.free_space = self.MAX_FREE_SPACE
 
-    def get_representation(self) -> np.array:
-        return np.array([m.free_space for m in self._machines])
-
     def execute_clock_tick(self) -> None:
         for machine in self._machines:
             machine.free_space = self.MAX_FREE_SPACE
+
+
+class SingleSlotMachinesConvertor(MachineCollectionConvertor[float, SingleSlotMachinesArgs]):
+
+    def to_representation(self, value: SingleSlotMachines) -> SingleSlotMachinesArgs:
+        return np.array([machine.free_space for machine in value._machines])
+

@@ -37,7 +37,7 @@ class SingleSlotClusterCreators:
             n_machines: int, value: tp.SupportsFloat = 1.0
     ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotMachines]:
         def inner(_: tp.Optional[tp.SupportsFloat]) -> SingleSlotMachines:
-            return SingleSlotMachines(machine_usage=np.zeros((n_machines,)) + value)
+            return SingleSlotMachines((np.zeros((n_machines,)) + value))
 
         return inner
 
@@ -63,7 +63,7 @@ class SingleSlotCluster(ClusterABC[SingleSlotMachines, SingleSlotJobs]):
 
     def is_allocation_possible(self, machine: SingleSlotMachine, job: SingleSlotJob) -> bool:
         left_space_after_allocation = machine.free_space - job.usage
-        return left_space_after_allocation >= 0
+        return np.all(left_space_after_allocation >= 0)
 
     def allocation(self, machine: SingleSlotMachine, job: SingleSlotJob) -> None:
         machine.free_space -= job.usage

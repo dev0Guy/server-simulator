@@ -2,9 +2,12 @@ import typing as tp
 
 import numpy as np
 import numpy.typing as npt
-
-from src.cluster.core.job import Job, JobCollection, Status
+from typing import TypeAlias
+from typing_extensions import Unpack
+from src.cluster.core.job import Job, JobCollection, Status, JobCollectionConvertor
 from src.cluster.implementation.deep_rm.custom_type import _JOB_TYPE, _JOBS_TYPE
+
+DeepRMJobsArgs: TypeAlias = tuple[_JOBS_TYPE, npt.NDArray[int], npt.NDArray[int]]
 
 
 class DeepRMJobSlot(Job[_JOB_TYPE]):
@@ -31,14 +34,13 @@ class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
 
     def __init__(
         self,
-        job_slots: _JOBS_TYPE,
-        job_status: npt.NDArray[int],
-        job_arrivals_time: npt.NDArray[int],
+        *args: Unpack[DeepRMJobsArgs]
     ) -> None:
+        self._job_slots, self._job_status, self._job_arrivals_time = args
         n_jobs_slot, n_job_status, n_arrival = (
-            job_slots.shape[0],
-            job_status.shape[0],
-            job_arrivals_time.shape[0],
+            self._job_slots.shape[0],
+            self._job_status.shape[0],
+            self._job_arrivals_time.shape[0],
         )
 
         assert (
@@ -48,14 +50,10 @@ class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
             n_jobs_slot == n_arrival
         ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
 
-        self._jobs_slots = job_slots
-        self._job_status = job_status
-        self._job_arrivals_time = job_arrivals_time
-
         self._jobs = [
             DeepRMJobSlot(slot_usage, status, arrival_time)
             for slot_usage, status, arrival_time in zip(
-                self._jobs_slots[:], self._job_status, self._job_arrivals_time
+                self._job_slots[:], self._job_status, self._job_arrivals_time
             )
         ]
 
@@ -68,5 +66,12 @@ class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
     def __iter__(self) -> tp.Iterable[DeepRMJobSlot]:
         return iter(self._jobs)
 
-    def get_representation(self) -> npt.NDArray[_JOB_TYPE]:
-        return self._jobs_slots
+
+class DeepRMJobsConvertor(JobCollectionConvertor[_JOB_TYPE, DeepRMJobsArgs]):
+
+    def to_representation(self, value: DeepRMJobs) -> DeepRMJobsArgs:
+        status = np.array([j.status for j in value._jobs])
+        arrivals_time = np.array([j.arrival_time for j in value._jobs])
+        return (
+            value._job_slots, status, arrivals_time
+        )

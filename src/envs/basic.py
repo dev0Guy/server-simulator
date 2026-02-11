@@ -2,7 +2,7 @@ import gymnasium as gym
 import typing as tp
 import numpy as np
 
-from src.cluster.core.cluster import ClusterABC, Machines, Jobs, ClusterObservation, ClusterAction
+from src.cluster.core.cluster import ClusterABC, Machines, Jobs, ClusterAction
 
 InputActType = np.int64
 InfoType = tp.TypeVar("InfoType", bound=dict)
@@ -31,7 +31,7 @@ class EnvAction(tp.NamedTuple):
         return ClusterAction.Schedule(*self.schedule)
 
 
-class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, InfoType]):
+class BasicClusterEnv(gym.Env['ClusterObservation', EnvAction], tp.Generic[T, InfoType]):
 
     @staticmethod
     def generate_observation_space(cluster: 'ClusterABC') -> gym.spaces.Dict:
@@ -72,7 +72,7 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
         *,
         seed: int | None = None,
         options: dict[str, tp.Any] | None = None,
-    ) -> tuple[ClusterObservation, dict[str, tp.Any]]:
+    ) -> tuple['ClusterObservation', dict[str, tp.Any]]:
         super().reset(seed=seed)
         self._cluster.reset(seed)
 
@@ -83,7 +83,7 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvAction], tp.Generic[T, Info
 
     def step(
         self, action: EnvAction
-    ) -> tuple[ClusterObservation, tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
+    ) -> tuple['ClusterObservation', tp.SupportsFloat, bool, bool, dict[str, tp.Any]]:
         assert isinstance(action, EnvAction)
         prev_info = self._info_func(self._cluster)
         cluster_action = action.to_cluster_action()

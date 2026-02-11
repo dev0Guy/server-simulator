@@ -116,7 +116,7 @@ class DeepRMCreators:
             machine_usage = np.ones(
                 (n_machines, n_resources, n_resource_units, n_ticks), dtype=np.bool_
             )
-            return DeepRMMachines(machine_usage)
+            return DeepRMMachines(machine_usage,)
 
         return inner
 

@@ -3,8 +3,7 @@ import pytest
 from src.cluster.core.job import Status
 import numpy as np
 
-from src.cluster.implementation.metric_based import MetricClusterCreator
-from src.cluster.implementation.metric_based import MetricCluster
+from src.cluster.implementation.metric_based import MetricClusterCreator, MetricCluster, MetricJobsConvertor, MetricMachinesConvertor
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 
 from src.scheduler.random_scheduler import RandomScheduler
@@ -14,22 +13,30 @@ import typing as tp
 
 EPSILON = np.finfo(float).eps
 
+@pytest.fixture(scope="module")
+def machines_convertor() -> MetricMachinesConvertor:
+    return MetricMachinesConvertor()
 
+@pytest.fixture(scope="module")
+def jobs_convertor() -> MetricJobsConvertor:
+    return MetricJobsConvertor()
+
+@pytest.mark.usefixtures("machines_convertor", "jobs_convertor")
 @given(cluster=MetricClusterStrategies.creation())
 def test_cluster_creation(
-    cluster: MetricCluster
+    cluster: MetricCluster,
+    machines_convertor: MetricMachinesConvertor,
+    jobs_convertor: MetricJobsConvertor
 ) -> None:
-    observation = cluster.get_representation()
+    initialize_machines_usage = machines_convertor.to_representation(cluster._machines)
+    initialize_jobs_usage, initialize_jobs_status, initialize_jobs_arrival_time = jobs_convertor.to_representation(cluster._jobs)
+    assert initialize_machines_usage.shape[0] == cluster.n_machines
+    assert initialize_jobs_usage.shape[0] == cluster.n_jobs
+    assert np.all(initialize_machines_usage == 1.0)
+    assert np.all(initialize_jobs_usage >= 0.0)
+    assert all(status in (Status.Pending,Status.NotCreated) for status in initialize_jobs_status)
 
-    assert observation["machines"].shape[0] == cluster.n_machines
-    assert observation["jobs"].shape[0] == cluster.n_jobs
-    assert np.all(observation["machines"] == 1.0)
-    assert np.all(observation["jobs"] >= 0.0)
-
-    for job in cluster._jobs:
-        assert job.status == Status.Pending or job.status == Status.NotCreated
-
-
+@pytest.mark.usefixtures("jobs_convertor")
 @given(
     params=MetricClusterStrategies.initialization_parameters(),
     seed=seed_strategy,
@@ -37,33 +44,38 @@ def test_cluster_creation(
 def test_reproducibility(
     params: dict,
     seed:  tp.Optional[tp.SupportsFloat],
+    jobs_convertor: MetricJobsConvertor
 ):
     cluster1 = MetricClusterCreator.generate_default(**params, seed=seed)
     cluster2 = MetricClusterCreator.generate_default(**params, seed=seed)
+    initialize_jobs_1_usage, initialize_jobs_1_status, initialize_jobs_1_arrival_time = jobs_convertor.to_representation(cluster1._jobs)
+    initialize_jobs_2_usage, initialize_jobs_2_status, initialize_jobs_2_arrival_time = jobs_convertor.to_representation(cluster2._jobs)
 
-    jobs1 = cluster1._jobs._jobs_slots.copy()
-    jobs2 = cluster2._jobs._jobs_slots.copy()
+    np.testing.assert_array_equal(initialize_jobs_1_usage, initialize_jobs_2_usage)
+    np.testing.assert_array_equal(initialize_jobs_1_status, initialize_jobs_2_status)
+    np.testing.assert_array_equal(initialize_jobs_1_arrival_time, initialize_jobs_2_arrival_time)
 
-    np.testing.assert_array_equal(jobs1, jobs2)
 
-
+@pytest.mark.usefixtures("jobs_convertor")
 @given(
     params=MetricClusterStrategies.initialization_parameters(),
     seed1=seed_strategy,
     seed2=seed_strategy
 )
 @pytest.mark.xfail(reason="Different seeds can still create same cluster Thus flakiness", strict=False)
-def test_different_between_seeds(params: dict, seed1: int, seed2: int):
+def test_different_between_seeds(params: dict, seed1: int, seed2: int, jobs_convertor: MetricJobsConvertor):
     assume(seed1 != seed2)
 
-    cluster_1 = MetricClusterCreator.generate_default(**params, seed=seed1)
-    cluster_2 = MetricClusterCreator.generate_default(**params, seed=seed2)
+    cluster1 = MetricClusterCreator.generate_default(**params, seed=seed1)
+    cluster2 = MetricClusterCreator.generate_default(**params, seed=seed2)
 
-    jobs_1 = cluster_1._jobs._jobs_slots.copy()
-    jobs_2 = cluster_2._jobs._jobs_slots.copy()
+    initialize_jobs_1_usage, initialize_jobs_1_status, initialize_jobs_1_arrival_time = jobs_convertor.to_representation(cluster1._jobs)
+    initialize_jobs_2_usage, initialize_jobs_2_status, initialize_jobs_2_arrival_time = jobs_convertor.to_representation(cluster2._jobs)
 
-    assert not np.array_equal(jobs_1, jobs_2), \
-        "Different seeds should produce different job matrices"
+    assert not np.array_equal(initialize_jobs_1_usage, initialize_jobs_2_usage), "Different seeds should produce different job matrices"
+    assert not np.array_equal(initialize_jobs_1_status, initialize_jobs_2_status), "Different seeds should produce different job matrices"
+    assert not np.array_equal(initialize_jobs_1_arrival_time, initialize_jobs_2_arrival_time), "Different seeds should produce different job matrices"
+
 
 
 @given(

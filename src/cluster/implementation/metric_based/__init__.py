@@ -4,8 +4,8 @@ import numpy as np
 
 from src.cluster.core.job import Status
 from src.cluster.implementation.metric_based.custom_type import _JOBS_TYPE, _MACHINE_TYPE, _DTYPE
-from src.cluster.implementation.metric_based.jobs import MetricJobSlot, MetricJobs
-from src.cluster.implementation.metric_based.machines import MetricMachine, MetricMachines
+from src.cluster.implementation.metric_based.jobs import MetricJobSlot, MetricJobs, MetricJobsConvertor
+from src.cluster.implementation.metric_based.machines import MetricMachine, MetricMachines, MetricMachinesConvertor
 
 from src.cluster.core.cluster import ClusterABC
 

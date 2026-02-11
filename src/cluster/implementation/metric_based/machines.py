@@ -1,8 +1,12 @@
 import typing as tp
+from typing import TypeAlias
+from typing_extensions import Unpack
 import numpy.typing as npt
 
-from src.cluster.core.machine import Machine, MachineCollection
+from src.cluster.core.machine import Machine, MachineCollection, MachineCollectionConvertor
 from src.cluster.implementation.metric_based.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
+
+MetricsMachinesArgs: TypeAlias = _MACHINES_TYPE
 
 
 class MetricMachine(Machine[_MACHINE_TYPE]):
@@ -13,14 +17,14 @@ class MetricMachine(Machine[_MACHINE_TYPE]):
 
 class MetricMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
 
-    def __init__(self, machines_usage: _MACHINES_TYPE) -> None:
+    def __init__(self, *args: Unpack[MetricsMachinesArgs]) -> None:
+        self._machines_usage = args[0]
         assert (
-            len(machines_usage.shape) == 3
+            len(self._machines_usage.shape) == 3
         ), "Machine shape should be 4 dim (n.machines, n.resource, n.ticks)."
         assert (
-            machines_usage.shape[2] > 1
+            self._machines_usage.shape[2] > 1
         ), "Machine should've more than single time slot (a.k.a time tick)."
-        self._machines_usage = machines_usage
         self._machines = [
             MetricMachine(self._machines_usage[idx, :])
             for idx in range(self._machines_usage.shape[0])
@@ -39,5 +43,8 @@ class MetricMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
         self._machines_usage[:, :-1] = self._machines_usage[:, 1:]
         self._machines_usage[:,  -1] = 1.0
 
-    def get_representation(self) -> npt.NDArray[_MACHINE_TYPE]:
-        return self._machines_usage[:]
+
+class MetricMachinesConvertor(MachineCollectionConvertor[_MACHINES_TYPE, MetricsMachinesArgs]):
+
+    def to_representation(self, value:MetricMachines) -> MetricsMachinesArgs:
+        return value._machines_usage[:]

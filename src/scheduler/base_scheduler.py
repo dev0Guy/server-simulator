@@ -1,3 +1,4 @@
+import logging
 import typing as tp
 import abc
 
@@ -13,6 +14,8 @@ class ABCScheduler(abc.ABC, tp.Generic[T]):
 
     def __init__(self, can_run_func: tp.Callable[[MachineT, JobT], bool]):
         self._can_run_func = can_run_func
+        self.logger = logging.getLogger(type(self).__name__)
+
 
     @staticmethod
     def pending_jobs(jobs: JobCollection[T]) -> tp.List[int]:

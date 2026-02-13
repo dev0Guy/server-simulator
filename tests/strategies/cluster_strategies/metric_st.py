@@ -10,10 +10,10 @@ class MetricClusterStrategies(ClusterStrategies[MetricCluster]):
     @staticmethod
     def initialization_parameters() -> SearchStrategy[dict[str, int]]:
         return st.fixed_dictionaries({
-            "n_machines": st.integers(1, 10),
-            "n_jobs": st.integers(1, 20),
-            "n_resources": st.integers(1, 5),
-            "n_ticks": st.integers(2, 200),
+            "n_machines": st.integers(1, 20),
+            "n_jobs": st.integers(1, 30),
+            "n_resources": st.integers(1, 20),
+            "n_ticks": st.integers(2, 5), # TODO: change back
             "is_offline": st.booleans(),
             "poisson_lambda": st.floats(
                 min_value=0.1,

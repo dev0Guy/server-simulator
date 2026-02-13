@@ -8,6 +8,7 @@ K = tp.TypeVar("K")
 State = tp.TypeVar("State", bound=npt.NDArray)
 SelectCellAction = tp.Tuple[int, int]
 
+# TODO: make dilator to allow multiple channel (a.k.a reduce functions provided by the client)
 
 @enum
 class DilationState(tp.Generic[State]):
@@ -63,6 +64,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
     def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]:
+        self.logger.info(f"Expanding on cell: {cell} on state: {type(self.state).__name__}")
         match self.state:
             case DilationState.FullyExpanded(_, _, _):
                 raise ValueError("Cannot expand in fully expanded mode")
@@ -73,8 +75,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
                     1,
                     0,
                 )
-                self.state = DilationState.FullyExpanded(
-                    prev_action=cell, prev_value=self.state, value=value, level=0)
+                self.state = DilationState.FullyExpanded(prev_action=cell, prev_value=self.state, value=value, level=0)
             case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level > 1:
                 value = self.get_window_from_cell(level=level, cell=cell)
                 self.logger.debug(
@@ -149,3 +150,8 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
                 case _:
                     raise ValueError
         return final_action[0], final_action[1]
+
+    @staticmethod
+    def reshape_machines(array: npt.NDArray) -> npt.ArrayLike:
+        m_x, m_y, r, t = array.shape
+        return array.reshape(-1, r, t)

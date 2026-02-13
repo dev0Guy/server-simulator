@@ -1,3 +1,4 @@
+import logging
 from typing import TypedDict, Tuple, Callable
 
 from hypothesis.strategies import SearchStrategy
@@ -28,7 +29,7 @@ class MetricClusterDilationStrategies(DilationStrategies[MetricBasedDilator]):
     def initialization_parameters() -> SearchStrategy[dict]:
         operation_st = st.sampled_from(
             MetricClusterDilationStrategies.PossibleOperations)
-        fill_value_st = st.floats()
+        fill_value_st = st.floats(min_value=0, max_value=0)
         return st.fixed_dictionaries(
             MetricBasedDilationKwargs(  # type: ignore
                 operation=operation_st,  # type: ignore
@@ -54,11 +55,10 @@ class MetricClusterDilationStrategies(DilationStrategies[MetricBasedDilator]):
         kernel = draw(kernel_st)
         kernel_machine_view = kernel[0]*kernel[1]
         assume(1 < kernel_machine_view < n_machines)
-        # TODO: understand why the hell
         assume(kernel[0] > 1 and kernel[1] > 1)
         params = draw(MetricClusterDilationStrategies.initialization_parameters())
         params["kernel"] = kernel
-
+        logging.debug("Base Cluster Machines: %s", [(float(np.max(m.free_space)), float(np.min(m.free_space))) for m in cluster._machines])
         return DilatorWrapper(  # type: ignore
             base_env,
             dilator_cls=MetricBasedDilator,

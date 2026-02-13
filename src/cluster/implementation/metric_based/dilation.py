@@ -69,3 +69,4 @@ class MetricBasedDilator(AbstractDilation[State]):
         original_2d_shape: tp.Tuple[int, int],
     ) -> int:
         return un_dilated_action[0] * original_2d_shape[1] + un_dilated_action[1]
+

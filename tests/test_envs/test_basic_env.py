@@ -1,10 +1,11 @@
+import logging
 from typing import Tuple, Any
 
 import numpy as np
 
 from src.cluster.core.job import Status
 from src.envs.basic import BasicClusterEnv
-from hypothesis import given
+from hypothesis import given, settings
 
 from src.envs.utils.info_builders.base import ClusterInformation
 from src.envs.utils.observation_extractors.proto import ClusterObservation
@@ -35,7 +36,7 @@ def test_step_clock_tick(env: BasicClusterEnv):
         (prev_status, current_status) in acceptable_status_after_time_forward
         for prev_status, current_status in zip(prev_info["jobs_status"], current_info["jobs_status"])
     )
-    assert terminated is False and truncated is False
+    assert bool(terminated) is False and bool(truncated) is False
 
 @given(params=BasicGymEnvironmentStrategies.creation_with_schedule_option())
 def test_step_schedule(
@@ -65,7 +66,9 @@ def test_step_schedule(
     assert all_machines_free_space_stay_the_same
 
 @given(env=BasicGymEnvironmentStrategies.creation())
+@settings(max_examples=1_000)
 def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv) -> None:
+    logging.info("Starting test_env_run_with_random_scheduler_until_completion")
     _, prev_info = env.reset()
     cluster = env._cluster
     scheduler = RandomScheduler(cluster.is_allocation_possible)
@@ -76,8 +79,9 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv) ->
                 action = EnvironmentAction(True, (-1, -1))
             case m_idx, j_idx:
                 action = EnvironmentAction(False, (m_idx, j_idx))
-        current_obs, reward, terminated, truncated, current_info = env.step(
-            action)
+            case _:
+                raise ValueError
+        current_obs, reward, terminated, truncated, current_info = env.step(action)
         assert env.observation_space.contains(current_obs)
     assert terminated and all(
         job.status == Status.Completed

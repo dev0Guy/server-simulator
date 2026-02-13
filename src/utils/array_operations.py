@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import numpy.typing as npt
 import typing as tp
@@ -145,6 +147,8 @@ def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]], level: int, cell
     start_y = cy * k_y
     end_x = start_x + k_x
     end_y = start_y + k_y
+
+    logging.debug("Selecting window [%d: %d, %d: %d] for original view [%d,%d]", start_x, end_x, start_y, end_y, prev_level.shape[0], prev_level.shape[1])
 
     return prev_level[start_x:end_x, start_y:end_y, ...]
 

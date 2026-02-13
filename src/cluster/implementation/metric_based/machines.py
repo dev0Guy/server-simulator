@@ -21,7 +21,7 @@ class MetricMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
         self._machines_usage = args[0]
         assert (
             len(self._machines_usage.shape) == 3
-        ), "Machine shape should be 4 dim (n.machines, n.resource, n.ticks)."
+        ), "Machine shape should be 3 dim (n.machines, n.resource, n.ticks)."
         assert (
             self._machines_usage.shape[2] > 1
         ), "Machine should've more than single time slot (a.k.a time tick)."

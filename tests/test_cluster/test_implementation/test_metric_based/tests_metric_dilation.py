@@ -249,7 +249,6 @@ def test_get_selected_initialize_cell(array, kernel_with_points, operation):
     y=st.integers(min_value=0, max_value=9)
 )
 def test_calculate_original_machine_index(rows, cols, x, y):
-    # TODO: Make sure its fine
     x = min(x, rows - 1)
     y = min(y, cols - 1)
 

@@ -1,5 +1,6 @@
 import typing as tp
 import random
+import numpy as np
 
 from src.cluster.core.job import JobCollection, Status
 from src.cluster.core.machine import MachineCollection
@@ -21,9 +22,10 @@ class RandomScheduler(ABCScheduler[T]):
 
         selected_job = random.choice(pending_jobs)
 
-        possible_machines = self.possible_machines(
-            jobs[selected_job], machines)
-
+        possible_machines = self.possible_machines(jobs[selected_job], machines)
+        self.logger.debug("Possible Options: %s", [(float(np.max(m.free_space)), float(np.min(m.free_space))) for m in machines])
+        self.logger.debug("possible machines: %d", len(possible_machines))
+        self.logger.debug("pending jobs: %d", len(pending_jobs))
         if not possible_machines:
             return None
 

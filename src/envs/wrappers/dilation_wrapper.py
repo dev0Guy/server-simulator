@@ -1,5 +1,5 @@
 import logging
-from typing import SupportsFloat, TypeVar, TypeAlias
+from typing import SupportsFloat, TypeVar, TypeAlias, Tuple
 
 import gymnasium as gym
 import typing as tp
@@ -47,19 +47,18 @@ class DilatorWrapper(
         is_in_dilation = converted_action is None
 
         if is_in_dilation:
-            return self._dilator.state.value,  0, False, False, None
+            self._current_observation["machines"] = self._dilator.state.value
+            if(self._current_observation["machines"].shape[0] == 0):
+                x = 3
+            return self._current_observation,  0, False, False, None
 
-        obs, reward, terminated, truncated, info = self.env.step(
-            converted_action)
-        self._dilator = self.dilator_from_machines_obs(obs["machines"])
-
+        obs, reward, terminated, truncated, info = self.env.step(converted_action)
         return self.update_and_convert_observation(obs), reward, terminated, truncated, info
 
     def reset(
         self, *, seed: int | None = None, options: WrapperInformation = None
     ) -> tuple[WrapperObservation, WrapperInformation]:
         obs, info = self.env.reset(seed=seed, options=options)
-        self._dilator = self.dilator_from_machines_obs(obs["machines"])
         return self.update_and_convert_observation(obs), info
 
     def cast_original_observation_space(self) -> gym.Space[WrapperObservation]:
@@ -69,9 +68,9 @@ class DilatorWrapper(
         new_machines_shape = (*self._dilator.get_kernel(), *original_machines_space.shape[1:])
         low_dilation_state = self.dilator_from_machines_obs(original_machines_space.low).state
         high_dilation_state = self.dilator_from_machines_obs(original_machines_space.low).state
-        machines_space = gym.spaces.Box(
-            low=low_dilation_state.value,
-            high=high_dilation_state.value,
+        machines_space = gym.spaces.Box( # TODO: understand the problem
+            low=0,#low_dilation_state.value,
+            high=1,#high_dilation_state.value,
             shape=new_machines_shape,
             dtype=original_machines_space.dtype
         )
@@ -101,8 +100,7 @@ class DilatorWrapper(
             self._dilator.execute(DilationAction.Contract())
             return None
         else:
-            self._dilator.execute(DilationAction.Expand(
-                x=action.selected_machine_cell[0], y=action.selected_machine_cell[1]))
+            self._dilator.execute(DilationAction.Expand(x=action.selected_machine_cell[0], y=action.selected_machine_cell[1]))
             return None
 
     def dilator_from_machines_obs(self, machines: np.ndarray) -> Dilator:
@@ -111,5 +109,11 @@ class DilatorWrapper(
 
     def update_and_convert_observation(self, obs: EnvironmentObservation) -> WrapperObservation:
         self._current_observation = obs.copy()
-        self._current_observation["machines"] = self._dilator.cast_into_dilation_format(self._current_observation["machines"])
+        self._dilator = self.dilator_from_machines_obs(self._current_observation["machines"])
+        self._current_observation["machines"] = self._dilator.state.value
         return self._current_observation
+
+    def cell_from_machine_idx(self, machine_idx: int) -> Tuple[int, int]:
+        kernel = self._dilator.get_kernel()
+        machine_x, machine_y = machine_idx % kernel[0], machine_idx // kernel[0]
+        return machine_x, machine_y

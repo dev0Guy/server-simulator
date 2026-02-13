@@ -1,6 +1,5 @@
 from typing import NamedTuple, Tuple
 import gymnasium as gym
-import abc
 
 from src.cluster.core.cluster import ClusterAction
 from src.envs.utils.common_types import Cluster

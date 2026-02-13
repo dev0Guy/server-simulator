@@ -207,13 +207,12 @@ def test_zoom_in_with_zoom_out_until_fully_expanded(parameters):
             case _:
                 raise AssertionError
 
-
 @given(
     array=array_strategy,
     kernel_with_points=kernel_and_points(),
     operation=reduction_operation_strategy,
 )
-@settings(suppress_health_check=[HealthCheck.filter_too_much])
+@settings(suppress_health_check=[HealthCheck.filter_too_much], max_examples=1_000)
 def test_get_selected_initialize_cell(array, kernel_with_points, operation):
     kernel, points = kernel_with_points
 
@@ -246,11 +245,10 @@ def test_get_selected_initialize_cell(array, kernel_with_points, operation):
 @given(
     rows=st.integers(min_value=1, max_value=10),
     cols=st.integers(min_value=1, max_value=10),
-    num_machines=st.integers(min_value=1, max_value=100),
     x=st.integers(min_value=0, max_value=9),
     y=st.integers(min_value=0, max_value=9)
 )
-def test_calculate_original_machine_index(rows, cols, num_machines, x, y):
+def test_calculate_original_machine_index(rows, cols, x, y):
     # TODO: Make sure its fine
     x = min(x, rows - 1)
     y = min(y, cols - 1)

@@ -11,6 +11,22 @@ class EnvironmentAction(NamedTuple):
     schedule: Tuple[int, int]
 
 
+class DilationEnvironmentAction(NamedTuple):
+    selected_machine_cell: Tuple[int, int]
+    selected_job: int
+    execute_schedule_command: bool  # a.k.a skip time
+    contract: bool
+
+    @classmethod
+    def into_action_space(cls, kernel_shape: Tuple[int, int], n_jobs: int) -> gym.Space[tuple]:
+        return gym.spaces.Tuple(spaces=(
+            gym.spaces.MultiDiscrete(kernel_shape),
+            gym.spaces.Discrete(n_jobs),
+            gym.spaces.Discrete(2),
+            gym.spaces.Discrete(2)
+        ))
+
+
 class ActionConvertor:
 
     @staticmethod

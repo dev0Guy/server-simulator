@@ -4,8 +4,8 @@ import numpy as np
 
 from src.cluster.core.job import Status
 from src.cluster.implementation.deep_rm.custom_type import _JOBS_TYPE, _MACHINE_TYPE, _DTYPE
-from src.cluster.implementation.deep_rm.jobs import DeepRMJobs, DeepRMJobSlot
-from src.cluster.implementation.deep_rm.machines import DeepRMMachine, DeepRMMachines
+from src.cluster.implementation.deep_rm.jobs import DeepRMJobs, DeepRMJobSlot, DeepRMJobsConvertor
+from src.cluster.implementation.deep_rm.machines import DeepRMMachine, DeepRMMachines, DeepRMMachinesConvertor
 
 from src.cluster.core.cluster import ClusterABC
 

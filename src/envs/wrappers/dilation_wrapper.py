@@ -6,11 +6,10 @@ import typing as tp
 
 import numpy as np
 
-from src.cluster.core.cluster import ClusterObservation
 from src.cluster.core.dilation import AbstractDilation, DilationAction, DilationState, AbstractDilationParams
-from src.envs.basic import EnvAction, BasicClusterEnv
+from src.envs.basic import BasicClusterEnv, EnvironmentAction
 
-WrapperObsType = tp.Type[ClusterObservation]
+WrapperObsType = tp.Type['ClusterObservation']
 Dilator = tp.TypeVar('Dilator', bound=AbstractDilation)
 
 
@@ -31,9 +30,9 @@ class EnvWrapperAction(tp.NamedTuple):
 
 
 class DilatorWrapper(
-    gym.Wrapper[ClusterObservation, EnvAction, ClusterObservation, EnvAction]
+    gym.Wrapper['ClusterObservation', EnvironmentAction, 'ClusterObservation', EnvironmentAction]
 ):
-    def __init__(self, env: BasicClusterEnv[ClusterObservation, EnvAction], *, dilator_cls: tp.Type[AbstractDilation], **dilation_params: AbstractDilationParams):
+    def __init__(self, env: BasicClusterEnv, *, dilator_cls: tp.Type[AbstractDilation], **dilation_params: AbstractDilationParams):
         super().__init__(env)
         self.dilator_type = dilator_cls
         self._dilation_params = dilation_params
@@ -98,10 +97,10 @@ class DilatorWrapper(
     def cast_original_action_space(dilator: Dilator, n_jobs: int) -> gym.Space[tuple]:
         return EnvWrapperAction.into_action_space(dilator.get_kernel(), n_jobs)
 
-    def run_and_convert(self, action: EnvWrapperAction) -> tp.Optional[EnvAction]:
+    def run_and_convert(self, action: EnvWrapperAction) -> tp.Optional[EnvironmentAction]:
         if action.execute_schedule_command:
             self.logger.debug(f"Executing schedule command (skip time)")
-            return EnvAction(should_schedule=True, schedule=(-1, -1))
+            return EnvironmentAction(should_schedule=True, schedule=(-1, -1))
 
         if not action.contract and isinstance(self._dilator.state, DilationState.FullyExpanded):
             m_index = self._dilator.get_selected_machine(
@@ -111,7 +110,7 @@ class DilatorWrapper(
                 raise IndexError("Machine index out of bound")
 
             self.logger.debug("Selecting cell %d on fully expanded.", m_index)
-            return EnvAction(should_schedule=False, schedule=(m_index, action.selected_job))
+            return EnvironmentAction(should_schedule=False, schedule=(m_index, action.selected_job))
 
         if action.contract:
             self._dilator.execute(DilationAction.Contract())
@@ -125,10 +124,10 @@ class DilatorWrapper(
         array = self.dilator_type.cast_into_dilation_format(machines)
         return self.dilator_type(**self._dilation_params, array=array)
 
-    def update_and_convert_observation(self, obs: ClusterObservation) -> WrapperObsType:
-        machines = self._dilator.cast_into_dilation_format(obs["machines"])
-        self._current_observation = ClusterObservation(
-            machines=machines,
-            jobs=obs["jobs"]
-        )
-        return self._current_observation
+    # def update_and_convert_observation(self, obs: 'ClusterObservation') -> WrapperObsType:
+    #     machines = self._dilator.cast_into_dilation_format(obs["machines"])
+    #     self._current_observation = ClusterObservation(
+    #         machines=machines,
+    #         jobs=obs["jobs"]
+    #     )
+    #     return self._current_observation

@@ -3,7 +3,7 @@ from typing import TypeAlias
 from typing_extensions import Unpack
 import numpy.typing as npt
 
-from src.cluster.core.machine import Machine, MachineCollection, MachineCollectionConvertor
+from src.cluster.core.machine import Machine, MachineCollection, MachinesCollectionConvertor
 from src.cluster.implementation.metric_based.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
 
 MetricsMachinesArgs: TypeAlias = _MACHINES_TYPE
@@ -44,7 +44,7 @@ class MetricMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
         self._machines_usage[:,  -1] = 1.0
 
 
-class MetricMachinesConvertor(MachineCollectionConvertor[_MACHINES_TYPE, MetricsMachinesArgs]):
+class MetricMachinesConvertor(MachinesCollectionConvertor[_MACHINES_TYPE, MetricsMachinesArgs]):
 
     def to_representation(self, value:MetricMachines) -> MetricsMachinesArgs:
         return value._machines_usage[:]

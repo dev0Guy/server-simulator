@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.cluster.core.job import Job, JobCollection, Status, JobCollectionConvertor, T, R, Args
+from src.cluster.core.job import Job, JobCollection, Status, JobCollectionConvertor
 from typing import TypeAlias
 from typing_extensions import Unpack
 

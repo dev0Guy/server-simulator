@@ -4,11 +4,16 @@ from typing import TYPE_CHECKING, TypedDict
 from src.cluster.core.job import Status
 from src.cluster.implementation.single_slot import SingleSlotCluster
 from src.envs import BasicClusterEnv
+from src.envs.utils.info_builders.base import BaceClusterInformationExtractor
+from src.envs.utils.observation_extractors.deeprm_observation_extractor import DeepRMObservationCreator
+from src.envs.utils.observation_extractors.metric_observation_extractor import MetricClusterObservationCreator
+from src.envs.utils.observation_extractors.singel_slot_observation_extractor import SingleSlotObservationCreator
+from src.envs.utils.reward_caculators.base import DifferentInPendingJobsRewardCaculator
 from tests.strategies.cluster_strategies import SingleSlotClusterStrategies, DeepRMStrategies, MetricClusterStrategies
 import numpy as np
 
 if not TYPE_CHECKING:
-    from typing import Tuple, Type, Any
+    from typing import Tuple, Any
 
 
 class InfoType(TypedDict):
@@ -17,22 +22,24 @@ class InfoType(TypedDict):
     jobs_status: list[Status]
     current_tick: int
 
-
 class BasicGymEnvironmentStrategies:
-    CLUSTER_CLASS_OPTIONS = (SingleSlotClusterStrategies,
-                             DeepRMStrategies, MetricClusterStrategies)
+    CLUSTER_CLASS_OPTIONS = (SingleSlotClusterStrategies, DeepRMStrategies, MetricClusterStrategies)
+    CLUSTER_TO_OBS_CREATOR = {
+        SingleSlotClusterStrategies: SingleSlotObservationCreator(),
+        DeepRMStrategies: DeepRMObservationCreator(),
+        MetricClusterStrategies: MetricClusterObservationCreator()
+    }
 
     @staticmethod
     @st.composite
     def creation(draw):
-        cluster_class = draw(st.sampled_from(
-            BasicGymEnvironmentStrategies.CLUSTER_CLASS_OPTIONS))
+        cluster_class = draw(st.sampled_from(BasicGymEnvironmentStrategies.CLUSTER_CLASS_OPTIONS))
         cluster = draw(cluster_class.creation())
-
         return BasicClusterEnv(
             cluster,
-            BasicGymEnvironmentStrategies.none_pending_job_change_reward,  # type: ignore
-            BasicGymEnvironmentStrategies.fixed_info_func,  # type: ignore
+            reward_caculator=DifferentInPendingJobsRewardCaculator(),
+            info_builder=BaceClusterInformationExtractor(),
+            obs_extractor=BasicGymEnvironmentStrategies.CLUSTER_TO_OBS_CREATOR[cluster_class]
         )
 
     @staticmethod
@@ -44,7 +51,7 @@ class BasicGymEnvironmentStrategies:
 
         possible_pending_jobs = [
             idx
-            for idx, status in enumerate(info["jobs_status"])
+            for idx, status in enumerate(obs["jobs_status"])
             if status == Status.Pending
         ]
 
@@ -55,7 +62,7 @@ class BasicGymEnvironmentStrategies:
         possible_machines = [
             idx
             for idx, machine in enumerate(obs["machines"])
-            if BasicGymEnvironmentStrategies.is_allocation_possible(machine, obs["jobs"][j_idx])
+            if BasicGymEnvironmentStrategies.is_allocation_possible(machine, obs["jobs_usage"][j_idx])
         ]
 
         assume(len(possible_machines) > 0)

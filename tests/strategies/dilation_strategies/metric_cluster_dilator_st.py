@@ -42,7 +42,8 @@ class MetricClusterDilationStrategies(DilationStrategies[MetricBasedDilator]):
         base_env = BasicClusterEnv(
             cluster,
             BasicGymEnvironmentStrategies.none_pending_job_change_reward,  # type: ignore
-            BasicGymEnvironmentStrategies.fixed_info_func,  # type: ignore
+            BasicGymEnvironmentStrategies.fixed_info_func,  # type: ignore,
+
         )
         n_machines = base_env.observation_space["machines"].shape[0]
         kernel_st = st.tuples(

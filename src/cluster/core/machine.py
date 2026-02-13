@@ -2,7 +2,7 @@ import abc
 import typing as tp
 
 T = tp.TypeVar("T")
-Args = tp.TypeVar("Args", bound=tuple)
+MachinesCollectionArgs = tp.TypeVar("MachinesCollectionArgs", bound=tuple)
 
 
 @tp.runtime_checkable
@@ -27,8 +27,8 @@ class MachineCollection(tp.Protocol[T]):
 
 
 @tp.runtime_checkable
-class MachineCollectionConvertor(tp.Protocol[T, Args]):
+class MachinesCollectionConvertor(tp.Protocol[T, MachinesCollectionArgs]):
 
     @abc.abstractmethod
-    def to_representation(self, value: MachineCollection[T]) -> Args:
+    def to_representation(self, value: MachineCollection[T]) -> MachinesCollectionArgs:
         ...

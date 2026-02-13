@@ -1,7 +1,7 @@
 import typing as tp
 import numpy.typing as npt
 
-from src.cluster.core.machine import Machine, MachineCollection, MachineCollectionConvertor
+from src.cluster.core.machine import Machine, MachineCollection, MachinesCollectionConvertor
 from src.cluster.implementation.deep_rm.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
 from typing import TypeAlias
 from typing_extensions import Unpack
@@ -43,7 +43,7 @@ class DeepRMMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
         self._machines_usage[:, :, :, -1] = True
 
 
-class DeepRMMachinesConvertor(MachineCollectionConvertor[_MACHINES_TYPE, DeepRMMachinesArgs]):
+class DeepRMMachinesConvertor(MachinesCollectionConvertor[_MACHINES_TYPE, DeepRMMachinesArgs]):
 
     def to_representation(self, value: DeepRMMachines) -> DeepRMMachinesArgs:
         return value._machines_usage[:]

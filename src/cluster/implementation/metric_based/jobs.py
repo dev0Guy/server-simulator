@@ -73,6 +73,6 @@ class MetricJobsConvertor(JobCollectionConvertor[_JOB_TYPE, MetricJobsArgs]):
     def to_representation(self, value: MetricJobs) -> MetricJobsArgs:
         return ( #type: ignore
             value._job_slots,
-            value._job_status,
+            np.array([job.status.value for job in value]),
             value._job_arrivals_time
         )

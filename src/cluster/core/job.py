@@ -4,7 +4,7 @@ import typing as tp
 
 T = tp.TypeVar("T")
 R = tp.TypeVar("R", bound=tp.Iterable[T])
-Args = tp.TypeVar("Args", bound=tuple)
+JobsCollectionArgs = tp.TypeVar("JobsCollectionArgs", bound=tuple)
 
 
 class Status(enum.IntEnum):
@@ -59,8 +59,8 @@ class JobCollection(tp.Protocol[T]):
 
 
 @tp.runtime_checkable
-class JobCollectionConvertor(tp.Protocol[T, Args]):
+class JobCollectionConvertor(tp.Protocol[T, JobsCollectionArgs]):
 
     @abc.abstractmethod
-    def to_representation(self, value: JobCollection[T]) -> Args:
+    def to_representation(self, value: JobCollection[T]) -> JobsCollectionArgs:
         ...

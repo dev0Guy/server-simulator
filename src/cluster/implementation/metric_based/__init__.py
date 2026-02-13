@@ -107,14 +107,14 @@ class MetricClusterCreator:
             jobs_status = np.array(
                 [
                     (
-                        Status.Pending.value
+                        Status.Pending
                         if job_arrivals_tick[j_idx] == 0
-                        else Status.NotCreated.value
+                        else Status.NotCreated
                     )
                     for j_idx in range(n_jobs)
-                ]
+                ],
+                dtype=Status
             )
-
             return MetricJobs(jobs_slot, jobs_status, job_arrivals_tick)
 
         return inner

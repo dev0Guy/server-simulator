@@ -71,9 +71,9 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv) ->
     logging.info("Starting test_env_run_with_random_scheduler_until_completion")
     _, prev_info = env.reset()
     cluster = env._cluster
+    terminated = False
     scheduler = RandomScheduler(cluster.is_allocation_possible)
-    while not cluster.is_finished():
-        action = None
+    while not terminated:
         match scheduler.schedule(cluster._machines, cluster._jobs):
             case None:
                 action = EnvironmentAction(True, (-1, -1))

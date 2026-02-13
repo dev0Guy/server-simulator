@@ -35,7 +35,6 @@ def compute_levels(shape: npt.ArrayLike, kernel: tp.Tuple[int, int]) -> tp.Tuple
 
     return levels_x, levels_y
 
-
 def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation) -> npt.NDArray[tp.Any]:
     """
     arr shape: (WindowX, WindowY, OtherDim, OtherDim)

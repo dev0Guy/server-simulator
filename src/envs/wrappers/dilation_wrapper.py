@@ -48,8 +48,6 @@ class DilatorWrapper(
 
         if is_in_dilation:
             self._current_observation["machines"] = self._dilator.state.value
-            if(self._current_observation["machines"].shape[0] == 0):
-                x = 3
             return self._current_observation,  0, False, False, None
 
         obs, reward, terminated, truncated, info = self.env.step(converted_action)
@@ -70,7 +68,7 @@ class DilatorWrapper(
         high_dilation_state = self.dilator_from_machines_obs(original_machines_space.low).state
         machines_space = gym.spaces.Box( # TODO: understand the problem
             low=0,#low_dilation_state.value,
-            high=1,#high_dilation_state.value,
+            high=np.inf,#high_dilation_state.value,
             shape=new_machines_shape,
             dtype=original_machines_space.dtype
         )
@@ -112,8 +110,3 @@ class DilatorWrapper(
         self._dilator = self.dilator_from_machines_obs(self._current_observation["machines"])
         self._current_observation["machines"] = self._dilator.state.value
         return self._current_observation
-
-    def cell_from_machine_idx(self, machine_idx: int) -> Tuple[int, int]:
-        kernel = self._dilator.get_kernel()
-        machine_x, machine_y = machine_idx % kernel[0], machine_idx // kernel[0]
-        return machine_x, machine_y

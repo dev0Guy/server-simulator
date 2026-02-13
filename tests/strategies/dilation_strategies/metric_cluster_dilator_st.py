@@ -26,16 +26,21 @@ class MetricClusterDilationStrategies(DilationStrategies[MetricBasedDilator]):
     PossibleOperations = (np.max, np.min, np.mean)
 
     @staticmethod
-    def initialization_parameters() -> SearchStrategy[dict]:
-        operation_st = st.sampled_from(
-            MetricClusterDilationStrategies.PossibleOperations)
-        fill_value_st = st.floats(min_value=0, max_value=0)
-        return st.fixed_dictionaries(
-            MetricBasedDilationKwargs(  # type: ignore
-                operation=operation_st,  # type: ignore
-                fill_value=fill_value_st  # type: ignore
-            )
+    @st.composite
+    def initialization_parameters(draw) -> SearchStrategy[dict]:
+        operation = draw(st.sampled_from(MetricClusterDilationStrategies.PossibleOperations))
+        if operation == np.min:
+            fill_value = np.inf
+        else:
+            fill_value = 0.0
+        logging.debug("Operation Selected is %s with fill value %s", operation.__name__, fill_value)
+
+        return MetricBasedDilationKwargs(
+            operation=operation,
+            fill_value=fill_value,
+            kernel=(1,1)
         )
+
 
     @staticmethod
     @st.composite
@@ -58,7 +63,6 @@ class MetricClusterDilationStrategies(DilationStrategies[MetricBasedDilator]):
         assume(kernel[0] > 1 and kernel[1] > 1)
         params = draw(MetricClusterDilationStrategies.initialization_parameters())
         params["kernel"] = kernel
-        logging.debug("Base Cluster Machines: %s", [(float(np.max(m.free_space)), float(np.min(m.free_space))) for m in cluster._machines])
         return DilatorWrapper(  # type: ignore
             base_env,
             dilator_cls=MetricBasedDilator,

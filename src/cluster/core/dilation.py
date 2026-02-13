@@ -60,6 +60,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         self._kernel = kernel
         self._dilation_levels = None
         self._n_levels = None
+        self._n_levels = None
         self.state = self.generate_dilation_expansion(array)
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
@@ -120,8 +121,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
                 "Cannot call dilation on input with same size as kernel")
 
         level = self._n_levels-1
-        self.state = DilationState.Initial(
-            value=self._dilation_levels[level], level=level)
+        self.state = DilationState.Initial(value=self._dilation_levels[level], level=level)
 
         return self.state
 

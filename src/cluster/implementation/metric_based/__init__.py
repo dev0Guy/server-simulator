@@ -30,7 +30,7 @@ class MetricCluster(ClusterABC[MetricMachines, MetricJobs]):
         return self._machine_creator(seed)
 
     def is_allocation_possible(self, machine: MetricMachine, job: MetricJobSlot) -> bool:
-        return np.all(machine.free_space > job.usage)
+        return np.max(machine.free_space) != np.inf and  np.all(machine.free_space > job.usage)
 
     def allocation(self, machine: MetricMachine, job: MetricJobSlot) -> None:
         machine.free_space -= job.usage

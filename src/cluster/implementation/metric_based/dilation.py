@@ -54,9 +54,7 @@ class MetricBasedDilator(AbstractDilation[State]):
     ) -> None:
         self._fill_value = fill_value
         self._operation = operation
-        self._original_grid_shape: tp.Tuple[int,
-                                            # type: ignore
-                                            int] = array.shape[:2]
+        self._original_grid_shape: tp.Tuple[int,int] = array.shape[:2] # type: ignore
         super().__init__(kernel, array)
 
     def get_selected_machine(self, action: SelectCellAction) -> int:

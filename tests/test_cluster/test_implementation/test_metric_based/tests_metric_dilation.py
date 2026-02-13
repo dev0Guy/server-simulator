@@ -175,8 +175,7 @@ def test_zoom_in_until_fully_expanded(array, kernel_with_points, operation):
 def test_zoom_out_on_initialization_does_nothing(array, kernel, operation):
     assume_valid_dilation_case(array, kernel)
 
-    dilator = MetricBasedDilator(
-        kernel=kernel, array=array, operation=operation)
+    dilator = MetricBasedDilator(kernel=kernel, array=array, operation=operation)
     dilator.generate_dilation_expansion(array)
     match dilator.contract():
         case DilationState.Initial(_, _): ...

@@ -11,7 +11,6 @@ DeepRMJobsArgs: TypeAlias = tuple[_JOBS_TYPE, npt.NDArray[int], npt.NDArray[int]
 
 
 class DeepRMJobSlot(Job[_JOB_TYPE]):
-
     def __init__(self, usage: _JOB_TYPE, status: Status, arrival_time: int):
         self.status = status
         self._usage = usage
@@ -31,11 +30,7 @@ class DeepRMJobSlot(Job[_JOB_TYPE]):
 
 
 class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
-
-    def __init__(
-        self,
-        *args: Unpack[DeepRMJobsArgs]
-    ) -> None:
+    def __init__(self, *args: Unpack[DeepRMJobsArgs]) -> None:
         self._job_slots, self._job_status, self._job_arrivals_time = args
         n_jobs_slot, n_job_status, n_arrival = (
             self._job_slots.shape[0],
@@ -43,12 +38,12 @@ class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
             self._job_arrivals_time.shape[0],
         )
 
-        assert (
-            n_jobs_slot == n_job_status
-        ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job status ({n_job_status})"
-        assert (
-            n_jobs_slot == n_arrival
-        ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
+        assert n_jobs_slot == n_job_status, (
+            f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job status ({n_job_status})"
+        )
+        assert n_jobs_slot == n_arrival, (
+            f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
+        )
 
         self._jobs = [
             DeepRMJobSlot(slot_usage, status, arrival_time)
@@ -68,10 +63,7 @@ class DeepRMJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
 
 
 class DeepRMJobsConvertor(JobCollectionConvertor[_JOB_TYPE, DeepRMJobsArgs]):
-
     def to_representation(self, value: DeepRMJobs) -> DeepRMJobsArgs:
         status = np.array([j.status for j in value._jobs])
         arrivals_time = np.array([j.arrival_time for j in value._jobs])
-        return (
-            value._job_slots, status, arrivals_time
-        )
+        return (value._job_slots, status, arrivals_time)

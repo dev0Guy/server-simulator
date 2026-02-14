@@ -35,7 +35,6 @@ class Job(tp.Protocol[T]):
 
 @tp.runtime_checkable
 class JobCollection(tp.Protocol[T]):
-
     @abc.abstractmethod
     def __len__(self) -> int: ...
 
@@ -60,7 +59,5 @@ class JobCollection(tp.Protocol[T]):
 
 @tp.runtime_checkable
 class JobCollectionConvertor(tp.Protocol[T, JobsCollectionArgs]):
-
     @abc.abstractmethod
-    def to_representation(self, value: JobCollection[T]) -> JobsCollectionArgs:
-        ...
+    def to_representation(self, value: JobCollection[T]) -> JobsCollectionArgs: ...

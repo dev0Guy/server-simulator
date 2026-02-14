@@ -11,7 +11,6 @@ MetricJobsArgs: TypeAlias = tuple[_JOBS_TYPE, npt.NDArray[int], npt.NDArray[int]
 
 
 class MetricJobSlot(Job[_JOB_TYPE]):
-
     def __init__(self, usage: _JOB_TYPE, status: Status, arrival_time: int):
         self._usage = usage
         self.status = status
@@ -31,10 +30,7 @@ class MetricJobSlot(Job[_JOB_TYPE]):
 
 
 class MetricJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
-    def __init__(
-            self,
-            *args: Unpack[MetricJobsArgs]
-    ) -> None:
+    def __init__(self, *args: Unpack[MetricJobsArgs]) -> None:
         self._job_slots, self._job_status, self._job_arrivals_time = args
 
         n_jobs_slot, n_job_status, n_arrival = (
@@ -43,13 +39,12 @@ class MetricJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
             self._job_arrivals_time.shape[0],
         )
 
-        assert (
-            n_jobs_slot == n_job_status
-        ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job status ({n_job_status})"
-        assert (
-            n_jobs_slot == n_arrival
-        ), f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
-
+        assert n_jobs_slot == n_job_status, (
+            f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job status ({n_job_status})"
+        )
+        assert n_jobs_slot == n_arrival, (
+            f"Number of jobs slot ({n_jobs_slot}) should be equal to number of job arrival array ({n_arrival})"
+        )
 
         self._jobs = self._jobs = [
             MetricJobSlot(slot_usage, status, arrival_time)
@@ -69,10 +64,9 @@ class MetricJobs(JobCollection[npt.NDArray[_JOB_TYPE]]):
 
 
 class MetricJobsConvertor(JobCollectionConvertor[_JOB_TYPE, MetricJobsArgs]):
-
     def to_representation(self, value: MetricJobs) -> MetricJobsArgs:
-        return ( #type: ignore
+        return (  # type: ignore
             value._job_slots,
             np.array([job.status.value for job in value]),
-            value._job_arrivals_time
+            value._job_arrivals_time,
         )

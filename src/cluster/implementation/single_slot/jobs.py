@@ -9,7 +9,6 @@ SingleSlotJobsArgs: TypeAlias = tuple[np.ndarray, list[Status]]
 
 
 class SingleSlotJob(Job[float]):
-
     def __init__(self, value: float, status: Status) -> None:
         self._value = value
         self.status = status
@@ -23,7 +22,6 @@ class SingleSlotJob(Job[float]):
 
 
 class SingleSlotJobs(JobCollection[float]):
-
     def __init__(self, *args: Unpack[SingleSlotJobsArgs]) -> None:
         job_usage, job_status = args
         assert job_usage.shape[0] == len(job_status)
@@ -43,9 +41,5 @@ class SingleSlotJobs(JobCollection[float]):
 
 
 class SingleSlotJobsConvertor(JobCollectionConvertor[float, SingleSlotJobsArgs]):
-
     def to_representation(self, value: SingleSlotJobs) -> SingleSlotJobsArgs:
-        return (
-            np.array([j.usage for j in value]),
-            [j.status for j in value]
-        )
+        return (np.array([j.usage for j in value]), [j.status for j in value])

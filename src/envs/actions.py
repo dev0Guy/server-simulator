@@ -17,17 +17,20 @@ class DilationEnvironmentAction(NamedTuple):
     contract: bool
 
     @classmethod
-    def into_action_space(cls, kernel_shape: Tuple[int, int], n_jobs: int) -> gym.Space[tuple]:
-        return gym.spaces.Tuple(spaces=(
-            gym.spaces.MultiDiscrete(kernel_shape),
-            gym.spaces.Discrete(n_jobs),
-            gym.spaces.Discrete(2),
-            gym.spaces.Discrete(2)
-        ))
+    def into_action_space(
+        cls, kernel_shape: Tuple[int, int], n_jobs: int
+    ) -> gym.Space[tuple]:
+        return gym.spaces.Tuple(
+            spaces=(
+                gym.spaces.MultiDiscrete(kernel_shape),
+                gym.spaces.Discrete(n_jobs),
+                gym.spaces.Discrete(2),
+                gym.spaces.Discrete(2),
+            )
+        )
 
 
 class ActionConvertor:
-
     @staticmethod
     def convert(original: EnvironmentAction) -> ClusterAction:
         if original.should_schedule:
@@ -38,10 +41,14 @@ class ActionConvertor:
 
     @staticmethod
     def create_space(cluster: Cluster) -> gym.Space:
-        return gym.spaces.Tuple((
-            gym.spaces.Discrete(2),
-            gym.spaces.Tuple((
-                gym.spaces.Discrete(cluster.n_machines), # type: ignore
-                gym.spaces.Discrete(cluster.n_jobs) # type: ignore
-            ))
-        ))
+        return gym.spaces.Tuple(
+            (
+                gym.spaces.Discrete(2),
+                gym.spaces.Tuple(
+                    (
+                        gym.spaces.Discrete(cluster.n_machines),  # type: ignore
+                        gym.spaces.Discrete(cluster.n_jobs),  # type: ignore
+                    )
+                ),
+            )
+        )

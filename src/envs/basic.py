@@ -3,7 +3,11 @@ import typing as tp
 import numpy as np
 
 from src.envs.actions import EnvironmentAction, ActionConvertor
-from src.envs.utils import RewardCaculator, BaseObservationCreatorProtocol, BaceClusterInformationExtractor
+from src.envs.utils import (
+    RewardCaculator,
+    BaseObservationCreatorProtocol,
+    BaceClusterInformationExtractor,
+)
 from src.envs.utils.common_types import Cluster
 from src.envs.utils.info_builders.base import ClusterInformation
 from src.envs.utils.observation_extractors.proto import ClusterObservation
@@ -11,13 +15,18 @@ from src.envs.utils.observation_extractors.proto import ClusterObservation
 InputActType = np.int64
 T = tp.TypeVar("T", bound=type)
 
-class BasicClusterEnv(gym.Env[ClusterObservation, EnvironmentAction], tp.Generic[T, ClusterInformation, ClusterObservation]):
 
+class BasicClusterEnv(
+    gym.Env[ClusterObservation, EnvironmentAction],
+    tp.Generic[T, ClusterInformation, ClusterObservation],
+):
     def __init__(
         self,
         cluster: Cluster,
         reward_caculator: RewardCaculator[ClusterInformation],
-        info_builder: BaceClusterInformationExtractor[ClusterObservation, ClusterInformation],
+        info_builder: BaceClusterInformationExtractor[
+            ClusterObservation, ClusterInformation
+        ],
         obs_extractor: BaseObservationCreatorProtocol[Cluster, ClusterObservation],
     ):
         self._cluster = cluster

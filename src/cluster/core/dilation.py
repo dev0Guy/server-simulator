@@ -10,13 +10,19 @@ SelectCellAction = tp.Tuple[int, int]
 
 # TODO: make dilator to allow multiple channel (a.k.a reduce functions provided by the client)
 
+
 @enum
 class DilationState(tp.Generic[State]):
     Initial = Case(value=State, level=int)
-    Expanded = Case(prev_action=SelectCellAction,
-                    prev_value=tp.Union[Initial, 'Expanded'], value=State, level=int)
-    FullyExpanded = Case(prev_action=SelectCellAction,
-                         prev_value=Expanded, value=State, level=int)
+    Expanded = Case(
+        prev_action=SelectCellAction,
+        prev_value=tp.Union[Initial, "Expanded"],
+        value=State,
+        level=int,
+    )
+    FullyExpanded = Case(
+        prev_action=SelectCellAction, prev_value=Expanded, value=State, level=int
+    )
 
 
 @enum
@@ -38,15 +44,13 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
     logger: logging.Logger
 
     @abc.abstractmethod
-    def get_window_from_cell(
-        self, cell: SelectCellAction, level: int) -> State: ...
+    def get_window_from_cell(self, cell: SelectCellAction, level: int) -> State: ...
 
     @abc.abstractmethod
     def generate_dilation_levels(self, original: State) -> tp.List[State]: ...
 
     @abc.abstractmethod
-    def get_selected_machine(
-        self, cell: SelectCellAction) -> tp.Optional[int]: ...
+    def get_selected_machine(self, cell: SelectCellAction) -> tp.Optional[int]: ...
 
     @abc.abstractclassmethod
     def cast_into_dilation_format(cls, array: State) -> State: ...
@@ -64,20 +68,30 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         self.state = self.generate_dilation_expansion(array)
         assert self._n_levels >= 1, "Dilation can't be called on two small values"
 
-    def expand(self, cell: tp.Tuple[int, int]) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]:
-        self.logger.info(f"Expanding on cell: {cell} on state: {type(self.state).__name__}")
+    def expand(
+        self, cell: tp.Tuple[int, int]
+    ) -> tp.Union[DilationState.Expanded, DilationState.FullyExpanded]:
+        self.logger.info(
+            f"Expanding on cell: {cell} on state: {type(self.state).__name__}"
+        )
         match self.state:
             case DilationState.FullyExpanded(_, _, _):
                 raise ValueError("Cannot expand in fully expanded mode")
-            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level == 1:
+            case DilationState.Initial(_, level) | DilationState.Expanded(
+                _, _, _, level
+            ) if level == 1:
                 value = self.get_window_from_cell(level=1, cell=cell)
                 self.logger.debug(
                     "Expanding level: %d → %d",
                     1,
                     0,
                 )
-                self.state = DilationState.FullyExpanded(prev_action=cell, prev_value=self.state, value=value, level=0)
-            case DilationState.Initial(_, level) | DilationState.Expanded(_, _, _, level) if level > 1:
+                self.state = DilationState.FullyExpanded(
+                    prev_action=cell, prev_value=self.state, value=value, level=0
+                )
+            case DilationState.Initial(_, level) | DilationState.Expanded(
+                _, _, _, level
+            ) if level > 1:
                 value = self.get_window_from_cell(level=level, cell=cell)
                 self.logger.debug(
                     "Expanding level: %d → %d",
@@ -85,7 +99,11 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
                     level - 1,
                 )
                 self.state = DilationState.Expanded(
-                    prev_action=cell, prev_value=self.state, value=value, level=level - 1)
+                    prev_action=cell,
+                    prev_value=self.state,
+                    value=value,
+                    level=level - 1,
+                )
             case _:
                 raise AssertionError()
 
@@ -95,9 +113,12 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         match self.state:
             case DilationState.Initial(_):
                 self.logger.warning(
-                    "Invalid action: cannot contract from initial (global) state")
+                    "Invalid action: cannot contract from initial (global) state"
+                )
                 return self.state
-            case DilationState.Expanded(_, prev, _, _) | DilationState.FullyExpanded(_, prev, _, _):
+            case DilationState.Expanded(_, prev, _, _) | DilationState.FullyExpanded(
+                _, prev, _, _
+            ):
                 self.logger.debug("Contracting to previous level")
                 return prev
             case _:
@@ -117,19 +138,23 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         self._n_levels = len(self._dilation_levels)
 
         if self._n_levels < 1:
-            raise ValueError(
-                "Cannot call dilation on input with same size as kernel")
+            raise ValueError("Cannot call dilation on input with same size as kernel")
 
-        level = self._n_levels-1
-        self.state = DilationState.Initial(value=self._dilation_levels[level], level=level)
+        level = self._n_levels - 1
+        self.state = DilationState.Initial(
+            value=self._dilation_levels[level], level=level
+        )
 
         return self.state
 
-    def get_selected_initialize_cell(self, action: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+    def get_selected_initialize_cell(
+        self, action: tp.Tuple[int, int]
+    ) -> tp.Tuple[int, int]:
         """This function need to return the original action to execute (machine) given all the dilation option"""
 
-        assert isinstance(
-            self.state, DilationState.FullyExpanded), f"When running get_selected_machine_idx should be fully expanded {self.state}"
+        assert isinstance(self.state, DilationState.FullyExpanded), (
+            f"When running get_selected_machine_idx should be fully expanded {self.state}"
+        )
         assert action[0] < self._kernel[0] and action[1] < self._kernel[1]
         return self._calculate_original_cell_recursive(self.state, action, self._kernel)
 
@@ -137,11 +162,18 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
         return self._kernel
 
     @classmethod
-    def _calculate_original_cell_recursive(cls, current_state: DilationState.FullyExpanded, action: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+    def _calculate_original_cell_recursive(
+        cls,
+        current_state: DilationState.FullyExpanded,
+        action: tp.Tuple[int, int],
+        kernel: tp.Tuple[int, int],
+    ) -> tp.Tuple[int, int]:
         final_action = [action[0], action[1]]
         while True:
             match current_state:
-                case DilationState.FullyExpanded(prev_action, prev_state, _, _) | DilationState.Expanded(prev_action, prev_state, _, _):
+                case DilationState.FullyExpanded(
+                    prev_action, prev_state, _, _
+                ) | DilationState.Expanded(prev_action, prev_state, _, _):
                     final_action[0] += prev_action[0] * kernel[0]
                     final_action[1] += prev_action[1] * kernel[1]
                     current_state = prev_state

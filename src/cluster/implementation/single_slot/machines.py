@@ -2,7 +2,11 @@ import typing as tp
 from typing import TypeAlias
 from typing_extensions import Unpack
 import numpy as np
-from src.cluster.core.machine import Machine, MachineCollection, MachinesCollectionConvertor
+from src.cluster.core.machine import (
+    Machine,
+    MachineCollection,
+    MachinesCollectionConvertor,
+)
 
 SingleSlotMachinesArgs: TypeAlias = np.ndarray
 
@@ -38,8 +42,8 @@ class SingleSlotMachines(MachineCollection[float]):
             machine.free_space = self.MAX_FREE_SPACE
 
 
-class SingleSlotMachinesConvertor(MachinesCollectionConvertor[float, SingleSlotMachinesArgs]):
-
+class SingleSlotMachinesConvertor(
+    MachinesCollectionConvertor[float, SingleSlotMachinesArgs]
+):
     def to_representation(self, value: SingleSlotMachines) -> SingleSlotMachinesArgs:
         return np.array([machine.free_space for machine in value._machines])
-

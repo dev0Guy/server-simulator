@@ -12,7 +12,6 @@ class Machine(tp.Protocol[T]):
 
 @tp.runtime_checkable
 class MachineCollection(tp.Protocol[T]):
-
     @abc.abstractmethod
     def __len__(self) -> int: ...
 
@@ -28,7 +27,7 @@ class MachineCollection(tp.Protocol[T]):
 
 @tp.runtime_checkable
 class MachinesCollectionConvertor(tp.Protocol[T, MachinesCollectionArgs]):
-
     @abc.abstractmethod
-    def to_representation(self, value: MachineCollection[T]) -> MachinesCollectionArgs:
-        ...
+    def to_representation(
+        self, value: MachineCollection[T]
+    ) -> MachinesCollectionArgs: ...

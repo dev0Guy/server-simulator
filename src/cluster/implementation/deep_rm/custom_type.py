@@ -18,5 +18,4 @@ _JOB_TYPE: tp.TypeAlias = tp.Annotated[npt.NDArray[_DTYPE], _JOB_SHAPE]
 _JOBS_TYPE: tp.TypeAlias = tp.Annotated[npt.NDArray[_DTYPE], _JOBS_SHAPE]
 
 _MACHINE_TYPE: tp.TypeAlias = tp.Annotated[npt.NDArray[_DTYPE], _MACHINE_SHAPE]
-_MACHINES_TYPE: tp.TypeAlias = tp.Annotated[npt.NDArray[_DTYPE],
-                                            _MACHINES_SHAPE]
+_MACHINES_TYPE: tp.TypeAlias = tp.Annotated[npt.NDArray[_DTYPE], _MACHINES_SHAPE]

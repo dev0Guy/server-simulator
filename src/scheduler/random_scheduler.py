@@ -21,10 +21,11 @@ class RandomScheduler(ABCScheduler[T]):
             return None
 
         selected_job = random.choice(pending_jobs)
+        self.logger.debug("Selected job usage: (%f, %f)", float(np.max(jobs[selected_job].usage)), float(np.min(jobs[selected_job].usage)))
 
         possible_machines = self.possible_machines(jobs[selected_job], machines)
-        self.logger.debug("Possible Machines: %s", [(float(np.max(machines[m].free_space)), float(np.min(machines[m].free_space))) for m in possible_machines])
-        self.logger.debug("possible machines: %d", len(possible_machines))
+        self.logger.debug("Machines: %s", [(float(np.max(m.free_space)), float(np.min(m.free_space))) for m in machines])
+        self.logger.debug("possible machines: %s", possible_machines)
         self.logger.debug("pending jobs: %d", len(pending_jobs))
         if not possible_machines:
             return None

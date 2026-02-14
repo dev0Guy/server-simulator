@@ -45,8 +45,8 @@ class MetricMachines(MachineCollection[npt.NDArray[_MACHINE_TYPE]]):
         self._machines_usage[:] = 1.0
 
     def execute_clock_tick(self) -> None:
-        self._machines_usage[:, :-1] = self._machines_usage[:, 1:]
-        self._machines_usage[:, -1] = 1.0
+        self._machines_usage[:, :, :-1] = self._machines_usage[:, :, 1:]
+        self._machines_usage[:, :, -1] = 1.0
 
 
 class MetricMachinesConvertor(

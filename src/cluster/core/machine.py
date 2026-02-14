@@ -2,7 +2,7 @@ import abc
 import typing as tp
 
 T = tp.TypeVar("T")
-MachinesRepresentation = tp.TypeVar("MachinesRepresentation", bound=tp.List)
+MachinesCollectionArgs = tp.TypeVar("MachinesCollectionArgs", bound=tuple)
 
 
 @tp.runtime_checkable
@@ -11,8 +11,7 @@ class Machine(tp.Protocol[T]):
 
 
 @tp.runtime_checkable
-class MachineCollection(tp.Protocol[MachinesRepresentation]):
-
+class MachineCollection(tp.Protocol[T]):
     @abc.abstractmethod
     def __len__(self) -> int: ...
 
@@ -25,5 +24,10 @@ class MachineCollection(tp.Protocol[MachinesRepresentation]):
     @abc.abstractmethod
     def execute_clock_tick(self) -> None: ...
 
+
+@tp.runtime_checkable
+class MachinesCollectionConvertor(tp.Protocol[T, MachinesCollectionArgs]):
     @abc.abstractmethod
-    def get_representation(self) -> MachinesRepresentation: ...
+    def to_representation(
+        self, value: MachineCollection[T]
+    ) -> MachinesCollectionArgs: ...

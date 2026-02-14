@@ -3,20 +3,15 @@ import abc
 
 from rust_enum import enum, Case
 
-from src.cluster.core.job import Job, JobCollection, JobsRepresentation
+from src.cluster.core.job import Job, JobCollection
 from src.cluster.core.job import Status as JobStatus
-from src.cluster.core.machine import Machine, MachineCollection, MachinesRepresentation
+from src.cluster.core.machine import Machine, MachineCollection
 import logging
 
 T = tp.TypeVar("T")
 
 Machines = tp.TypeVar("Machines", bound=MachineCollection)
 Jobs = tp.TypeVar("Jobs", bound=JobCollection)
-
-
-class ClusterObservation(tp.TypedDict):
-    machines: MachinesRepresentation
-    jobs: JobsRepresentation
 
 
 @enum
@@ -26,18 +21,16 @@ class ClusterAction:
 
 
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
-
     @abc.abstractmethod
-    def workload_creator(
-        self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
+    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
 
     @abc.abstractmethod
     def machine_creator(
-        self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
+        self, seed: tp.Optional[tp.SupportsFloat] = None
+    ) -> Machines: ...
 
     @abc.abstractmethod
-    def is_allocation_possible(
-        self, machine: Machine[T], job: Job[T]) -> bool: ...
+    def is_allocation_possible(self, machine: Machine[T], job: Job[T]) -> bool: ...
 
     @abc.abstractmethod
     def allocation(self, machine: Machine[T], job: Job[T]) -> None: ...
@@ -58,14 +51,20 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
     def n_machines(self) -> int:
         return len(self._machines)
 
-    def is_finished(self) -> bool:
-        return all(job.status == JobStatus.Completed for job in self._jobs)
-
-    def get_representation(self) -> ClusterObservation:
-        return ClusterObservation(
-            machines=self._machines.get_representation(),
-            jobs=self._jobs.get_representation()
+    def has_completed(self) -> bool:
+        n_none_finished_jobs = sum(
+            job.status != JobStatus.Completed for job in self._jobs
         )
+        self.logger.debug("Number of none completed jobs: %d", n_none_finished_jobs)
+        return n_none_finished_jobs == 0
+
+    def are_all_jobs_executed(self) -> bool:
+        arent_executed_jobs = sum(
+            job.status in (JobStatus.NotCreated, JobStatus.Pending)
+            for job in self._jobs
+        )
+        self.logger.debug("Number of none completed jobs: %d", arent_executed_jobs)
+        return arent_executed_jobs == 0
 
     def schedule(self, m_idx: int, j_idx: int) -> bool:
         job = self._jobs[j_idx]
@@ -117,7 +116,8 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
             if job.status != JobStatus.Running
         }
         self._running_job_to_machine = {
-            k: v for k, v in self._running_job_to_machine.items() if k in running_jobs}
+            k: v for k, v in self._running_job_to_machine.items() if k in running_jobs
+        }
         self._machines.execute_clock_tick()
 
     def reset(self, seed: tp.Optional[tp.SupportsFloat]) -> None:
@@ -131,6 +131,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
                 return self.execute_clock_tick()
             case ClusterAction.Schedule(machine_idx, job_idx):
                 return self.schedule(machine_idx, job_idx)
-            case _action:
-                raise RuntimeError("Provided command should be %s or %s and not %s".format(
-                    ClusterAction.SkipTime.__class__, ClusterAction.Schedule.__class__, type(_action).__class__))
+            case _:
+                raise RuntimeError(
+                    f"Provided command should be {ClusterAction.SkipTime.__class__} or {ClusterAction.Schedule.__class__} and not {type(action).__class__}"
+                )

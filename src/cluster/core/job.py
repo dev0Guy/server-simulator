@@ -2,10 +2,9 @@ import abc
 import enum
 import typing as tp
 
-import gymnasium as gym
-
 T = tp.TypeVar("T")
-JobsRepresentation = tp.TypeVar("JobsRepresentation", bound=tp.Iterable[T])
+R = tp.TypeVar("R", bound=tp.Iterable[T])
+JobsCollectionArgs = tp.TypeVar("JobsCollectionArgs", bound=tuple)
 
 
 class Status(enum.IntEnum):
@@ -35,8 +34,7 @@ class Job(tp.Protocol[T]):
 
 
 @tp.runtime_checkable
-class JobCollection(tp.Protocol[JobsRepresentation]):
-
+class JobCollection(tp.Protocol[T]):
     @abc.abstractmethod
     def __len__(self) -> int: ...
 
@@ -58,5 +56,8 @@ class JobCollection(tp.Protocol[JobsRepresentation]):
                 case _:
                     ...
 
+
+@tp.runtime_checkable
+class JobCollectionConvertor(tp.Protocol[T, JobsCollectionArgs]):
     @abc.abstractmethod
-    def get_representation(self) -> JobsRepresentation: ...
+    def to_representation(self, value: JobCollection[T]) -> JobsCollectionArgs: ...

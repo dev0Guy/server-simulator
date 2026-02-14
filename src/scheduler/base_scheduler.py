@@ -1,3 +1,4 @@
+import logging
 import typing as tp
 import abc
 
@@ -10,9 +11,9 @@ JobT = tp.TypeVar("JobT", bound=Job)
 
 
 class ABCScheduler(abc.ABC, tp.Generic[T]):
-
     def __init__(self, can_run_func: tp.Callable[[MachineT, JobT], bool]):
         self._can_run_func = can_run_func
+        self.logger = logging.getLogger(type(self).__name__)
 
     @staticmethod
     def pending_jobs(jobs: JobCollection[T]) -> tp.List[int]:
@@ -22,7 +23,9 @@ class ABCScheduler(abc.ABC, tp.Generic[T]):
             if job.status == Status.Pending
         ]
 
-    def possible_machines(self, job: Job[T], machines: MachineCollection[T]) -> tp.List[int]:
+    def possible_machines(
+        self, job: Job[T], machines: MachineCollection[T]
+    ) -> tp.List[int]:
         return [
             m_idx
             for m_idx, machine in enumerate(iter(machines))
@@ -31,7 +34,5 @@ class ABCScheduler(abc.ABC, tp.Generic[T]):
 
     @abc.abstractmethod
     def schedule(
-        self,
-        machines: MachineCollection[T],
-        jobs: JobCollection[T]
+        self, machines: MachineCollection[T], jobs: JobCollection[T]
     ) -> tp.Optional[tp.Tuple[int, int]]: ...

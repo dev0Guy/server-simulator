@@ -1,12 +1,15 @@
-import numpy.typing as npt
 import numpy as np
 
-from src.cluster.core.job import Job, JobCollection, Status
+from src.cluster.core.job import Job, JobCollection, Status, JobCollectionConvertor
+from typing import TypeAlias
+from typing_extensions import Unpack
 
 
-class SingleSlotJob(Job[np.float64]):
+SingleSlotJobsArgs: TypeAlias = tuple[np.ndarray, list[Status]]
 
-    def __init__(self, value: np.float64, status: Status) -> None:
+
+class SingleSlotJob(Job[float]):
+    def __init__(self, value: float, status: Status) -> None:
         self._value = value
         self.status = status
         self.length = 1
@@ -14,15 +17,14 @@ class SingleSlotJob(Job[np.float64]):
         self.arrival_time = 0
 
     @property
-    def usage(self) -> np.float64:
+    def usage(self) -> float:
         return self._value
 
 
-class SingleSlotJobs(JobCollection[npt.NDArray[np.float64]]):
-
-    def __init__(self, job_usage: np.ndarray, job_status: list[Status]) -> None:
+class SingleSlotJobs(JobCollection[float]):
+    def __init__(self, *args: Unpack[SingleSlotJobsArgs]) -> None:
+        job_usage, job_status = args
         assert job_usage.shape[0] == len(job_status)
-
         self._jobs = [
             SingleSlotJob(job_usage[j_idx], status=job_status[j_idx])
             for j_idx in range(len(job_usage))
@@ -31,11 +33,13 @@ class SingleSlotJobs(JobCollection[npt.NDArray[np.float64]]):
     def __len__(self) -> int:
         return len(self._jobs)
 
-    def __getitem__(self, item: int) -> Job[np.float64]:
+    def __getitem__(self, item: int) -> Job[float]:
         return self._jobs[item]
 
     def __iter__(self):
         return iter(self._jobs)
 
-    def get_representation(self) -> np.array:
-        return np.array([j.usage for j in self])
+
+class SingleSlotJobsConvertor(JobCollectionConvertor[float, SingleSlotJobsArgs]):
+    def to_representation(self, value: SingleSlotJobs) -> SingleSlotJobsArgs:
+        return (np.array([j.usage for j in value]), [j.status for j in value])

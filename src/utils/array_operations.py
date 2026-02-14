@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import numpy.typing as npt
 import typing as tp
@@ -14,7 +16,9 @@ def _smallest_n(shape: npt.ArrayLike, kernel: tp.Tuple[int, int]):
     return n_x, n_y
 
 
-def compute_levels(shape: npt.ArrayLike, kernel: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+def compute_levels(
+    shape: npt.ArrayLike, kernel: tp.Tuple[int, int]
+) -> tp.Tuple[int, int]:
     """
     Computes the  number of recursive pooling levels possible for first to dimensions
     for the first two dimensions of the array.
@@ -34,7 +38,9 @@ def compute_levels(shape: npt.ArrayLike, kernel: tp.Tuple[int, int]) -> tp.Tuple
     return levels_x, levels_y
 
 
-def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation) -> npt.NDArray[tp.Any]:
+def pool_2d_first_two_dimensions(
+    arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation
+) -> npt.NDArray[tp.Any]:
     """
     arr shape: (WindowX, WindowY, OtherDim, OtherDim)
     kernel: (k_h, k_w)
@@ -44,7 +50,8 @@ def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int,
 
     if len(arr.shape) != 4:
         raise ValueError(
-            f"Array shape should have 4 dimension of (WindowX, WindowY, OtherDim, OtherDim) and not {arr.shape}.")
+            f"Array shape should have 4 dimension of (WindowX, WindowY, OtherDim, OtherDim) and not {arr.shape}."
+        )
     if len(kernel) != 2:
         raise ValueError(f"Kernel should be of size 2, not {len(kernel)}")
 
@@ -58,13 +65,14 @@ def pool_2d_first_two_dimensions(arr: npt.NDArray[tp.Any], kernel: tp.Tuple[int,
             "to perform block operations."
         )
 
-    adjusted_array = arr.reshape(
-        m_x // k_x, k_x, m_y // k_y, k_y, n_resources, n_ticks)
+    adjusted_array = arr.reshape(m_x // k_x, k_x, m_y // k_y, k_y, n_resources, n_ticks)
 
     return operation(adjusted_array, axis=(1, 3))
 
 
-def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *, fill_value: float = 0) -> np.ndarray:
+def pad_for_hierarchy(
+    array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *, fill_value: float = 0
+) -> np.ndarray:
     """
     Pads the first two dimensions of `array` so that recursive pooling
     with `kernel` can be applied for all levels.
@@ -93,8 +101,8 @@ def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *,
     levels_y = max_recursive_levels(m_y, k_y)
     max_levels = max(levels_x, levels_y)
 
-    target_m_x = k_x ** max_levels
-    target_m_y = k_y ** max_levels
+    target_m_x = k_x**max_levels
+    target_m_y = k_y**max_levels
 
     target_m_x = max(target_m_x, m_x)
     target_m_y = max(target_m_y, m_y)
@@ -103,10 +111,17 @@ def pad_for_hierarchy(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], *,
     pad_y = target_m_y - m_y
 
     pad_width = ((0, pad_x), (0, pad_y)) + ((0, 0),) * (array.ndim - 2)
-    return np.pad(array, pad_width=pad_width, mode='constant', constant_values=fill_value)
+    return np.pad(
+        array, pad_width=pad_width, mode="constant", constant_values=fill_value
+    )
 
 
-def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int], operation: tp.Callable, fill_value: float = 0, ) -> tp.List[npt.NDArray[tp.Any]]:
+def hierarchical_pooling(
+    array: npt.NDArray[tp.Any],
+    kernel: tp.Tuple[int, int],
+    operation: tp.Callable,
+    fill_value: float = 0,
+) -> tp.List[npt.NDArray[tp.Any]]:
     """
     Recursively applies pool_2d_first_two_dimensions on arr.
     Pads once using minimal padding so that all levels are divisible by kernel.
@@ -121,14 +136,18 @@ def hierarchical_pooling(array: npt.NDArray[tp.Any], kernel: tp.Tuple[int, int],
         if current.shape[0] <= kernel[0] or current.shape[1] <= kernel[1]:
             break
 
-        current = pool_2d_first_two_dimensions(
-            current, kernel, operation=operation)
+        current = pool_2d_first_two_dimensions(current, kernel, operation=operation)
         outputs.append(current)
 
     return outputs
 
 
-def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]], level: int, cell: tp.Tuple[int, int], kernel: tp.Tuple[int, int]) -> npt.NDArray[tp.Any]:
+def get_window_from_cell(
+    outputs: tp.List[npt.NDArray[tp.Any]],
+    level: int,
+    cell: tp.Tuple[int, int],
+    kernel: tp.Tuple[int, int],
+) -> npt.NDArray[tp.Any]:
     """
     Given hierarchical outputs, a level, and a cell (x,y) at that level,
     return the corresponding window of size `kernel` in the previous level.
@@ -146,12 +165,24 @@ def get_window_from_cell(outputs: tp.List[npt.NDArray[tp.Any]], level: int, cell
     end_x = start_x + k_x
     end_y = start_y + k_y
 
+    logging.debug(
+        "Selecting window [%d: %d, %d: %d] for original view [%d,%d]",
+        start_x,
+        end_x,
+        start_y,
+        end_y,
+        prev_level.shape[0],
+        prev_level.shape[1],
+    )
+
     return prev_level[start_x:end_x, start_y:end_y, ...]
 
 
-def global_cell_from_local(prev_cell: tp.Tuple[int, int],
-                           current_index: tp.Tuple[int, int],
-                           kernel: tp.Tuple[int, int]) -> tp.Tuple[int, int]:
+def global_cell_from_local(
+    prev_cell: tp.Tuple[int, int],
+    current_index: tp.Tuple[int, int],
+    kernel: tp.Tuple[int, int],
+) -> tp.Tuple[int, int]:
     """
     Given a previous cell (prev_cell) at higher level and a current local cell
     (current_index) inside that cell, return the global cell coordinates.

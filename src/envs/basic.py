@@ -51,8 +51,7 @@ class BasicClusterEnv(gym.Env[ClusterObservation, EnvironmentAction], tp.Generic
         self._cluster.execute(cluster_action)
         observation = self._obs_creator.create(self._cluster)
         info = self._info_builder(observation)
-        terminated = self._cluster.is_finished()
+        terminated = self._cluster.has_completed()
         reward = self._reward_caculator(prev_info, info)
-        truncated = False
-
+        truncated = self._cluster.are_all_jobs_executed()
         return observation, reward, terminated, truncated, info

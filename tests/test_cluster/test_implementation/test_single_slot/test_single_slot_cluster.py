@@ -162,7 +162,7 @@ def test_single_machine_multiple_one_size_jobs(n_jobs: int, n_machines: int, job
     cluster = static_machine_with_static_machine(n_machines, n_jobs)
 
     for j_idx in range(cluster.n_jobs):
-        assert not cluster.is_finished()
+        assert not cluster.has_completed()
         assert cluster.schedule(m_idx=0, j_idx=j_idx)
         assert not cluster.schedule(
             m_idx=0, j_idx=j_idx
@@ -176,7 +176,7 @@ def test_single_machine_multiple_one_size_jobs(n_jobs: int, n_machines: int, job
         assert after_tick_jobs_status[j_idx] == JobStatus.Completed
         assert after_tick_machines_usage[0] == 1.0
 
-    assert cluster.is_finished()
+    assert cluster.has_completed()
     assert cluster._current_tick == cluster.n_jobs == n_jobs
 
 
@@ -188,7 +188,7 @@ def test_single_machine_multiple_half_size_jobs(n_jobs: int, n_machines: int,  j
     cluster = static_machine_with_static_machine(n_machines, n_jobs, static_value=static_value)
 
     for j_idx in range(0, cluster.n_jobs, 2):
-        assert not cluster.is_finished()
+        assert not cluster.has_completed()
         assert cluster.schedule(m_idx=0, j_idx=j_idx)
         after_schedule_machines_usage = machine_convertor.to_representation(cluster._machines)
         assert after_schedule_machines_usage[0] == 0.5
@@ -205,5 +205,5 @@ def test_single_machine_multiple_half_size_jobs(n_jobs: int, n_machines: int,  j
         assert after_tick_jobs_status[j_idx + 1] == JobStatus.Completed
         assert after_tick_machines_usage[0] == 1.0
     #
-    assert cluster.is_finished()
+    assert cluster.has_completed()
     assert cluster._current_tick == (cluster.n_jobs // 2) == (n_jobs // 2)

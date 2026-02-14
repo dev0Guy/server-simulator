@@ -130,7 +130,7 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMCluster) -> None:
     scheduler = RandomScheduler(cluster.is_allocation_possible)
 
-    while not cluster.is_finished():
+    while not cluster.has_completed():
         output = scheduler.schedule(cluster._machines, cluster._jobs)
         if output is None:
             cluster.execute_clock_tick()
@@ -234,7 +234,7 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 def test_cluster_run_with_random_scheduler_until_completion(cluster: DeepRMCluster) -> None:
     scheduler = RandomScheduler(cluster.is_allocation_possible)
 
-    while not cluster.is_finished():
+    while not cluster.has_completed():
         output = scheduler.schedule(cluster._machines, cluster._jobs)
         if output is None:
             cluster.execute_clock_tick()

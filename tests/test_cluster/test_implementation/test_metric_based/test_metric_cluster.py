@@ -174,7 +174,7 @@ def test_select_single_job_and_run_until_ticks_equal_to_job_length(
 @given(cluster=MetricClusterStrategies.creation())
 def test_cluster_run_with_random_scheduler_until_completion(cluster: MetricCluster) -> None:
     scheduler = RandomScheduler(cluster.is_allocation_possible)
-    while not cluster.is_finished():
+    while not cluster.has_completed():
         output = scheduler.schedule(cluster._machines, cluster._jobs)
         if output is None:
             cluster.execute_clock_tick()

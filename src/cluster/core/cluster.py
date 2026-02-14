@@ -51,10 +51,15 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
     def n_machines(self) -> int:
         return len(self._machines)
 
-    def is_finished(self) -> bool:
+    def has_completed(self) -> bool:
         n_none_finished_jobs = sum(job.status != JobStatus.Completed for job in self._jobs)
-        self.logger.debug("Remaining jobs: %d", n_none_finished_jobs)
+        self.logger.debug("Number of none completed jobs: %d", n_none_finished_jobs)
         return n_none_finished_jobs == 0
+
+    def are_all_jobs_executed(self) -> bool:
+        arent_executed_jobs = sum(job.status in (JobStatus.NotCreated, JobStatus.Pending) for job in self._jobs)
+        self.logger.debug("Number of none completed jobs: %d", arent_executed_jobs)
+        return arent_executed_jobs == 0
 
     def schedule(self, m_idx: int, j_idx: int) -> bool:
         job = self._jobs[j_idx]

@@ -21,13 +21,13 @@ class ClusterAction:
 
 
 class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
+    @abc.abstractmethod
+    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs: ...
 
     @abc.abstractmethod
-    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Jobs:
-        ...
-
-    @abc.abstractmethod
-    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> Machines: ...
+    def machine_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None
+    ) -> Machines: ...
 
     @abc.abstractmethod
     def is_allocation_possible(self, machine: Machine[T], job: Job[T]) -> bool: ...
@@ -52,12 +52,17 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
         return len(self._machines)
 
     def has_completed(self) -> bool:
-        n_none_finished_jobs = sum(job.status != JobStatus.Completed for job in self._jobs)
+        n_none_finished_jobs = sum(
+            job.status != JobStatus.Completed for job in self._jobs
+        )
         self.logger.debug("Number of none completed jobs: %d", n_none_finished_jobs)
         return n_none_finished_jobs == 0
 
     def are_all_jobs_executed(self) -> bool:
-        arent_executed_jobs = sum(job.status in (JobStatus.NotCreated, JobStatus.Pending) for job in self._jobs)
+        arent_executed_jobs = sum(
+            job.status in (JobStatus.NotCreated, JobStatus.Pending)
+            for job in self._jobs
+        )
         self.logger.debug("Number of none completed jobs: %d", arent_executed_jobs)
         return arent_executed_jobs == 0
 
@@ -111,7 +116,8 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
             if job.status != JobStatus.Running
         }
         self._running_job_to_machine = {
-            k: v for k, v in self._running_job_to_machine.items() if k in running_jobs}
+            k: v for k, v in self._running_job_to_machine.items() if k in running_jobs
+        }
         self._machines.execute_clock_tick()
 
     def reset(self, seed: tp.Optional[tp.SupportsFloat]) -> None:
@@ -125,6 +131,7 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
                 return self.execute_clock_tick()
             case ClusterAction.Schedule(machine_idx, job_idx):
                 return self.schedule(machine_idx, job_idx)
-            case _action:
-                raise RuntimeError("Provided command should be %s or %s and not %s".format(
-                    ClusterAction.SkipTime.__class__, ClusterAction.Schedule.__class__, type(_action).__class__))
+            case _:
+                raise RuntimeError(
+                    f"Provided command should be {ClusterAction.SkipTime.__class__} or {ClusterAction.Schedule.__class__} and not {type(action).__class__}"
+                )

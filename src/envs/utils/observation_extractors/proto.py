@@ -6,7 +6,6 @@ import numpy.typing as npt
 from src.cluster.core.job import JobCollectionConvertor
 from src.cluster.core.machine import MachinesCollectionConvertor
 from src.envs.utils.common_types import Cluster
-import numpy as np
 
 MachinesRepresentation = TypeVar("MachinesRepresentation")
 JobsRepresentation = TypeVar("JobsRepresentation")
@@ -15,6 +14,7 @@ JobsRepresentation = TypeVar("JobsRepresentation")
 @runtime_checkable
 class BaseClusterObservation(Protocol[MachinesRepresentation, JobsRepresentation]):
     """Protocol ensuring dict-like access with specific required keys"""
+
     @overload
     def __getitem__(self, key: Literal["machines"]) -> MachinesRepresentation: ...
     @overload
@@ -25,10 +25,11 @@ class BaseClusterObservation(Protocol[MachinesRepresentation, JobsRepresentation
     def __getitem__(self, key: Literal["current_tick"]) -> npt.ArrayLike: ...
     def __getitem__(self, key: str) -> object: ...
 
+
 ClusterObservation = TypeVar("ClusterObservation", bound=BaseClusterObservation)
 
-class BaseObservationCreatorProtocol(Protocol[Cluster, ClusterObservation]):
 
+class BaseObservationCreatorProtocol(Protocol[Cluster, ClusterObservation]):
     _machines_convertor: MachinesCollectionConvertor
     _jobs_convertor: JobCollectionConvertor
 
@@ -37,6 +38,3 @@ class BaseObservationCreatorProtocol(Protocol[Cluster, ClusterObservation]):
 
     @abc.abstractmethod
     def create_space(self, cluster: Cluster) -> gym.Space: ...
-
-
-

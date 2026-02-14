@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, Any
+from typing import Tuple
 
 import numpy as np
 
@@ -19,14 +19,23 @@ def test_env_reset(env: BasicClusterEnv):
     obs, info = env.reset()
     assert env.observation_space.contains(obs)
     assert isinstance(info, dict)
-    assert info["n_machines"] == env._cluster.n_machines and info["n_jobs"] == env._cluster.n_jobs
-    assert all(status in (Status.Pending, Status.NotCreated) for status in info["jobs_status"])
+    assert (
+        info["n_machines"] == env._cluster.n_machines
+        and info["n_jobs"] == env._cluster.n_jobs
+    )
+    assert all(
+        status in (Status.Pending, Status.NotCreated) for status in info["jobs_status"]
+    )
     assert info["current_tick"] == 0
 
 
 @given(env=BasicGymEnvironmentStrategies.creation())
 def test_step_clock_tick(env: BasicClusterEnv):
-    acceptable_status_after_time_forward = [(Status.NotCreated, Status.NotCreated), (Status.NotCreated, Status.Pending), (Status.Pending, Status.Pending)]
+    acceptable_status_after_time_forward = [
+        (Status.NotCreated, Status.NotCreated),
+        (Status.NotCreated, Status.Pending),
+        (Status.Pending, Status.Pending),
+    ]
     _, prev_info = env.reset()
     skip_time_action = EnvironmentAction(True, (-1, -1))
     obs, reward, terminated, truncated, current_info = env.step(skip_time_action)
@@ -34,13 +43,16 @@ def test_step_clock_tick(env: BasicClusterEnv):
     assert prev_info["current_tick"] + 1 == current_info["current_tick"]
     assert all(
         (prev_status, current_status) in acceptable_status_after_time_forward
-        for prev_status, current_status in zip(prev_info["jobs_status"], current_info["jobs_status"])
+        for prev_status, current_status in zip(
+            prev_info["jobs_status"], current_info["jobs_status"]
+        )
     )
     assert bool(terminated) is False and bool(truncated) is False
 
+
 @given(params=BasicGymEnvironmentStrategies.creation_with_schedule_option())
 def test_step_schedule(
-    params: Tuple[BasicClusterEnv, ClusterObservation, ClusterInformation, int, int]
+    params: Tuple[BasicClusterEnv, ClusterObservation, ClusterInformation, int, int],
 ):
     # PROBLEM HERE
     env, prev_obs, prev_info, m_idx, j_idx = params
@@ -54,16 +66,21 @@ def test_step_schedule(
 
     all_jobs_status_except_schedule_stay_the_same = all(
         prev_status == current_status
-        for idx, (prev_status, current_status) in enumerate(zip(current_info["jobs_status"], prev_info["jobs_status"]))
+        for idx, (prev_status, current_status) in enumerate(
+            zip(current_info["jobs_status"], prev_info["jobs_status"])
+        )
         if idx != j_idx
     )
     all_machines_free_space_stay_the_same = all(
         np.allclose(prev_machine, current_machine)
-        for idx, (prev_machine, current_machine) in enumerate(zip(current_obs["machines"], prev_obs["machines"]))
+        for idx, (prev_machine, current_machine) in enumerate(
+            zip(current_obs["machines"], prev_obs["machines"])
+        )
         if idx != m_idx
     )
     assert all_jobs_status_except_schedule_stay_the_same
     assert all_machines_free_space_stay_the_same
+
 
 @given(env=BasicGymEnvironmentStrategies.creation())
 @settings(max_examples=1_000)
@@ -83,7 +100,4 @@ def test_env_run_with_random_scheduler_until_completion(env: BasicClusterEnv) ->
                 raise ValueError
         current_obs, reward, terminated, truncated, current_info = env.step(action)
         assert env.observation_space.contains(current_obs)
-    assert terminated and all(
-        job.status == Status.Completed
-        for job in cluster._jobs
-    )
+    assert terminated and all(job.status == Status.Completed for job in cluster._jobs)

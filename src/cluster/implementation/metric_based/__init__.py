@@ -3,15 +3,26 @@ import typing as tp
 import numpy as np
 
 from src.cluster.core.job import Status
-from src.cluster.implementation.metric_based.custom_type import _JOBS_TYPE, _MACHINE_TYPE, _DTYPE
-from src.cluster.implementation.metric_based.jobs import MetricJobSlot, MetricJobs, MetricJobsConvertor
-from src.cluster.implementation.metric_based.machines import MetricMachine, MetricMachines, MetricMachinesConvertor
+from src.cluster.implementation.metric_based.custom_type import (
+    _JOBS_TYPE as _JOBS_TYPE,
+    _MACHINE_TYPE as _MACHINE_TYPE,
+    _DTYPE as _DTYPE,
+)
+from src.cluster.implementation.metric_based.jobs import (
+    MetricJobSlot,
+    MetricJobs,
+    MetricJobsConvertor as MetricJobsConvertor,
+)
+from src.cluster.implementation.metric_based.machines import (
+    MetricMachine,
+    MetricMachines,
+    MetricMachinesConvertor as MetricMachinesConvertor,
+)
 
 from src.cluster.core.cluster import ClusterABC
 
 
 class MetricCluster(ClusterABC[MetricMachines, MetricJobs]):
-
     def __init__(
         self,
         workload_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], MetricJobs],
@@ -23,24 +34,31 @@ class MetricCluster(ClusterABC[MetricMachines, MetricJobs]):
 
         super().__init__(seed)
 
-    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> MetricJobs:
+    def workload_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None
+    ) -> MetricJobs:
         return self._workload_creator(seed)
 
-    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> MetricMachines:
+    def machine_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None
+    ) -> MetricMachines:
         return self._machine_creator(seed)
 
-    def is_allocation_possible(self, machine: MetricMachine, job: MetricJobSlot) -> bool:
-        return np.max(machine.free_space) != np.inf and  np.all(machine.free_space > job.usage)
+    def is_allocation_possible(
+        self, machine: MetricMachine, job: MetricJobSlot
+    ) -> bool:
+        return np.max(machine.free_space) != np.inf and np.all(
+            machine.free_space > job.usage
+        )
 
     def allocation(self, machine: MetricMachine, job: MetricJobSlot) -> None:
         machine.free_space -= job.usage
 
 
 class MetricClusterCreator:
-
     @staticmethod
     def generate_homogeneous_machines(
-            n_machines: int, n_resources: int, n_ticks: int
+        n_machines: int, n_resources: int, n_ticks: int
     ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], MetricMachines]:
         def inner(seed: tp.Optional[tp.SupportsFloat]) -> MetricMachines:
             np.random.seed(seed)
@@ -61,15 +79,12 @@ class MetricClusterCreator:
     ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], MetricJobs]:
         def inner(seed: tp.Optional[tp.SupportsFloat]) -> MetricJobs:
             np.random.seed(seed)
-            jobs_slot = np.zeros(
-                (n_jobs, n_resources, n_ticks), dtype=np.float64
-            )
+            jobs_slot = np.zeros((n_jobs, n_resources, n_ticks), dtype=np.float64)
             # Pick a main resource per job
             main_res = np.random.randint(0, n_resources, size=(n_jobs,))
             # Long jobs (20%)
             long_mask = np.zeros(n_jobs, dtype=bool)
-            long_mask[np.random.choice(n_jobs, int(
-                0.2 * n_jobs), replace=False)] = True
+            long_mask[np.random.choice(n_jobs, int(0.2 * n_jobs), replace=False)] = True
             # Job durations
             durations = np.where(
                 long_mask,
@@ -94,7 +109,8 @@ class MetricClusterCreator:
             #  Resource usage mask: each job uses some subset of resources
             usage = np.random.uniform(0.1, 1.0, size=(n_jobs, n_resources))
             usage[np.arange(n_jobs), main_res] = np.random.uniform(
-                0.5, 1.0, size=n_jobs)
+                0.5, 1.0, size=n_jobs
+            )
             # Expand usage to broadcast over ticks
             resource_mask = usage[:, :, None] > 0
             # Final boolean activity mask
@@ -113,7 +129,7 @@ class MetricClusterCreator:
                     )
                     for j_idx in range(n_jobs)
                 ],
-                dtype=Status
+                dtype=Status,
             )
             return MetricJobs(jobs_slot, jobs_status, job_arrivals_tick)
 
@@ -131,9 +147,9 @@ class MetricClusterCreator:
         seed: tp.Optional[tp.SupportsFloat] = None,
     ) -> MetricCluster:
         return MetricCluster(
-            cls.generate_workload(n_jobs, n_resources,
-                                  n_ticks, poisson_lambda, is_offline),
-            cls.generate_homogeneous_machines(
-                n_machines, n_resources, n_ticks),
+            cls.generate_workload(
+                n_jobs, n_resources, n_ticks, poisson_lambda, is_offline
+            ),
+            cls.generate_homogeneous_machines(n_machines, n_resources, n_ticks),
             seed=seed,
         )

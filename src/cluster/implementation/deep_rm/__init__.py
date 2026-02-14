@@ -3,15 +3,26 @@ import typing as tp
 import numpy as np
 
 from src.cluster.core.job import Status
-from src.cluster.implementation.deep_rm.custom_type import _JOBS_TYPE, _MACHINE_TYPE, _DTYPE
-from src.cluster.implementation.deep_rm.jobs import DeepRMJobs, DeepRMJobSlot, DeepRMJobsConvertor
-from src.cluster.implementation.deep_rm.machines import DeepRMMachine, DeepRMMachines, DeepRMMachinesConvertor
+from src.cluster.implementation.deep_rm.custom_type import (
+    _JOBS_TYPE as _JOBS_TYPE,
+    _MACHINE_TYPE as _MACHINE_TYPE,
+    _DTYPE as _DTYPE,
+)
+from src.cluster.implementation.deep_rm.jobs import (
+    DeepRMJobs,
+    DeepRMJobSlot,
+    DeepRMJobsConvertor as DeepRMJobsConvertor,
+)
+from src.cluster.implementation.deep_rm.machines import (
+    DeepRMMachine,
+    DeepRMMachines,
+    DeepRMMachinesConvertor as DeepRMMachinesConvertor,
+)
 
 from src.cluster.core.cluster import ClusterABC
 
 
 class DeepRMCluster(ClusterABC[DeepRMMachines, DeepRMJobs]):
-
     def __init__(
         self,
         workload_creator: tp.Callable[[tp.Optional[tp.SupportsFloat]], DeepRMJobs],
@@ -23,13 +34,19 @@ class DeepRMCluster(ClusterABC[DeepRMMachines, DeepRMJobs]):
 
         super().__init__(seed)
 
-    def workload_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> DeepRMJobs:
+    def workload_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None
+    ) -> DeepRMJobs:
         return self._workload_creator(seed)
 
-    def machine_creator(self, seed: tp.Optional[tp.SupportsFloat] = None) -> DeepRMMachines:
+    def machine_creator(
+        self, seed: tp.Optional[tp.SupportsFloat] = None
+    ) -> DeepRMMachines:
         return self._machine_creator(seed)
 
-    def is_allocation_possible(self, machine: DeepRMMachine, job: DeepRMJobSlot) -> bool:
+    def is_allocation_possible(
+        self, machine: DeepRMMachine, job: DeepRMJobSlot
+    ) -> bool:
         return np.all(machine.free_space | ~job.usage)
 
     def allocation(self, machine: DeepRMMachine, job: DeepRMJobSlot) -> None:
@@ -37,15 +54,14 @@ class DeepRMCluster(ClusterABC[DeepRMMachines, DeepRMJobs]):
 
 
 class DeepRMCreators:
-
     @staticmethod
     def generate_random_workload(
-            n_jobs: int,
-            n_resources: int,
-            n_resource_unit: int,
-            n_ticks: int,
-            poisson_lambda: float = 5.0,
-            offline: bool = True,
+        n_jobs: int,
+        n_resources: int,
+        n_resource_unit: int,
+        n_ticks: int,
+        poisson_lambda: float = 5.0,
+        offline: bool = True,
     ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], DeepRMJobs]:
         def inner(seed: tp.Optional[tp.SupportsFloat]) -> DeepRMJobs:
             np.random.seed(seed)
@@ -55,8 +71,7 @@ class DeepRMCreators:
 
             main_res = np.random.randint(0, n_resources, size=(n_jobs,))
             long_mask = np.zeros(n_jobs, dtype=bool)
-            long_mask[np.random.choice(n_jobs, int(
-                0.2 * n_jobs), replace=False)] = True
+            long_mask[np.random.choice(n_jobs, int(0.2 * n_jobs), replace=False)] = True
             durations = np.where(
                 long_mask,
                 np.random.randint(10, 15 + 1, size=n_jobs),
@@ -77,8 +92,8 @@ class DeepRMCreators:
                 np.random.uniform(0.5, 1.0, size=(n_jobs,)) * n_resource_unit
             ).astype(int)
             usage = np.ceil(
-                np.random.uniform(0.1, 0.2, size=(
-                    n_jobs, n_resources)) * n_resource_unit
+                np.random.uniform(0.1, 0.2, size=(n_jobs, n_resources))
+                * n_resource_unit
             ).astype(int)
             usage[np.arange(n_jobs), main_res] = main_usage_units
 
@@ -106,17 +121,16 @@ class DeepRMCreators:
 
     @staticmethod
     def generate_homogeneous_machines(
-            n_machines: int,
-            n_resources: int,
-            n_resource_units: int,
-            n_ticks: int
+        n_machines: int, n_resources: int, n_resource_units: int, n_ticks: int
     ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], DeepRMMachines]:
         def inner(seed: tp.Optional[tp.SupportsFloat]) -> DeepRMMachines:
             np.random.seed(seed)
             machine_usage = np.ones(
                 (n_machines, n_resources, n_resource_units, n_ticks), dtype=np.bool_
             )
-            return DeepRMMachines(machine_usage,)
+            return DeepRMMachines(
+                machine_usage,
+            )
 
         return inner
 
@@ -134,8 +148,15 @@ class DeepRMCreators:
     ) -> DeepRMCluster:
         return DeepRMCluster(
             cls.generate_random_workload(
-                n_jobs, n_resources, n_resource_unit, n_ticks, poisson_lambda, is_offline),
+                n_jobs,
+                n_resources,
+                n_resource_unit,
+                n_ticks,
+                poisson_lambda,
+                is_offline,
+            ),
             cls.generate_homogeneous_machines(
-                n_machines, n_resources, n_resource_unit, n_ticks),
-            seed=seed
+                n_machines, n_resources, n_resource_unit, n_ticks
+            ),
+            seed=seed,
         )

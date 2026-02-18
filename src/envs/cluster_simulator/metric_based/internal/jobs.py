@@ -4,8 +4,16 @@ from typing_extensions import Unpack
 import numpy as np
 import numpy.typing as npt
 
-from src.envs.cluster_simulator.base.internal.job import Job, Status, JobCollection, JobCollectionConvertor
-from src.envs.cluster_simulator.metric_based.internal.custom_type import _JOBS_TYPE, _JOB_TYPE
+from src.envs.cluster_simulator.base.internal.job import (
+    Job,
+    Status,
+    JobCollection,
+    JobCollectionConvertor,
+)
+from src.envs.cluster_simulator.metric_based.internal.custom_type import (
+    _JOBS_TYPE,
+    _JOB_TYPE,
+)
 
 MetricJobsArgs: TypeAlias = tuple[_JOBS_TYPE, npt.NDArray[int], npt.NDArray[int]]
 

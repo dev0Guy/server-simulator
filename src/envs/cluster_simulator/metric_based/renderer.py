@@ -6,7 +6,9 @@ from src.envs.cluster_simulator.base.renderer import AbstractClusterGameRenderer
 from src.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservation,
 )
-from src.envs.cluster_simulator.base.extractors.information import ClusterBaseInformation
+from src.envs.cluster_simulator.base.extractors.information import (
+    ClusterBaseInformation,
+)
 from src.envs.cluster_simulator.base.internal.job import Status
 import numpy.typing as npt
 import pygame

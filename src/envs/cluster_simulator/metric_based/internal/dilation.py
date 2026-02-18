@@ -2,8 +2,14 @@ import typing as tp
 import numpy.typing as npt
 import numpy as np
 
-from src.envs.cluster_simulator.base.internal.dilation import AbstractDilation, SelectCellAction
-from src.envs.cluster_simulator.utils.array_operations import hierarchical_pooling, get_window_from_cell
+from src.envs.cluster_simulator.base.internal.dilation import (
+    AbstractDilation,
+    SelectCellAction,
+)
+from src.envs.cluster_simulator.utils.array_operations import (
+    hierarchical_pooling,
+    get_window_from_cell,
+)
 
 Kernel = npt.NDArray[np.float64]
 State = npt.NDArray[np.float64]

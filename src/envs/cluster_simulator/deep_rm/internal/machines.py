@@ -6,7 +6,10 @@ from src.envs.cluster_simulator.base.internal.machine import (
     MachineCollection,
     MachinesCollectionConvertor,
 )
-from src.envs.cluster_simulator.deep_rm.internal.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
+from src.envs.cluster_simulator.deep_rm.internal.custom_type import (
+    _MACHINE_TYPE,
+    _MACHINES_TYPE,
+)
 from typing import TypeAlias
 from typing_extensions import Unpack
 

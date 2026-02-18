@@ -4,8 +4,16 @@ import numpy as np
 import numpy.typing as npt
 from typing import TypeAlias
 from typing_extensions import Unpack
-from src.envs.cluster_simulator.base.internal.job import Job, JobCollection, Status, JobCollectionConvertor
-from src.envs.cluster_simulator.deep_rm.internal.custom_type import _JOB_TYPE, _JOBS_TYPE
+from src.envs.cluster_simulator.base.internal.job import (
+    Job,
+    JobCollection,
+    Status,
+    JobCollectionConvertor,
+)
+from src.envs.cluster_simulator.deep_rm.internal.custom_type import (
+    _JOB_TYPE,
+    _JOBS_TYPE,
+)
 
 DeepRMJobsArgs: TypeAlias = tuple[_JOBS_TYPE, npt.NDArray[int], npt.NDArray[int]]
 

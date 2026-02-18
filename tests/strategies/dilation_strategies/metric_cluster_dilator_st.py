@@ -7,11 +7,15 @@ import numpy as np
 
 from src.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
 from src.envs import BasicClusterEnv
-from src.envs.cluster_simulator.base.extractors.information import BaceClusterInformationExtractor
+from src.envs.cluster_simulator.base.extractors.information import (
+    BaceClusterInformationExtractor,
+)
 from src.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservationCreator,
 )
-from src.envs.cluster_simulator.base.extractors.reward import DifferentInPendingJobsRewardCaculator
+from src.envs.cluster_simulator.base.extractors.reward import (
+    DifferentInPendingJobsRewardCaculator,
+)
 from src.wrappers.cluster_simulator.dilation_wrapper import DilatorWrapper
 from tests.strategies.cluster_strategies import MetricClusterStrategies
 from tests.strategies.dilation_strategies.proto import DilationStrategies, Dilator

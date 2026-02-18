@@ -5,6 +5,7 @@ from src.envs.cluster_simulator.base.internal.cluster import ClusterAction, Clus
 
 Cluster = TypeVar("Cluster", bound=ClusterABC)
 
+
 class EnvironmentAction(NamedTuple):
     should_schedule: bool
     schedule: Tuple[int, int]

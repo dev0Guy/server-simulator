@@ -15,7 +15,9 @@ from src.envs.cluster_simulator.base.internal.dilation import (
 from src.envs.cluster_simulator.actions import DilationEnvironmentAction
 from src.envs.cluster_simulator.basic import BasicClusterEnv, EnvironmentAction
 from src.envs.cluster_simulator.base.extractors.information import ClusterInformation
-from src.envs.cluster_simulator.base.extractors.observation import BaseClusterObservation
+from src.envs.cluster_simulator.base.extractors.observation import (
+    BaseClusterObservation,
+)
 
 EnvironmentObservation = TypeVar("EnvironmentObservation", bound=BaseClusterObservation)
 WrapperObservation = TypeVar("WrapperObservation", bound=BaseClusterObservation)

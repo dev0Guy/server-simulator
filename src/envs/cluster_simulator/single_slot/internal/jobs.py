@@ -1,6 +1,11 @@
 import numpy as np
 
-from src.envs.cluster_simulator.base.internal.job import Job, JobCollection, Status, JobCollectionConvertor
+from src.envs.cluster_simulator.base.internal.job import (
+    Job,
+    JobCollection,
+    Status,
+    JobCollectionConvertor,
+)
 from typing import TypeAlias
 from typing_extensions import Unpack
 

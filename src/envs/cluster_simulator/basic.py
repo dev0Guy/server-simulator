@@ -4,14 +4,19 @@ import numpy as np
 
 from src.envs.cluster_simulator.actions import EnvironmentAction, ActionConvertor
 from src.envs.cluster_simulator.base.extractors.reward import RewardCaculator
-from src.envs.cluster_simulator.base.extractors.information import ClusterInformation, BaceClusterInformationExtractor
-from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation, BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.base.extractors.information import (
+    ClusterInformation,
+    BaceClusterInformationExtractor,
+)
+from src.envs.cluster_simulator.base.extractors.observation import (
+    ClusterObservation,
+    BaseObservationCreatorProtocol,
+)
 from src.envs.cluster_simulator.base.internal.cluster import ClusterABC
 
 InputActType = np.int64
 T = tp.TypeVar("T", bound=type)
 Cluster = tp.TypeVar("Cluster", bound=ClusterABC)
-
 
 
 class BasicClusterEnv(

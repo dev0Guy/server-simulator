@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING, TypedDict
 from src.envs.cluster_simulator.base.internal.job import Status
 from src.envs.cluster_simulator.single_slot import SingleSlotCluster
 from src.envs import BasicClusterEnv
-from src.envs.cluster_simulator.base.extractors.information import BaceClusterInformationExtractor
+from src.envs.cluster_simulator.base.extractors.information import (
+    BaceClusterInformationExtractor,
+)
 from src.envs.cluster_simulator.deep_rm.observation import (
     DeepRMObservationCreator,
 )
@@ -14,7 +16,9 @@ from src.envs.cluster_simulator.metric_based.observation import (
 from src.envs.cluster_simulator.single_slot.observation import (
     SingleSlotObservationCreator,
 )
-from src.envs.cluster_simulator.base.extractors.reward import DifferentInPendingJobsRewardCaculator
+from src.envs.cluster_simulator.base.extractors.reward import (
+    DifferentInPendingJobsRewardCaculator,
+)
 from tests.strategies.cluster_strategies import (
     SingleSlotClusterStrategies,
     DeepRMStrategies,

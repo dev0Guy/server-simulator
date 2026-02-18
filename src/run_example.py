@@ -4,7 +4,7 @@ import pygame
 
 from src.envs.cluster_simulator.metric_based import MetricClusterCreator
 from src.envs import BasicClusterEnv
-from src.envs.actions import EnvironmentAction
+from src.envs.cluster_simulator.actions import EnvironmentAction
 from src.envs.cluster_simulator.metric_based.internal.renderer import ClusterMetricRenderer
 from src.envs.cluster_simulator.base.extractors.information import BaceClusterInformationExtractor
 from src.envs.cluster_simulator.metric_based.observation import (

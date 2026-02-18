@@ -4,14 +4,14 @@ from typing import Tuple
 import numpy as np
 
 from src.envs.cluster_simulator.base.internal.job import Status
-from src.envs.basic import BasicClusterEnv
+from src.envs.cluster_simulator.basic import BasicClusterEnv
 from hypothesis import given, settings
 
 from src.envs.cluster_simulator.base.extractors.information import ClusterInformation
 from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation
 from src.scheduler.random_scheduler import RandomScheduler
 from tests.strategies.env_strategies.basic_env_st import BasicGymEnvironmentStrategies
-from src.envs.basic import EnvironmentAction
+from src.envs.cluster_simulator.basic import EnvironmentAction
 
 
 @given(env=BasicGymEnvironmentStrategies.creation())

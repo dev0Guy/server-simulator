@@ -5,7 +5,7 @@ import numpy as np
 
 from src.envs.cluster_simulator.base.internal.job import Status
 from src.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
-from src.envs.wrappers.dilation_wrapper import DilatorWrapper, DilationEnvironmentAction
+from src.wrappers.cluster_simulator.dilation_wrapper import DilatorWrapper, DilationEnvironmentAction
 from typing import Tuple, Type
 from hypothesis import given, settings, HealthCheck, assume
 from src.envs.cluster_simulator.base.internal.dilation import AbstractDilation, DilationState

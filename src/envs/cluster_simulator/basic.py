@@ -2,7 +2,7 @@ import gymnasium as gym
 import typing as tp
 import numpy as np
 
-from src.envs.actions import EnvironmentAction, ActionConvertor
+from src.envs.cluster_simulator.actions import EnvironmentAction, ActionConvertor
 from src.envs.cluster_simulator.base.extractors.reward import RewardCaculator
 from src.envs.cluster_simulator.base.extractors.information import ClusterInformation, BaceClusterInformationExtractor
 from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation, BaseObservationCreatorProtocol

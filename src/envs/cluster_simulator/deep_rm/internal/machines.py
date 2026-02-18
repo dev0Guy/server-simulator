@@ -1,12 +1,12 @@
 import typing as tp
 import numpy.typing as npt
 
-from src.envs.cluster_simulator.core.machine import (
+from src.envs.cluster_simulator.base.internal.machine import (
     Machine,
     MachineCollection,
     MachinesCollectionConvertor,
 )
-from src.envs.cluster_simulator.deep_rm.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
+from src.envs.cluster_simulator.deep_rm.internal.custom_type import _MACHINE_TYPE, _MACHINES_TYPE
 from typing import TypeAlias
 from typing_extensions import Unpack
 

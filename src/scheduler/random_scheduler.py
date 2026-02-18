@@ -2,8 +2,8 @@ import typing as tp
 import random
 import numpy as np
 
-from src.envs.cluster_simulator.core.job import JobCollection
-from src.envs.cluster_simulator.core.machine import MachineCollection
+from src.envs.cluster_simulator.base.internal.job import JobCollection
+from src.envs.cluster_simulator.base.internal.machine import MachineCollection
 from src.scheduler.base_scheduler import ABCScheduler, T
 
 

@@ -1,5 +1,5 @@
-from src.envs.cluster_simulator.core.dilation import DilationState
-from src.envs.cluster_simulator.metric_based.dilation import MetricBasedDilator
+from src.envs.cluster_simulator.base.internal.dilation import DilationState
+from src.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
 from src.envs.cluster_simulator.utils import array_operations
 import numpy as np
 from hypothesis import given, strategies as st, assume, settings, HealthCheck

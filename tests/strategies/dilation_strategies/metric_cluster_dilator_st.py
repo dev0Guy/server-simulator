@@ -5,13 +5,13 @@ from hypothesis.strategies import SearchStrategy
 from hypothesis import strategies as st, assume
 import numpy as np
 
-from src.envs.cluster_simulator.metric_based.dilation import MetricBasedDilator
+from src.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
 from src.envs import BasicClusterEnv
-from src.envs.cluster_simulator.core.extractors.information import BaceClusterInformationExtractor
-from src.envs.utils.observation_extractors.metric_observation_extractor import (
+from src.envs.cluster_simulator.base.extractors.information import BaceClusterInformationExtractor
+from src.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservationCreator,
 )
-from src.envs.cluster_simulator.core.extractors.reward import DifferentInPendingJobsRewardCaculator
+from src.envs.cluster_simulator.base.extractors.reward import DifferentInPendingJobsRewardCaculator
 from src.envs.wrappers.dilation_wrapper import DilatorWrapper
 from tests.strategies.cluster_strategies import MetricClusterStrategies
 from tests.strategies.dilation_strategies.proto import DilationStrategies, Dilator

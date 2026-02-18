@@ -2,7 +2,7 @@ import typing as tp
 from typing import TypeAlias
 from typing_extensions import Unpack
 import numpy as np
-from src.envs.cluster_simulator.core.machine import (
+from src.envs.cluster_simulator.base.internal.machine import (
     Machine,
     MachineCollection,
     MachinesCollectionConvertor,

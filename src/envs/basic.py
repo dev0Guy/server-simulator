@@ -3,13 +3,15 @@ import typing as tp
 import numpy as np
 
 from src.envs.actions import EnvironmentAction, ActionConvertor
-from src.envs.cluster_simulator.core.extractors.reward import RewardCaculator
-from src.envs.utils.common_types import Cluster
-from src.envs.cluster_simulator.core.extractors.information import ClusterInformation, BaceClusterInformationExtractor
-from src.envs.cluster_simulator.core.extractors.observation import ClusterObservation, BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.base.extractors.reward import RewardCaculator
+from src.envs.cluster_simulator.base.extractors.information import ClusterInformation, BaceClusterInformationExtractor
+from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation, BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.base.internal.cluster import ClusterABC
 
 InputActType = np.int64
 T = tp.TypeVar("T", bound=type)
+Cluster = tp.TypeVar("Cluster", bound=ClusterABC)
+
 
 
 class BasicClusterEnv(

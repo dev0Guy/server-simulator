@@ -2,12 +2,12 @@ from typing import Tuple
 
 from pygame import Color
 
-from src.envs.cluster_simulator.core.renderer import AbstractClusterGameRenderer
-from src.envs.utils.observation_extractors.metric_observation_extractor import (
+from src.envs.cluster_simulator.base.internal.renderer import AbstractClusterGameRenderer
+from src.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservation,
 )
-from src.envs.cluster_simulator.core.extractors.information import ClusterBaseInformation
-from src.envs.cluster_simulator.core.job import Status
+from src.envs.cluster_simulator.base.extractors.information import ClusterBaseInformation
+from src.envs.cluster_simulator.base.internal.job import Status
 import numpy.typing as npt
 import pygame
 import numpy as np

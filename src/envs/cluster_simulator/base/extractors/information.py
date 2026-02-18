@@ -2,7 +2,7 @@ import abc
 from typing import TypeVar, TypedDict, Generic
 import numpy.typing as npt
 
-from src.envs.cluster_simulator.core.extractors.observation import ClusterObservation
+from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation
 
 
 class ClusterBaseInformation(TypedDict):

@@ -1,6 +1,6 @@
 import pytest
 
-from src.envs.cluster_simulator.core.job import Status
+from src.envs.cluster_simulator.base.internal.job import Status
 import numpy as np
 
 from src.envs.cluster_simulator.metric_based import (

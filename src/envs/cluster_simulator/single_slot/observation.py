@@ -2,8 +2,8 @@ from typing import TypedDict
 
 import gymnasium as gym
 
-from src.envs.cluster_simulator.core.job import Status
-from src.envs.cluster_simulator.core.extractors.observation import BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.base.internal.job import Status
+from src.envs.cluster_simulator.base.extractors.observation import BaseObservationCreatorProtocol
 from src.envs.cluster_simulator.single_slot import (
     SingleSlotCluster,
     SingleSlotMachinesConvertor,

@@ -2,14 +2,14 @@ import typing as tp
 
 import numpy as np
 
-from src.envs.cluster_simulator.core.cluster import ClusterABC
-from src.envs.cluster_simulator.single_slot.jobs import (
+from src.envs.cluster_simulator.base.internal.cluster import ClusterABC
+from src.envs.cluster_simulator.single_slot.internal.jobs import (
     SingleSlotJobs,
     Status,
     SingleSlotJob,
     SingleSlotJobsConvertor as SingleSlotJobsConvertor,
 )
-from src.envs.cluster_simulator.single_slot.machines import (
+from src.envs.cluster_simulator.single_slot.internal.machines import (
     SingleSlotMachines,
     SingleSlotMachine,
     SingleSlotMachinesConvertor as SingleSlotMachinesConvertor,

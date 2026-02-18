@@ -1,8 +1,8 @@
 from typing import Generic
 import abc
 
-from src.envs.cluster_simulator.core.job import Status
-from src.envs.cluster_simulator.core.extractors.information import ClusterInformation
+from src.envs.cluster_simulator.base.internal.job import Status
+from src.envs.cluster_simulator.base.extractors.information import ClusterInformation
 
 
 class RewardCaculator(Generic[ClusterInformation]):

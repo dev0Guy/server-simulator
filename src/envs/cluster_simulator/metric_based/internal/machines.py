@@ -3,12 +3,12 @@ from typing import TypeAlias
 from typing_extensions import Unpack
 import numpy.typing as npt
 
-from src.envs.cluster_simulator.core.machine import (
+from src.envs.cluster_simulator.base.internal.machine import (
     Machine,
     MachineCollection,
     MachinesCollectionConvertor,
 )
-from src.envs.cluster_simulator.metric_based.custom_type import (
+from src.envs.cluster_simulator.metric_based.internal.custom_type import (
     _MACHINE_TYPE,
     _MACHINES_TYPE,
 )

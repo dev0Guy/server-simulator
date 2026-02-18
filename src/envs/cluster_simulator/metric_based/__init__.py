@@ -2,24 +2,24 @@ import typing as tp
 
 import numpy as np
 
-from src.envs.cluster_simulator.core.job import Status
-from src.envs.cluster_simulator.metric_based.custom_type import (
+from src.envs.cluster_simulator.base.internal.job import Status
+from src.envs.cluster_simulator.metric_based.internal.custom_type import (
     _JOBS_TYPE as _JOBS_TYPE,
     _MACHINE_TYPE as _MACHINE_TYPE,
     _DTYPE as _DTYPE,
 )
-from src.envs.cluster_simulator.metric_based.jobs import (
+from src.envs.cluster_simulator.metric_based.internal.jobs import (
     MetricJobSlot,
     MetricJobs,
     MetricJobsConvertor as MetricJobsConvertor,
 )
-from src.envs.cluster_simulator.metric_based.machines import (
+from src.envs.cluster_simulator.metric_based.internal.machines import (
     MetricMachine,
     MetricMachines,
     MetricMachinesConvertor as MetricMachinesConvertor,
 )
 
-from src.envs.cluster_simulator.core.cluster import ClusterABC
+from src.envs.cluster_simulator.base.internal.cluster import ClusterABC
 
 
 class MetricCluster(ClusterABC[MetricMachines, MetricJobs]):

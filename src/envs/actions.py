@@ -1,9 +1,9 @@
-from typing import NamedTuple, Tuple
+from typing import NamedTuple, Tuple, TypeVar
 import gymnasium as gym
 
-from src.envs.cluster_simulator.core.cluster import ClusterAction
-from src.envs.utils.common_types import Cluster
+from src.envs.cluster_simulator.base.internal.cluster import ClusterAction, ClusterABC
 
+Cluster = TypeVar("Cluster", bound=ClusterABC)
 
 class EnvironmentAction(NamedTuple):
     should_schedule: bool

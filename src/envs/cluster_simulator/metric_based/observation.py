@@ -3,14 +3,13 @@ from typing import TypedDict
 import gymnasium as gym
 import numpy.typing as npt
 
-from src.envs.cluster_simulator.core.job import Status
-from src.envs.cluster_simulator.metric_based import (
-    MetricCluster,
-    MetricJobsConvertor,
-    MetricMachinesConvertor,
-)
-from src.envs.cluster_simulator.core.extractors.observation import BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.base.internal.job import Status
+from src.envs.cluster_simulator.base.extractors.observation import BaseObservationCreatorProtocol
 import numpy as np
+
+from src.envs.cluster_simulator.metric_based import MetricCluster
+from src.envs.cluster_simulator.metric_based.internal.jobs import MetricJobsConvertor
+from src.envs.cluster_simulator.metric_based.internal.machines import MetricMachinesConvertor
 
 
 class MetricClusterObservation(TypedDict):

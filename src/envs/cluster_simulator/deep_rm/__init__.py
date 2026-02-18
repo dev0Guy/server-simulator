@@ -2,24 +2,27 @@ import typing as tp
 
 import numpy as np
 
-from src.envs.cluster_simulator.core.job import Status
-from src.envs.cluster_simulator.deep_rm.custom_type import (
+from src.envs.cluster_simulator.base.internal.job import Status
+
+
+
+from src.envs.cluster_simulator.deep_rm.internal.custom_type import (
     _JOBS_TYPE as _JOBS_TYPE,
     _MACHINE_TYPE as _MACHINE_TYPE,
     _DTYPE as _DTYPE,
 )
-from src.envs.cluster_simulator.deep_rm.jobs import (
+from src.envs.cluster_simulator.deep_rm.internal.jobs import (
     DeepRMJobs,
     DeepRMJobSlot,
     DeepRMJobsConvertor as DeepRMJobsConvertor,
 )
-from src.envs.cluster_simulator.deep_rm.machines import (
+from src.envs.cluster_simulator.deep_rm.internal.machines import (
     DeepRMMachine,
     DeepRMMachines,
     DeepRMMachinesConvertor as DeepRMMachinesConvertor,
 )
 
-from src.envs.cluster_simulator.core.cluster import ClusterABC
+from src.envs.cluster_simulator.base.internal.cluster import ClusterABC
 
 
 class DeepRMCluster(ClusterABC[DeepRMMachines, DeepRMJobs]):

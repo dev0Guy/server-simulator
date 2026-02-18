@@ -5,12 +5,12 @@ import pygame
 from src.envs.cluster_simulator.metric_based import MetricClusterCreator
 from src.envs import BasicClusterEnv
 from src.envs.actions import EnvironmentAction
-from src.envs.cluster_simulator.metric_based.renderer import ClusterMetricRenderer
-from src.envs.cluster_simulator.core.extractors.information import BaceClusterInformationExtractor
-from src.envs.utils.observation_extractors.metric_observation_extractor import (
+from src.envs.cluster_simulator.metric_based.internal.renderer import ClusterMetricRenderer
+from src.envs.cluster_simulator.base.extractors.information import BaceClusterInformationExtractor
+from src.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservationCreator,
 )
-from src.envs.cluster_simulator.core.extractors.reward import DifferentInPendingJobsRewardCaculator
+from src.envs.cluster_simulator.base.extractors.reward import DifferentInPendingJobsRewardCaculator
 from src.scheduler.random_scheduler import RandomScheduler
 
 cluster = MetricClusterCreator.generate_default(

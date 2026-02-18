@@ -2,7 +2,7 @@ from typing import Tuple
 
 from pygame import Color
 
-from src.envs.cluster_simulator.base.internal.renderer import AbstractClusterGameRenderer
+from src.envs.cluster_simulator.base.renderer import AbstractClusterGameRenderer
 from src.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservation,
 )

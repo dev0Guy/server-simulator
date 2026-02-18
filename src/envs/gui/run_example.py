@@ -1,5 +1,4 @@
 # Create cluster
-from time import sleep
 
 import pygame
 

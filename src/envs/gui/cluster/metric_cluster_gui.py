@@ -439,9 +439,6 @@ class ClusterMetricRenderer(
             1, available_width // (machine_width + self.machine_spacing)
         )
 
-        # Calculate number of rows needed
-        n_rows = int(np.ceil(n_machines / machines_per_row))
-
         # Calculate total grid dimensions
         total_grid_width = (
             machines_per_row * machine_width

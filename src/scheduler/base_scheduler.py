@@ -2,8 +2,8 @@ import logging
 import typing as tp
 import abc
 
-from src.cluster.core.job import JobCollection, Job, Status
-from src.cluster.core.machine import MachineCollection, Machine
+from src.envs.cluster_simulator.base.internal.job import JobCollection, Job, Status
+from src.envs.cluster_simulator.base.internal.machine import MachineCollection, Machine
 
 T = tp.TypeVar("T")
 MachineT = tp.TypeVar("MachineT", bound=Machine)

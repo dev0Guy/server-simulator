@@ -32,7 +32,6 @@ def flat_idx_to_cell(m_idx: int, grid_shape: tuple[int, int]) -> tuple[int, int]
     return m_idx // m_y, m_idx % m_y
 
 
-# TODO: check tomrrow
 @given(env=MetricClusterDilationStrategies.creation())
 @settings(
     suppress_health_check=[HealthCheck.filter_too_much], deadline=timedelta(minutes=10)

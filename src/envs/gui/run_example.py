@@ -14,7 +14,7 @@ from src.envs.utils.reward_caculators.base import DifferentInPendingJobsRewardCa
 from src.scheduler.random_scheduler import RandomScheduler
 
 cluster = MetricClusterCreator.generate_default(
-    n_machines=6, n_jobs=20, n_resources=3, n_ticks=50, is_offline=True, seed=42
+    n_machines=20, n_jobs=100, n_resources=3, n_ticks=10, is_offline=True, seed=42
 )
 
 env = BasicClusterEnv(
@@ -25,7 +25,7 @@ env = BasicClusterEnv(
 )
 
 with ClusterMetricRenderer(
-    display_size=(1400, 900),  # Larger window
+    display_size=(1400, 900),
     cell_size=10,
     machine_spacing=10,
 ) as renderer:
@@ -43,10 +43,8 @@ with ClusterMetricRenderer(
     step_count = 0
 
     while not terminated:
-        # Render current state
         renderer.render(current_info, current_obs)
 
-        # Handle pygame events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print("User closed window")
@@ -55,7 +53,6 @@ with ClusterMetricRenderer(
         machines = cluster._machines
         jobs = cluster._jobs
 
-        # Log current status
         status_counts = {}
         for job in jobs:
             status_name = job.status.name

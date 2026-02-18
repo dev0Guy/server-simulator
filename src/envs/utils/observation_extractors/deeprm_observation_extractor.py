@@ -4,9 +4,9 @@ import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 
-from src.cluster.core.job import Status
-from src.envs.utils.observation_extractors.proto import BaseObservationCreatorProtocol
-from src.cluster.implementation.deep_rm import (
+from src.envs.cluster_simulator.core.job import Status
+from src.envs.cluster_simulator.core.extractors.observation import BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.deep_rm import (
     DeepRMCluster,
     DeepRMMachinesConvertor,
     DeepRMJobsConvertor,

@@ -1,7 +1,7 @@
 from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
 
-from src.cluster.implementation.metric_based import MetricCluster, MetricClusterCreator
+from src.envs.cluster_simulator.metric_based import MetricCluster, MetricClusterCreator
 from tests.strategies.cluster_strategies.proto import ClusterStrategies
 
 

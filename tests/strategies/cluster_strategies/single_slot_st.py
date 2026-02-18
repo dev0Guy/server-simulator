@@ -2,7 +2,7 @@ from hypothesis.strategies import SearchStrategy
 from hypothesis import strategies as st
 
 from tests.strategies.cluster_strategies.proto import ClusterStrategies
-from src.cluster.implementation.single_slot import (
+from src.envs.cluster_simulator.single_slot import (
     SingleSlotCluster,
     SingleSlotClusterCreators,
 )

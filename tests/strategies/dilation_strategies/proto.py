@@ -3,7 +3,7 @@ import abc
 
 from hypothesis.strategies import SearchStrategy
 
-from src.cluster.core.dilation import AbstractDilation
+from src.envs.cluster_simulator.core.dilation import AbstractDilation
 
 Dilator = TypeVar("Dilator", bound=AbstractDilation)
 

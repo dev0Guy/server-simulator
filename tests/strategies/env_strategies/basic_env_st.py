@@ -1,10 +1,10 @@
 from hypothesis import strategies as st, assume
 from typing import TYPE_CHECKING, TypedDict
 
-from src.cluster.core.job import Status
-from src.cluster.implementation.single_slot import SingleSlotCluster
+from src.envs.cluster_simulator.core.job import Status
+from src.envs.cluster_simulator.single_slot import SingleSlotCluster
 from src.envs import BasicClusterEnv
-from src.envs.utils.info_builders.base import BaceClusterInformationExtractor
+from src.envs.cluster_simulator.core.extractors.information import BaceClusterInformationExtractor
 from src.envs.utils.observation_extractors.deeprm_observation_extractor import (
     DeepRMObservationCreator,
 )
@@ -14,7 +14,7 @@ from src.envs.utils.observation_extractors.metric_observation_extractor import (
 from src.envs.utils.observation_extractors.singel_slot_observation_extractor import (
     SingleSlotObservationCreator,
 )
-from src.envs.utils.reward_caculators.base import DifferentInPendingJobsRewardCaculator
+from src.envs.cluster_simulator.core.extractors.reward import DifferentInPendingJobsRewardCaculator
 from tests.strategies.cluster_strategies import (
     SingleSlotClusterStrategies,
     DeepRMStrategies,

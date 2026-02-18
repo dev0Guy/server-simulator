@@ -1,7 +1,7 @@
 from typing import NamedTuple, Tuple
 import gymnasium as gym
 
-from src.cluster.core.cluster import ClusterAction
+from src.envs.cluster_simulator.core.cluster import ClusterAction
 from src.envs.utils.common_types import Cluster
 
 

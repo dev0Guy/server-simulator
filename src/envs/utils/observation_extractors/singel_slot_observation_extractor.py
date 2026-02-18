@@ -2,9 +2,9 @@ from typing import TypedDict
 
 import gymnasium as gym
 
-from src.cluster.core.job import Status
-from .proto import BaseObservationCreatorProtocol
-from src.cluster.implementation.single_slot import (
+from src.envs.cluster_simulator.core.job import Status
+from src.envs.cluster_simulator.core.extractors.observation import BaseObservationCreatorProtocol
+from src.envs.cluster_simulator.single_slot import (
     SingleSlotCluster,
     SingleSlotMachinesConvertor,
     SingleSlotJobsConvertor,

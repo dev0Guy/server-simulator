@@ -447,9 +447,6 @@ class ClusterMetricRenderer(
             machines_per_row * machine_width
             + (machines_per_row - 1) * self.machine_spacing
         )
-        total_grid_height = (
-            n_rows * total_machine_height + (n_rows - 1) * self.machine_spacing
-        )
 
         # Starting position (centered horizontally, positioned below separator)
         start_x = (self._width - total_grid_width) // 2

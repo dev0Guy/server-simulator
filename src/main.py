@@ -1,4 +1,3 @@
-import pygame
 
 from src.envs.cluster_simulator.metric_based import MetricClusterCreator
 from src.envs import BasicClusterEnv
@@ -61,8 +60,6 @@ def main(render_mode="human"):
     terminated = False
     truncated = False
     step_count = 0
-
-    clock = pygame.time.Clock()
 
     print("Starting cluster simulation...")
     print(f"Total jobs: {len(cluster._jobs)}")

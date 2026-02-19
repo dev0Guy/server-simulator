@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import TypeVar, Generic, TypeAlias
+from typing import TypeVar, Generic
 from abc import abstractmethod
 from src.envs.cluster_simulator.base.extractors.information import (
     ClusterBaseInformation,
@@ -7,7 +7,7 @@ from src.envs.cluster_simulator.base.extractors.information import (
 from src.envs.cluster_simulator.base.extractors.observation import (
     BaseClusterObservation,
 )
-from typing_extensions import Self, NamedTuple, Literal
+from typing_extensions import Self
 
 ClusterInformation = TypeVar("ClusterInformation", bound=ClusterBaseInformation)
 ClusterObservation = TypeVar("ClusterObservation", bound=BaseClusterObservation)

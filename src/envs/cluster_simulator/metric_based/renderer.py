@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 from pygame import Color
 
@@ -14,24 +14,35 @@ import numpy.typing as npt
 import pygame
 import numpy as np
 
+from src.wrappers.cluster_simulator.render_wrapper import RenderMode
+
 
 class ClusterMetricRenderer(
     AbstractClusterGameRenderer[MetricClusterObservation, ClusterBaseInformation]
 ):
     def __init__(
         self,
-        display_size: Tuple[int, int] = (1400, 900),  # Larger default window
+        render_mode: RenderMode,
+        display_size: Tuple[int, int] = (1400, 900),
         background_color: Color = "#ECF0F1",
         title: str = "Metric Cluster",
         cell_size: int = 5,
         machine_spacing: int = 10,
-        label_height: int = 15,  # Increased to fit arrival time
-        separator_height: int = 20,  # Space for separator line
-        header_height: int = 40,  # Space for tick counter
+        label_height: int = 15,
+        separator_height: int = 20,
+        header_height: int = 40,
     ):
+        self._render_mode = render_mode
         self._width, self._height = display_size
         pygame.init()
-        pygame.display.set_caption(title)
+        if self._render_mode == "Human":
+            pygame.display.set_caption(title)
+            self.window = pygame.display.set_mode(display_size)
+        else:
+            self.window = pygame.Surface(display_size)
+
+        self.clock = pygame.time.Clock()
+        self.fps = 30
         self.window = pygame.display.set_mode(display_size)
         self.background_color = background_color
         self.grid_color = (0, 0, 0)  # Black grid lines
@@ -71,7 +82,11 @@ class ClusterMetricRenderer(
         self,
         new_info: ClusterBaseInformation,
         new_observation: MetricClusterObservation,
-    ) -> None:
+    ) -> Optional[npt.NDArray]:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.close()
+
         self.window.fill(self.background_color)
 
         # Draw tick counter at the top
@@ -98,10 +113,24 @@ class ClusterMetricRenderer(
             new_observation["machines"], jobs_section_height + self.separator_height
         )
 
-        pygame.display.update()
+        if self._render_mode == "rgb_array":
+            return self._get_rgb_array()
+        elif self._render_mode == "human":
+            pygame.display.update()
+            self.clock.tick(self.fps)
+        return None
 
     def close(self) -> None:
         pygame.quit()
+
+    def _get_rgb_array(self) -> np.ndarray:
+        """
+        Convert the current pygame display to RGB array.
+        Shape: (height, width, 3)
+        """
+        frame = pygame.surfarray.array3d(self.window)
+        frame = np.transpose(frame, (1, 0, 2))  # Convert (W,H,3) -> (H,W,3)
+        return frame
 
     @staticmethod
     def _value_to_color_machine(value: float) -> Color:

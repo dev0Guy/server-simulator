@@ -4,7 +4,7 @@ import numpy as np
 
 from src.envs.cluster_simulator.base.internal.job import JobCollection
 from src.envs.cluster_simulator.base.internal.machine import MachineCollection
-from src.scheduler.base_scheduler import ABCScheduler, T
+from src.experiments.schedulers.base_scheduler import ABCScheduler, T
 
 
 class RandomScheduler(ABCScheduler[T]):

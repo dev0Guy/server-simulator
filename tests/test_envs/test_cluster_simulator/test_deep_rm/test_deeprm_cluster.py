@@ -1,6 +1,6 @@
 from src.envs.cluster_simulator.deep_rm.internal.jobs import DeepRMJobsConvertor
 from src.envs.cluster_simulator.deep_rm.internal.machines import DeepRMMachinesConvertor
-from src.experiments.schedulers.random_scheduler import RandomScheduler
+from src.scheduler.random_scheduler import RandomScheduler
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from src.envs.cluster_simulator.deep_rm import DeepRMCreators, DeepRMCluster
 from src.envs.cluster_simulator.base.internal.job import Status

@@ -9,7 +9,7 @@ from hypothesis import given, settings
 
 from src.envs.cluster_simulator.base.extractors.information import ClusterInformation
 from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation
-from src.experiments.schedulers.random_scheduler import RandomScheduler
+from src.scheduler.random_scheduler import RandomScheduler
 from tests.strategies.env_strategies.basic_env_st import BasicGymEnvironmentStrategies
 from src.envs.cluster_simulator.basic import EnvironmentAction
 

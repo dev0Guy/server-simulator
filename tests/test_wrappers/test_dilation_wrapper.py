@@ -15,7 +15,7 @@ from src.envs.cluster_simulator.base.internal.dilation import (
     AbstractDilation,
     DilationState,
 )
-from src.experiments.schedulers.random_scheduler import RandomScheduler
+from src.scheduler.random_scheduler import RandomScheduler
 from tests.strategies.dilation_strategies.metric_cluster_dilator_st import (
     MetricClusterDilationStrategies,
 )

@@ -11,7 +11,7 @@ from src.envs.cluster_simulator.metric_based import (
 )
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 
-from src.experiments.schedulers.random_scheduler import RandomScheduler
+from src.scheduler.random_scheduler import RandomScheduler
 from tests.strategies.cluster_strategies import MetricClusterStrategies
 from tests.test_envs.test_cluster_simulator.test_single_slot.test_single_slot_cluster import (
     seed_strategy,

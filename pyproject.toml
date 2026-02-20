@@ -21,6 +21,9 @@ dev = [
     "pytest>=8.4.2",
     "ruff>=0.14.0",
 ]
+experiments = [
+    "tianshou>=0.5.1",
+]
 
 [tool.mypy]
 plugins = ["numpy.typing.mypy_plugin"]

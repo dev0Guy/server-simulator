@@ -12,7 +12,7 @@ from src.envs.cluster_simulator.metric_based.observation import (
 from src.envs.cluster_simulator.base.extractors.reward import (
     DifferentInPendingJobsRewardCaculator,
 )
-from src.experiments.schedulers.random_scheduler import RandomScheduler
+from src.scheduler.first_come_first_served_scheduler import FCFSScheduler
 from src.wrappers.cluster_simulator.render_wrapper import ClusterGameRendererWrapper
 
 
@@ -55,7 +55,7 @@ def main(render_mode="human"):
     # -------------------------------
     current_obs, current_info = env.reset()
 
-    scheduler = RandomScheduler(cluster.is_allocation_possible)
+    scheduler = FCFSScheduler(cluster.is_allocation_possible)
 
     terminated = False
     truncated = False
@@ -98,4 +98,4 @@ def main(render_mode="human"):
 
 
 if __name__ == "__main__":
-    main(render_mode="rgb_array")  # change to "rgb_array" if needed
+    main(render_mode="human")  # change to "rgb_array" if needed

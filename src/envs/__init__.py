@@ -4,12 +4,18 @@ from src.envs.cluster_simulator.base.extractors.reward import (
 from src.envs.cluster_simulator.basic import BasicClusterEnv as BasicClusterEnv
 from gymnasium import register
 
-from src.envs.cluster_simulator.deep_rm.creator import DeepRMEnvCreator, DeepRMCreatorParameters
+from src.envs.cluster_simulator.deep_rm.creator import (
+    DeepRMEnvCreator,
+    DeepRMCreatorParameters,
+)
 from src.envs.cluster_simulator.metric_based.creator import (
     MetricBasedEnvCreator,
     MetricBasedCreatorParameters,
 )
-from src.envs.cluster_simulator.single_slot.creator import SingleSlotEnvCreator, SingleSlotCreatorParameters
+from src.envs.cluster_simulator.single_slot.creator import (
+    SingleSlotEnvCreator,
+    SingleSlotCreatorParameters,
+)
 
 register(
     "ClusterScheduling-single-slot-v1",

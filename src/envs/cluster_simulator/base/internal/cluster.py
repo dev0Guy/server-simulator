@@ -72,9 +72,9 @@ class ClusterABC(tp.Generic[Machines, Jobs], abc.ABC):
 
         if job.status != JobStatus.Pending:
             self.logger.warning(
-                "Invalid action: job %d has status %s (expected: Pending)",
+                "Invalid action: job %d has status '%s' (expected: 'Pending')",
                 j_idx,
-                job.status,
+                job.status.name,
             )
             return False
 

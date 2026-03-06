@@ -38,6 +38,7 @@ class BasicClusterEnv(
         self._obs_creator = obs_extractor
         self.observation_space = self._obs_creator.create_space(self._cluster)
         self.action_space = ActionConvertor.create_space(self._cluster)
+        self._seed = None
 
     def reset(
         self,
@@ -45,8 +46,10 @@ class BasicClusterEnv(
         seed: int | None = None,
         options: dict[str, tp.Any] | None = None,
     ) -> tuple[ClusterObservation, ClusterInformation]:
-        super().reset(seed=seed)
-        self._cluster.reset(seed)
+        if seed is not None:
+            self._seed = seed
+        super().reset(seed=self._seed)
+        self._cluster.reset(self._seed)
 
         observation = self._obs_creator.create(self._cluster)
         info = self._info_builder(observation)
@@ -56,6 +59,8 @@ class BasicClusterEnv(
     def step(
         self, action: EnvironmentAction
     ) -> tuple[ClusterObservation, tp.SupportsFloat, bool, bool, ClusterInformation]:
+        if isinstance(action, tuple) and not isinstance(action, EnvironmentAction):
+            action = EnvironmentAction(*action)
         assert isinstance(action, EnvironmentAction)
         prev_observation = self._obs_creator.create(self._cluster)
         prev_info = self._info_builder(prev_observation)

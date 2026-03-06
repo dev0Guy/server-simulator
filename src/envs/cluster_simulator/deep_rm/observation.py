@@ -50,16 +50,16 @@ class DeepRMObservationCreator(
             low=0.0,
             high=1.0,
             shape=self._machines_convertor.to_representation(cluster._machines).shape,
-            dtype=np.float64,
+            dtype=np.bool,
         )
         jobs_usage_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=jobs_usage.shape, dtype=np.float64
+            low=0.0, high=1.0, shape=jobs_usage.shape, dtype=np.bool
         )
         jobs_status_space = gym.spaces.Box(
             low=0.0,
             high=max(s.value for s in Status),
             shape=(len(job_status),),
-            dtype=np.float64,
+            dtype=np.int64,
         )
         arrival_time_space = gym.spaces.Box(
             low=0.0,

@@ -3,6 +3,14 @@
     [X] First come, First Served
     [X] Shortest Job First
     [X] Round Robin
+
+[ ] Update project to be regular GymPackage
+    [X] Implement gym project layout 
+    [ ] Test The new layout with 
+        [ ] Fix error of s `non-deterministic as the observations are not equivalent`.
+    [ ] upload as python package to pip
+    [ ] Try to use this as gym env with some actions
+
 [ ] Create simple pipeline including tianshou & wandb
 [ ] Implement different reward functions ???
 [ ] Train Simple model on Classic Env 

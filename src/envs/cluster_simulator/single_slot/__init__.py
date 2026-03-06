@@ -33,8 +33,8 @@ class SingleSlotClusterCreators:
         n_jobs: int,
     ) -> tp.Callable[[tp.Optional[tp.SupportsFloat]], SingleSlotJobs]:
         def inner(seed: tp.Optional[tp.SupportsFloat]) -> SingleSlotJobs:
-            np.random.seed(seed)
-            job_usage = np.random.rand(n_jobs)
+            rng = np.random.default_rng(seed)
+            job_usage = rng.random(n_jobs)
             job_status = [Status.Pending for _ in range(n_jobs)]
             return SingleSlotJobs(job_usage, job_status)
 

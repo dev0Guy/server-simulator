@@ -60,7 +60,7 @@ class MetricClusterObservationCreator(
             low=0.0,
             high=max(s.value for s in Status),
             shape=(len(job_status),),
-            dtype=np.float64,
+            dtype=np.int64,
         )
         arrival_time_space = gym.spaces.Box(
             low=0.0,

@@ -20,11 +20,6 @@ dev = [
     "pyrefly>=0.51.1",
     "pytest>=8.4.2",
     "ruff>=0.14.0",
-    "sensai>=1.6.0",
-    "tianshou==2.0.0",
-]
-experiments = [
-    "tianshou>=0.5.1",
 ]
 
 [tool.mypy]

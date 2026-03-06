@@ -35,13 +35,13 @@ class SJFScheduler(ABCScheduler[T]):
             return None
 
         # SJF: pick the job with the smallest duration
-        job_idx, available_machines = min(
-            schedulable, key=lambda x: jobs[x[0]].length
-        )
+        job_idx, available_machines = min(schedulable, key=lambda x: jobs[x[0]].length)
 
         machine_idx = available_machines[0]
         self.logger.debug(
             "Scheduling job %d (duration=%s) on machine %d",
-            job_idx, jobs[job_idx].length, machine_idx
+            job_idx,
+            jobs[job_idx].length,
+            machine_idx,
         )
         return machine_idx, job_idx

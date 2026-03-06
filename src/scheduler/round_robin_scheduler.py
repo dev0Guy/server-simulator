@@ -41,7 +41,9 @@ class RoundRobinScheduler(ABCScheduler[T]):
                 self._last_job_idx = job_idx
                 self.logger.debug(
                     "Scheduling job %d on machine %d (last_idx=%d)",
-                    job_idx, machine_idx, self._last_job_idx
+                    job_idx,
+                    machine_idx,
+                    self._last_job_idx,
                 )
                 return machine_idx, job_idx
 

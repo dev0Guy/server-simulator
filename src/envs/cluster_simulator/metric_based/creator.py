@@ -1,17 +1,20 @@
 from gymnasium.envs.registration import EnvCreator
 
-from src.envs.cluster_simulator.base.extractors.information import BaceClusterInformationExtractor
+from src.envs.cluster_simulator.base.extractors.information import (
+    BaceClusterInformationExtractor,
+)
 from src.envs.cluster_simulator.base.extractors.reward import RewardCaculator
 from src.envs.cluster_simulator.basic import BasicClusterEnv
-from typing import Unpack, TypedDict, Optional
+from typing import TypedDict, Optional
+from typing_extensions import Unpack
 
 from src.envs.cluster_simulator.metric_based import MetricCluster, MetricClusterCreator
-from src.envs.cluster_simulator.metric_based.observation import MetricClusterObservationCreator
+from src.envs.cluster_simulator.metric_based.observation import (
+    MetricClusterObservationCreator,
+)
 
-__all__ = [
-    'MetricBasedCreatorParameters',
-    'MetricBasedEnvCreator'
-]
+__all__ = ["MetricBasedCreatorParameters", "MetricBasedEnvCreator"]
+
 
 class MetricBasedCreatorParameters(TypedDict):
     n_jobs: int
@@ -25,22 +28,21 @@ class MetricBasedCreatorParameters(TypedDict):
 
 
 class MetricBasedEnvCreator(EnvCreator):
-
-    def __call__(self, **kwargs: Unpack[MetricBasedCreatorParameters]) -> BasicClusterEnv:
+    def __call__(
+        self, **kwargs: Unpack[MetricBasedCreatorParameters]
+    ) -> BasicClusterEnv:
         cluster = MetricCluster(
             workload_creator=MetricClusterCreator.generate_workload(
                 kwargs["n_jobs"],
                 kwargs["n_resources"],
                 kwargs["n_ticks"],
                 kwargs["poisson_lambda"],
-                offline=kwargs["offline"]
+                offline=kwargs["offline"],
             ),
             machine_creator=MetricClusterCreator.generate_homogeneous_machines(
-                kwargs["n_machines"],
-                kwargs["n_resources"],
-                kwargs["n_ticks"]
+                kwargs["n_machines"], kwargs["n_resources"], kwargs["n_ticks"]
             ),
-            seed=kwargs["seed"]
+            seed=kwargs["seed"],
         )
         return BasicClusterEnv(
             cluster=cluster,

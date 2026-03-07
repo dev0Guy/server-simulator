@@ -38,6 +38,12 @@ log_cli_level = "DEBUG"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)d)"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
-
 [tool.ruff]
 line-length = 88
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

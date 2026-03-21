@@ -3,9 +3,17 @@ import abc
 
 from rust_enum import enum, Case
 
-from src.server_simulator.envs.cluster_simulator.base.internal.job import Job, JobCollection
-from src.server_simulator.envs.cluster_simulator.base.internal.job import Status as JobStatus
-from src.server_simulator.envs.cluster_simulator.base.internal.machine import Machine, MachineCollection
+from src.server_simulator.envs.cluster_simulator.base.internal.job import (
+    Job,
+    JobCollection,
+)
+from src.server_simulator.envs.cluster_simulator.base.internal.job import (
+    Status as JobStatus,
+)
+from src.server_simulator.envs.cluster_simulator.base.internal.machine import (
+    Machine,
+    MachineCollection,
+)
 import logging
 
 T = tp.TypeVar("T")

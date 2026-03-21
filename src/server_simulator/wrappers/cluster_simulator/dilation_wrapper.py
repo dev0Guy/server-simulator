@@ -7,15 +7,22 @@ import typing as tp
 import numpy as np
 
 from src.server_simulator.envs import BasicClusterEnv
-from src.server_simulator.envs.cluster_simulator.actions import EnvironmentAction, DilationEnvironmentAction
-from src.server_simulator.envs.cluster_simulator.base.extractors.observation import BaseClusterObservation
+from src.server_simulator.envs.cluster_simulator.actions import (
+    EnvironmentAction,
+    DilationEnvironmentAction,
+)
+from src.server_simulator.envs.cluster_simulator.base.extractors.observation import (
+    BaseClusterObservation,
+)
 from src.server_simulator.envs.cluster_simulator.base.internal.dilation import (
     AbstractDilation,
     DilationAction,
     DilationState,
     AbstractDilationParams,
 )
-from src.server_simulator.envs.cluster_simulator.base.extractors.information import ClusterInformation
+from src.server_simulator.envs.cluster_simulator.base.extractors.information import (
+    ClusterInformation,
+)
 
 EnvironmentObservation = TypeVar("EnvironmentObservation", bound=BaseClusterObservation)
 WrapperObservation = TypeVar("WrapperObservation", bound=BaseClusterObservation)

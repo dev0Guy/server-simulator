@@ -8,7 +8,9 @@ from src.server_simulator.envs.cluster_simulator.actions import EnvironmentActio
 from src.server_simulator.envs.cluster_simulator.base.internal.job import Status
 from hypothesis import given, settings
 
-from src.server_simulator.envs.cluster_simulator.base.extractors.information import ClusterInformation
+from src.server_simulator.envs.cluster_simulator.base.extractors.information import (
+    ClusterInformation,
+)
 from src.server_simulator.envs.cluster_simulator.base.renderer import ClusterObservation
 from src.server_simulator.scheduler import RandomScheduler
 from tests.strategies.env_strategies.basic_env_st import BasicGymEnvironmentStrategies

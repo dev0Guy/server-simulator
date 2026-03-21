@@ -4,8 +4,12 @@ import gymnasium as gym
 import numpy.typing as npt
 
 from src.server_simulator.envs.cluster_simulator.base.internal.cluster import ClusterABC
-from src.server_simulator.envs.cluster_simulator.base.internal.job import JobCollectionConvertor
-from src.server_simulator.envs.cluster_simulator.base.internal.machine import MachinesCollectionConvertor
+from src.server_simulator.envs.cluster_simulator.base.internal.job import (
+    JobCollectionConvertor,
+)
+from src.server_simulator.envs.cluster_simulator.base.internal.machine import (
+    MachinesCollectionConvertor,
+)
 
 Cluster = TypeVar("Cluster", bound=ClusterABC)
 MachinesRepresentation = TypeVar("MachinesRepresentation")

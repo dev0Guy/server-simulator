@@ -3,7 +3,9 @@ import random
 import numpy as np
 
 from src.server_simulator.envs.cluster_simulator.base.internal.job import JobCollection
-from src.server_simulator.envs.cluster_simulator.base.internal.machine import MachineCollection
+from src.server_simulator.envs.cluster_simulator.base.internal.machine import (
+    MachineCollection,
+)
 from src.server_simulator.scheduler.base_scheduler import ABCScheduler, T
 
 

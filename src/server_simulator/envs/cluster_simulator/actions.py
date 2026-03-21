@@ -1,7 +1,10 @@
 from typing import NamedTuple, Tuple, TypeVar
 import gymnasium as gym
 
-from src.server_simulator.envs.cluster_simulator.base.internal.cluster import ClusterAction, ClusterABC
+from src.server_simulator.envs.cluster_simulator.base.internal.cluster import (
+    ClusterAction,
+    ClusterABC,
+)
 
 Cluster = TypeVar("Cluster", bound=ClusterABC)
 

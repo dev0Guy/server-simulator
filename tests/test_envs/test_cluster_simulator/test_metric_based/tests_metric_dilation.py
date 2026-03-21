@@ -1,4 +1,6 @@
-from src.server_simulator.envs.cluster_simulator.base.internal.dilation import DilationState
+from src.server_simulator.envs.cluster_simulator.base.internal.dilation import (
+    DilationState,
+)
 from src.server_simulator.envs.cluster_simulator import MetricBasedDilator
 from src.server_simulator.envs.cluster_simulator.utils import array_operations
 import numpy as np

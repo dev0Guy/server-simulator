@@ -1,7 +1,10 @@
 from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
 
-from src.server_simulator.envs.cluster_simulator.deep_rm import DeepRMCluster, DeepRMCreators
+from src.server_simulator.envs.cluster_simulator.deep_rm import (
+    DeepRMCluster,
+    DeepRMCreators,
+)
 from tests.strategies.cluster_strategies.proto import ClusterStrategies
 
 

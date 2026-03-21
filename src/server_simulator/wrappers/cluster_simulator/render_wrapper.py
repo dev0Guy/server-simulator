@@ -11,7 +11,9 @@ from src.server_simulator.envs.cluster_simulator.base.extractors.information imp
 from src.server_simulator.envs.cluster_simulator import (
     BaseClusterObservation,
 )
-from src.server_simulator.envs.cluster_simulator.base.renderer import AbstractClusterGameRenderer
+from src.server_simulator.envs.cluster_simulator.base.renderer import (
+    AbstractClusterGameRenderer,
+)
 
 EnvironmentObservation = TypeVar("EnvironmentObservation", bound=BaseClusterObservation)
 WrapperObservation = TypeVar("WrapperObservation", bound=BaseClusterObservation)

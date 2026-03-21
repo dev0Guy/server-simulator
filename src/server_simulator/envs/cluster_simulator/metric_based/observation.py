@@ -10,7 +10,9 @@ from src.server_simulator.envs.cluster_simulator.base.extractors.observation imp
 import numpy as np
 
 from src.server_simulator.envs.cluster_simulator.metric_based import MetricCluster
-from src.server_simulator.envs.cluster_simulator.metric_based.internal.jobs import MetricJobsConvertor
+from src.server_simulator.envs.cluster_simulator.metric_based.internal.jobs import (
+    MetricJobsConvertor,
+)
 from src.server_simulator.envs.cluster_simulator.metric_based.internal.machines import (
     MetricMachinesConvertor,
 )

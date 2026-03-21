@@ -1,13 +1,13 @@
 [project]
 name = "server-simulator"
-version = "0.1.2"
+version = "0.1.3"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "gymnasium>=0.28.0,<0.29.0",
     "numpy>=1,<2",
-    "pygame>=2.6.1",
+    "pygame>=2.1.3",
     "rust-enum>=1.1.5",
 ]
 

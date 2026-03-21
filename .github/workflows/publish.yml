@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    uses: dev0Guy/server-simulator/.github/workflows/test.yml@main
+    uses: dev0Guy/server-simulator/.github/workflows/tests.yml@main
 
   build-and-publish:
     runs-on: ubuntu-latest

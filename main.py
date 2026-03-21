@@ -1,5 +1,4 @@
 from src.wrappers.cluster_simulator.render_wrapper import ClusterGameRendererWrapper
-import src
 import gymnasium as gym
 from src.envs.cluster_simulator.metric_based.renderer import ClusterMetricRenderer
 

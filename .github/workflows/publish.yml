@@ -10,6 +10,7 @@ jobs:
     uses: dev0Guy/server-simulator/.github/workflows/tests.yml@main
 
   build-and-publish:
+    needs: test
     runs-on: ubuntu-latest
     environment: pypi
     permissions:

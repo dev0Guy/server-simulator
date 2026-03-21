@@ -13,6 +13,7 @@ from src.server_simulator.envs.cluster_simulator.metric_based.internal.dilation 
 from src.server_simulator.envs.cluster_simulator.metric_based.observation import (
     MetricClusterObservationCreator,
 )
+from src.server_simulator.wrappers.cluster_simulator.dilation_wrapper import DilatorWrapper
 from tests.strategies.cluster_strategies import MetricClusterStrategies
 from tests.strategies.dilation_strategies.proto import DilationStrategies, Dilator
 
@@ -66,6 +67,6 @@ class MetricClusterDilationStrategies(DilationStrategies[MetricBasedDilator]):
         assume(kernel[0] > 1 and kernel[1] > 1)
         params = draw(MetricClusterDilationStrategies.initialization_parameters())
         params["kernel"] = kernel
-        return DilatorWrapper(  # type: ignore
+        return DilatorWrapper(   # type: ignore
             base_env, dilator_cls=MetricBasedDilator, **params
         )

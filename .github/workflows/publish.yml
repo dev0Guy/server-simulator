@@ -4,7 +4,11 @@ on:
   release:
     types: [published]
 
+
 jobs:
+  test:
+    uses: dev0Guy/server-simulator/.github/workflows/test.yml@main
+
   build-and-publish:
     runs-on: ubuntu-latest
     environment: pypi

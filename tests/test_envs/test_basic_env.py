@@ -3,15 +3,15 @@ from typing import Tuple
 
 import numpy as np
 
-from src.envs.cluster_simulator.base.internal.job import Status
-from src.envs.cluster_simulator.basic import BasicClusterEnv
+from src.server_simulator.envs import BasicClusterEnv
+from src.server_simulator.envs.cluster_simulator.actions import EnvironmentAction
+from src.server_simulator.envs.cluster_simulator.base.internal.job import Status
 from hypothesis import given, settings
 
-from src.envs.cluster_simulator.base.extractors.information import ClusterInformation
-from src.envs.cluster_simulator.base.extractors.observation import ClusterObservation
-from src.scheduler.random_scheduler import RandomScheduler
+from src.server_simulator.envs.cluster_simulator.base.extractors.information import ClusterInformation
+from src.server_simulator.envs.cluster_simulator.base.renderer import ClusterObservation
+from src.server_simulator.scheduler import RandomScheduler
 from tests.strategies.env_strategies.basic_env_st import BasicGymEnvironmentStrategies
-from src.envs.cluster_simulator.basic import EnvironmentAction
 
 
 @given(env=BasicGymEnvironmentStrategies.creation())

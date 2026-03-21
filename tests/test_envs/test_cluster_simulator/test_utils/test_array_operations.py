@@ -6,7 +6,7 @@ import pytest
 from hypothesis import given, assume, HealthCheck, settings
 import numpy.typing as npt
 import typing as tp
-from src.envs.cluster_simulator.utils import array_operations
+from src.server_simulator.envs.cluster_simulator.utils import array_operations
 
 kernel_strategy = st.tuples(
     st.integers(min_value=2, max_value=5), st.integers(min_value=2, max_value=5)

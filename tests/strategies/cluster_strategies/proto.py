@@ -3,10 +3,10 @@ import abc
 
 from hypothesis.strategies import SearchStrategy
 
-from src.envs.cluster_simulator.base.internal.cluster import ClusterABC
-from src.envs.cluster_simulator.base.extractors.observation import (
+from src.server_simulator.envs.cluster_simulator.base.extractors.observation import (
     BaseObservationCreatorProtocol,
 )
+from src.server_simulator.envs.cluster_simulator.base.internal.cluster import ClusterABC
 
 Cluster = TypeVar("Cluster", bound=ClusterABC)
 Creator = TypeVar("Creator", bound=BaseObservationCreatorProtocol)

@@ -1,4 +1,4 @@
-from src.envs.cluster_simulator.single_slot import (
+from src.server_simulator.envs.cluster_simulator.single_slot import (
     SingleSlotCluster,
     SingleSlotClusterCreators,
 )

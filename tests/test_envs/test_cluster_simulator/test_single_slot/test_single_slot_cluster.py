@@ -1,9 +1,13 @@
 import numpy as np
 import pytest
 
-from src.envs.cluster_simulator.base.internal.job import Status as JobStatus
-from src.envs.cluster_simulator.single_slot.internal.jobs import SingleSlotJobsConvertor
-from src.envs.cluster_simulator.single_slot.internal.machines import (
+from src.server_simulator.envs.cluster_simulator.base.internal.job import (
+    Status as JobStatus,
+)
+from src.server_simulator.envs.cluster_simulator.single_slot.internal.jobs import (
+    SingleSlotJobsConvertor,
+)
+from src.server_simulator.envs.cluster_simulator.single_slot.internal.machines import (
     SingleSlotMachinesConvertor,
 )
 from tests.test_envs.test_cluster_simulator.test_single_slot.utils import (

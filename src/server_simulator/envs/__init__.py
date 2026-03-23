@@ -58,6 +58,7 @@ register(
         offline=True,
         reward_caculator=DifferentInPendingJobsRewardCaculator(),
         seed=None,
+        render_mode=None
     ),
 )
 
@@ -73,5 +74,7 @@ register(
         offline=False,
         reward_caculator=DifferentInPendingJobsRewardCaculator(),
         seed=None,
+        render_mode=None
     ),
+
 )

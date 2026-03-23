@@ -7,7 +7,7 @@ from src.server_simulator.envs.cluster_simulator.base.extractors.reward import (
     RewardCaculator,
 )
 from src.server_simulator.envs.cluster_simulator.basic import BasicClusterEnv
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, Literal
 from typing_extensions import Unpack
 
 from src.server_simulator.envs.cluster_simulator.metric_based import (
@@ -20,7 +20,10 @@ from src.server_simulator.envs.cluster_simulator.metric_based.observation import
 
 __all__ = ["MetricBasedCreatorParameters", "MetricBasedEnvCreator"]
 
+from src.server_simulator.envs.cluster_simulator.metric_based.renderer import ClusterMetricRenderer
+from src.server_simulator.wrappers.cluster_simulator.render_wrapper import ClusterGameRendererWrapper
 
+# TODO: ADD dilation options
 class MetricBasedCreatorParameters(TypedDict):
     n_jobs: int
     n_machines: int
@@ -30,6 +33,7 @@ class MetricBasedCreatorParameters(TypedDict):
     offline: bool
     reward_caculator: RewardCaculator
     seed: Optional[int]
+    render_mode: Literal['human', 'rgb_array', None]
 
 
 class MetricBasedEnvCreator(EnvCreator):
@@ -49,9 +53,14 @@ class MetricBasedEnvCreator(EnvCreator):
             ),
             seed=kwargs["seed"],
         )
-        return BasicClusterEnv(
+        env = BasicClusterEnv(
             cluster=cluster,
             reward_caculator=kwargs["reward_caculator"],
             info_builder=BaceClusterInformationExtractor(),
             obs_extractor=MetricClusterObservationCreator(),
         )
+        env.render_mode = kwargs["render_mode"]
+        if kwargs["render_mode"]:
+            render = ClusterMetricRenderer(render_mode=kwargs["render_mode"])
+            env = ClusterGameRendererWrapper(env, render)
+        return env

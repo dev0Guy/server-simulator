@@ -11,6 +11,9 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecVideoRecorder
 import wandb
 from wandb.integration.sb3 import WandbCallback
+# import logging
+# logging.basicConfig(level="INFO")
+
 from src import server_simulator
 from src.experiment.common.wrappers import FlattenActionWrapper
 from src import server_simulator

@@ -47,10 +47,10 @@ class ClusterGameRendererWrapper(
     def step(
         self, action: WrapperActType
     ) -> tuple[WrapperObsType, SupportsFloat, bool, bool, dict[str, Any]]:
-        self._observation, self._reward, terminated, truncated, info = self.env.step(
+        self._observation, self._reward, terminated, truncated, self._info = self.env.step(
             action
         )
-        return self._observation, self._reward, terminated, truncated, info
+        return self._observation, self._reward, terminated, truncated, self._info
 
     def reset(
         self, *, seed: int | None = None, options: dict[str, Any] | None = None

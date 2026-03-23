@@ -28,7 +28,7 @@ class ClusterMetricRenderer(
         display_size: Tuple[int, int] = (1400, 900),
         background_color: Color = "#ECF0F1",
         title: str = "Metric Cluster",
-        cell_size: int = 5,
+        cell_size: int = 20,
         machine_spacing: int = 10,
         label_height: int = 15,
         separator_height: int = 20,
@@ -36,16 +36,19 @@ class ClusterMetricRenderer(
     ):
         self._render_mode = render_mode
         self._width, self._height = display_size
+
         pygame.init()
-        if self._render_mode == "Human":
+        pygame.font.init()
+
+        if self._render_mode == "human":
             pygame.display.set_caption(title)
             self.window = pygame.display.set_mode(display_size)
         else:
+            # pygame.display.init()
             self.window = pygame.Surface(display_size)
 
         self.clock = pygame.time.Clock()
         self.fps = 30
-        self.window = pygame.display.set_mode(display_size)
         self.background_color = background_color
         self.grid_color = (0, 0, 0)  # Black grid lines
         self.cell_size = cell_size
@@ -85,10 +88,6 @@ class ClusterMetricRenderer(
         new_info: ClusterBaseInformation,
         new_observation: MetricClusterObservation,
     ) -> Optional[npt.NDArray]:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.close()
-
         self.window.fill(self.background_color)
 
         # Draw tick counter at the top
@@ -116,14 +115,19 @@ class ClusterMetricRenderer(
         )
 
         if self._render_mode == "rgb_array":
-            return self._get_rgb_array()
+            frame = self._get_rgb_array()
+            return frame
         elif self._render_mode == "human":
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.close()
             pygame.display.update()
             self.clock.tick(self.fps)
         return None
 
     def close(self) -> None:
-        pygame.quit()
+        if self._render_mode == "human":
+            pygame.display.quit()
 
     def _get_rgb_array(self) -> np.ndarray:
         """

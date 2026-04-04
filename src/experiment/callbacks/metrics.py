@@ -51,9 +51,10 @@ class CustomMetricsCallback(BaseCallback):
                     self._pending_ticks[job_id] += 1
                     if job_id not in self._first_pending:
                         self._first_pending[job_id] = current_tick
+                        self._turnaround_time[job_id] = current_tick - self._first_pending[job_id]
                 if status == Status.Completed:
                     self._turnaround_time[job_id] = current_tick - self._first_pending[job_id]
-
+                    
             if "episode" not in info:
                 continue
 

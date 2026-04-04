@@ -57,10 +57,10 @@ def main():
     )
 
     def make_env():
-        n_jobs = 5
-        n_machines = 3
+        n_jobs = 10
+        n_machines = 5
         n_resources = 2
-        n_ticks = 4
+        n_ticks = 2
         max_episode_steps = 100
         penalty = -1e3
         reward_caculator=AverageSlowDownReward(n_jobs)

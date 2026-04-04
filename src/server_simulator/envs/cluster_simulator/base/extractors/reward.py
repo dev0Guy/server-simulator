@@ -49,7 +49,7 @@ class AverageSlowDownReward(RewardCaculator[ClusterInformation]):
         for idx, status in enumerate(current_extra_information["jobs_status"]):
             if status == Status.Pending and self._job_start_time[idx] is None:
                 self._job_start_time[idx] = current_time
-            if status == Status.Completed:
+            if self._job_start_time[idx]:
                 turnaround = current_time - self._job_start_time[idx]
                 if turnaround:
                     reward += -1/turnaround

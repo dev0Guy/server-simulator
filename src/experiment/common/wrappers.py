@@ -1,3 +1,7 @@
+import itertools
+from typing import Tuple
+
+from gymnasium.spaces import Discrete
 from gymnasium.vector.utils import spaces
 import gymnasium as gym
 import numpy as np
@@ -64,9 +68,34 @@ class TimeLimitPenaltyWrapper(TimeLimit):
         self.penalty = penalty
 
     def step(self, action):
-        obs, reward, terminated, truncated, info = self.env.step(action)
+        obs, reward, terminated, truncated, info = super().step(action)
 
         if truncated and not terminated:
             reward = self.penalty
 
         return obs, reward, terminated, truncated, info
+
+
+class FlattenMultiDiscreteWrapper(gym.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+
+        assert isinstance(env.action_space, Tuple), "Expected Tuple action space"
+
+        # Extract n from each Discrete space in the Tuple
+        self.nvec = [space.n for space in env.action_space.spaces]
+        self.n_actions = int(np.prod(self.nvec))
+
+        # flat int → tuple of per-dimension actions
+        self._action_lookup = list(itertools.product(*[range(n) for n in self.nvec]))
+
+        self.action_space = Discrete(self.n_actions)
+
+
+    def step(self, action):
+            # Convert flat integer → tuple of per-dimension actions
+            multi_action = self._action_lookup[action]
+            return self.env.step(multi_action)
+
+    def reset(self, **kwargs):
+        return self.env.reset(**kwargs)

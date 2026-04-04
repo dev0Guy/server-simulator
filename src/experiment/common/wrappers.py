@@ -54,3 +54,19 @@ class FlattenActionWrapperDilation(gym.ActionWrapper):
 
     def render(self):
         return self.env.render()
+
+
+from gymnasium.wrappers import TimeLimit
+
+class TimeLimitPenaltyWrapper(TimeLimit):
+    def __init__(self, env, max_episode_steps: int = 1_000, penalty=-10000.0):
+        super().__init__(env, max_episode_steps=max_episode_steps)
+        self.penalty = penalty
+
+    def step(self, action):
+        obs, reward, terminated, truncated, info = self.env.step(action)
+
+        if truncated and not terminated:
+            reward = self.penalty
+
+        return obs, reward, terminated, truncated, info

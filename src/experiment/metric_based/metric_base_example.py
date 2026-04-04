@@ -1,5 +1,8 @@
 import os
 
+from stable_baselines3.common.callbacks import CallbackList
+
+from src.experiment.callbacks.metrics import CustomMetricsCallback
 from src.server_simulator.envs.cluster_simulator.base.extractors.reward import AverageSlowDownReward
 from src.server_simulator.envs.cluster_simulator.base.internal.dilation import AbstractDilationParams
 from src.server_simulator.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
@@ -21,7 +24,7 @@ import logging
 logging.basicConfig(level="INFO")
 
 from src import server_simulator
-from src.experiment.common.wrappers import FlattenActionWrapper, FlattenActionWrapperDilation
+from src.experiment.common.wrappers import FlattenActionWrapper, FlattenActionWrapperDilation, TimeLimitPenaltyWrapper
 from src import server_simulator
 from src.server_simulator.envs import MetricBasedEnvCreator, DifferentInPendingJobsRewardCaculator, \
     MetricBasedCreatorParameters
@@ -34,7 +37,7 @@ def main():
 
     config = {
         "policy_type": "MultiInputPolicy",
-        "total_timesteps": 25_000,
+        "total_timesteps": 500_000,
         "env_name": "ClusterScheduling-metric-online-v1",
     }
 
@@ -51,6 +54,7 @@ def main():
         n_machines = 3
         n_resources = 2
         n_ticks = 4
+        max_episode_steps = 200
         reward_caculator=AverageSlowDownReward(n_jobs)
         env = gym.make(
             config["env_name"],
@@ -63,6 +67,7 @@ def main():
         )
         # env = DilatorWrapper(env, dilator_cls=MetricBasedDilator, kernel=(3,3), operation=np.max)
         # env = FlattenActionWrapperDilation(env)
+        env = TimeLimitPenaltyWrapper(env, max_episode_steps=max_episode_steps)
         env = FlattenActionWrapper(env)
         env = Monitor(env)
         return env
@@ -75,13 +80,18 @@ def main():
         video_length=200,
     )
     model = PPO(config["policy_type"], env, verbose=1, tensorboard_log=f"runs/{run.id}")
+    wandb_callback = WandbCallback(
+        gradient_save_freq=500,
+        model_save_path=f"models/{run.id}",
+        verbose=2,
+    )
+    metric_callback = CustomMetricsCallback(verbose=1)
     model.learn(
         total_timesteps=config["total_timesteps"],
-        callback=WandbCallback(
-            gradient_save_freq=100,
-            model_save_path=f"models/{run.id}",
-            verbose=2,
-        ),
+        callback=CallbackList([
+            metric_callback,
+            wandb_callback
+        ]),
     )
 
 

@@ -1,3 +1,5 @@
+import logging
+
 import gymnasium as gym
 import typing as tp
 import numpy as np
@@ -17,7 +19,7 @@ from src.server_simulator.envs.cluster_simulator.base.extractors.observation imp
     ClusterObservation,
     BaseObservationCreatorProtocol,
 )
-from src.server_simulator.envs.cluster_simulator.base.internal.cluster import ClusterABC
+from src.server_simulator.envs.cluster_simulator.base.internal.cluster import ClusterABC, ClusterAction
 
 InputActType = np.int64
 T = tp.TypeVar("T", bound=type)
@@ -44,6 +46,7 @@ class BasicClusterEnv(
         self.observation_space = self._obs_creator.create_space(self._cluster)
         self.action_space = ActionConvertor.create_space(self._cluster)
         self._seed = None
+        self.logger = logging.getLogger(type(self).__name__)
 
     def reset(
         self,
@@ -70,7 +73,10 @@ class BasicClusterEnv(
         prev_observation = self._obs_creator.create(self._cluster)
         prev_info = self._info_builder(prev_observation)
         cluster_action = ActionConvertor.convert(action)
-        self._cluster.execute(cluster_action)
+        does_execute_succeed: tp.Optional[bool] = self._cluster.execute(cluster_action)
+        if does_execute_succeed is False:
+            self.logger.warning("Scheduled Failed, Skipping tick")
+            self._cluster.execute(ClusterAction.SkipTime())
         observation = self._obs_creator.create(self._cluster)
         info = self._info_builder(observation)
         terminated = self._cluster.has_completed()

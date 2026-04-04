@@ -1,5 +1,6 @@
 import os
 
+from src.server_simulator.envs.cluster_simulator.base.extractors.reward import AverageSlowDownReward
 from src.server_simulator.envs.cluster_simulator.base.internal.dilation import AbstractDilationParams
 from src.server_simulator.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
 from src.server_simulator.wrappers.cluster_simulator.dilation_wrapper import DilatorWrapper
@@ -30,6 +31,7 @@ from src.server_simulator.wrappers.cluster_simulator.render_wrapper import Clust
 # TODO: Understand what happen when I activate zoom action and then skip time
 
 def main():
+
     config = {
         "policy_type": "MultiInputPolicy",
         "total_timesteps": 25_000,
@@ -45,7 +47,20 @@ def main():
     )
 
     def make_env():
-        env = gym.make(config["env_name"], render_mode="rgb_array", n_machines=10)
+        n_jobs = 5
+        n_machines = 3
+        n_resources = 2
+        n_ticks = 4
+        reward_caculator=AverageSlowDownReward(n_jobs)
+        env = gym.make(
+            config["env_name"],
+            render_mode="rgb_array",
+            n_jobs=n_jobs,
+            n_machines=n_machines,
+            n_resources=n_resources,
+            n_ticks=n_ticks,
+            reward_caculator=reward_caculator
+        )
         # env = DilatorWrapper(env, dilator_cls=MetricBasedDilator, kernel=(3,3), operation=np.max)
         # env = FlattenActionWrapperDilation(env)
         env = FlattenActionWrapper(env)

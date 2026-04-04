@@ -105,6 +105,7 @@ class AbstractDilation(abc.ABC, tp.Generic[State]):
                     level=level - 1,
                 )
             case _:
+                print(f"{self.state=}")
                 raise AssertionError()
 
         return self.state

@@ -8,11 +8,11 @@
     [X] Implement gym project layout 
     [X] Test The new layout with 
         [X] Fix error of s `non-deterministic as the observations are not equivalent`.
-    [ ] upload as python package to pip
-    [ ] Try to use this as gym env with some actions
+    [x] upload as python package to pip
+    [x] Try to use this as gym env with some actions
 
 [ ] Implement different reward functions ???
-
+[ ] Understand why Dilation return value outside the machine range  `Super Importent`
 
 
 [ ] Create simple pipeline including tianshou & wandb

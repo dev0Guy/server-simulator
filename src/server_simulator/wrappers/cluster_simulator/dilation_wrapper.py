@@ -71,7 +71,7 @@ class DilatorWrapper(
 
         if is_in_dilation:
             self._current_observation["machines"] = self._dilator.state.value
-            return self._current_observation, 0, False, False, None
+            return self._current_observation, 0, False, False, {}
 
         obs, reward, terminated, truncated, info = self.env.step(converted_action)
         return (
@@ -122,7 +122,9 @@ class DilatorWrapper(
             m_index = self._dilator.get_selected_machine(action.selected_machine_cell)
 
             if m_index >= self._n_machines:
-                raise IndexError("Machine index out of bound")
+                self.logger.warning("Selected machine %d which is out of bound %d", m_index, self._n_machines)
+                #raise IndexError("Machine index out of bound")
+                return None
 
             self.logger.debug("Selecting cell %d on fully expanded.", m_index)
             return EnvironmentAction(

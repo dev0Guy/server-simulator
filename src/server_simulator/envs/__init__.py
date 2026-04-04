@@ -51,8 +51,8 @@ register(
     MetricBasedEnvCreator(),
     kwargs=MetricBasedCreatorParameters(  #  type: ignore
         n_jobs=10,
-        n_machines=2,
-        n_resources=3,
+        n_machines=9,
+        n_resources=4,
         n_ticks=5,
         poisson_lambda=4,
         offline=True,
@@ -67,14 +67,13 @@ register(
     MetricBasedEnvCreator(),
     kwargs=MetricBasedCreatorParameters(  #  type: ignore
         n_jobs=10,
-        n_machines=2,
-        n_resources=3,
+        n_machines=9,
+        n_resources=4,
         n_ticks=5,
         poisson_lambda=4,
         offline=False,
         reward_caculator=DifferentInPendingJobsRewardCaculator(),
         seed=None,
         render_mode=None
-    ),
-
+    )
 )

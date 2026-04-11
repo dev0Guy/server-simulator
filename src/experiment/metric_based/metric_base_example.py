@@ -4,7 +4,9 @@ from stable_baselines3.common.callbacks import CallbackList
 from stable_baselines3.common.torch_layers import NatureCNN
 
 from src.experiment.callbacks.metrics import CustomMetricsCallback
+from src.experiment.common.wrappers_new.job_zero_by_status import ZeroJobsByStatusWrapper
 from src.experiment.common.wrappers_new.machine_selection import AutoSelectJobWrapper
+from src.experiment.common.wrappers_new.select_specific_keyes import SelectSpecificKeyesWrapper
 from src.server_simulator.envs.cluster_simulator.base.extractors.reward import AverageSlowDownReward
 from src.server_simulator.envs.cluster_simulator.base.internal.dilation import AbstractDilationParams
 from src.server_simulator.envs.cluster_simulator.base.internal.job import Status
@@ -82,14 +84,16 @@ def main():
             reward_caculator=reward_caculator
         )
         # # env = DilatorWrapper(env, dilator_cls=MetricBasedDilator, kernel=(3,3), operation=np.max)
-        # # env = FlattenActionWrapperDilation(env)
+        # env = FlattenActionWrapperDilation(env)
         # print(type(env.action_space))  # ← add this
         # print(env.action_space)  # ← and this
         # # env = FlattenMultiDiscreteWrapper(env)
 
         env = TimeLimitPenaltyWrapper(env, max_episode_steps=max_episode_steps, penalty=penalty)
-        env = AutoSelectJobWrapper(env)
-        # env = FlattenTupleActionWrapper(env)
+        # env = AutoSelectJobWrapper(env)
+        env = ZeroJobsByStatusWrapper(env)
+        env = SelectSpecificKeyesWrapper(env, "machines", "jobs_usage")
+        env = FlattenActionWrapper(env)
         # env = ActionMasker(env, lambda e: e.action_masks())
         env = Monitor(env)
         return env

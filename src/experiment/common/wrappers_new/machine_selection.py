@@ -14,10 +14,9 @@ class AutoSelectJobWrapper(Wrapper):
       - machine_id:      int          (Discrete(n_machines))
     """
 
-    def __init__(self, env):
+    def __init__(self, env, auto_skip_time: bool = False):
         super().__init__(env)
-
-        # Extract n_machines, n_jobs from original space
+        self.auto_skip_time = auto_skip_time
         # Original: Tuple(Discrete(2), Tuple(Discrete(n_machines), Discrete(n_jobs)))
         original = env.action_space
         self._n_machines = original.spaces[1].spaces[0].n   # Discrete(n_machines)
@@ -45,7 +44,8 @@ class AutoSelectJobWrapper(Wrapper):
         return obs, info
 
     def step(self, action: int):
-        should_schedule = self._selected_job_idx is None or action == 0
+
+        should_schedule = action == 0 or (self.auto_skip_time and self._selected_job_idx is None)
         machine_id = action - 1
 
         full_action = EnvironmentAction(

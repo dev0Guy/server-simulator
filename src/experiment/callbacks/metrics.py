@@ -19,7 +19,7 @@ class CustomMetricsCallback(BaseCallback):
         # Keys you want to track — must match what your env puts in `info`
         self._episode_metrics = defaultdict(list)
         self._pending_ticks = defaultdict(int)
-        self._first_pending = {}
+        self._first_pending = defaultdict(int)
         self._turnaround_time = defaultdict(int)
 
     def _reset_episode_state(self):
@@ -45,7 +45,6 @@ class CustomMetricsCallback(BaseCallback):
         for info in self.locals["infos"]:
             job_statuses = info["jobs_status"]
             current_tick = info["current_tick"]
-
             for job_id, status in enumerate(job_statuses):
                 if status == Status.Pending:
                     self._pending_ticks[job_id] += 1
@@ -54,7 +53,7 @@ class CustomMetricsCallback(BaseCallback):
                         self._turnaround_time[job_id] = current_tick - self._first_pending[job_id]
                 if status == Status.Completed:
                     self._turnaround_time[job_id] = current_tick - self._first_pending[job_id]
-                    
+
             if "episode" not in info:
                 continue
 

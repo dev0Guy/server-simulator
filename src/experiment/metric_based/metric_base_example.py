@@ -4,11 +4,16 @@ from stable_baselines3.common.callbacks import CallbackList
 from stable_baselines3.common.torch_layers import NatureCNN
 
 from src.experiment.callbacks.metrics import CustomMetricsCallback
+from src.experiment.common.wrappers_new.machine_selection import AutoSelectJobWrapper
 from src.server_simulator.envs.cluster_simulator.base.extractors.reward import AverageSlowDownReward
 from src.server_simulator.envs.cluster_simulator.base.internal.dilation import AbstractDilationParams
+from src.server_simulator.envs.cluster_simulator.base.internal.job import Status
 from src.server_simulator.envs.cluster_simulator.metric_based.internal.dilation import MetricBasedDilator
 from src.server_simulator.wrappers.cluster_simulator.dilation_wrapper import DilatorWrapper
 import logging
+from sb3_contrib import MaskablePPO
+from sb3_contrib.common.wrappers import ActionMasker
+
 
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 os.environ["SDL_AUDIODRIVER"] = "dummy"
@@ -26,8 +31,7 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 
 from src import server_simulator
-from src.experiment.common.wrappers import FlattenActionWrapper, FlattenActionWrapperDilation, TimeLimitPenaltyWrapper, \
-    FlattenMultiDiscreteWrapper
+from src.experiment.common.wrappers import FlattenActionWrapper, FlattenActionWrapperDilation, TimeLimitPenaltyWrapper
 from src import server_simulator
 from src.server_simulator.envs import MetricBasedEnvCreator, DifferentInPendingJobsRewardCaculator, \
     MetricBasedCreatorParameters
@@ -43,9 +47,9 @@ def main():
     )
 
     config = {
-        "policy_type": "MultiInputPolicy",
-        "total_timesteps": 1_000_000,
-        "env_name": "ClusterScheduling-metric-online-v1",
+        "policy_type": "MultiInputPolicy", # MultiInputPolicy
+        "total_timesteps": 500_000,
+        "env_name": "ClusterScheduling-metric-offline-v1",
     }
 
     run = wandb.init(
@@ -55,14 +59,18 @@ def main():
         monitor_gym=True,
         save_code=True,
     )
+    run_id = "example-local"
+
 
     def make_env():
         n_jobs = 10
         n_machines = 5
-        n_resources = 2
+        n_resources = 1
         n_ticks = 2
-        max_episode_steps = 100
-        penalty = -1e3
+        max_episode_steps = 10
+        penalty = -1e4
+        # TODO: ADD PICKER FOR BEST JOB (WRapper)
+        # TODO: ADD New State that caculate all of the possible assignment of job to node
         reward_caculator=AverageSlowDownReward(n_jobs)
         env = gym.make(
             config["env_name"],
@@ -80,14 +88,16 @@ def main():
         # # env = FlattenMultiDiscreteWrapper(env)
 
         env = TimeLimitPenaltyWrapper(env, max_episode_steps=max_episode_steps, penalty=penalty)
-        env = FlattenActionWrapper(env)
+        env = AutoSelectJobWrapper(env)
+        # env = FlattenTupleActionWrapper(env)
+        # env = ActionMasker(env, lambda e: e.action_masks())
         env = Monitor(env)
         return env
 
     env = DummyVecEnv([make_env])
     env = VecVideoRecorder(
         env,
-        f"videos/{run.id}",
+        f"videos/{run_id}",
         record_video_trigger=lambda x: x % 2000 == 0,
         video_length=200,
     )
@@ -95,13 +105,13 @@ def main():
         config["policy_type"],
         env,
         policy_kwargs=policy_kwargs,
-        learning_rate=5e-5,
+        # learning_rate=5e-5,
         verbose=1,
-        tensorboard_log=f"runs/{run.id}"
+        tensorboard_log=f"runs/{run_id}"
     )
     wandb_callback = WandbCallback(
         gradient_save_freq=500,
-        model_save_path=f"models/{run.id}",
+        model_save_path=f"models/{run_id}",
         verbose=2,
     )
     metric_callback = CustomMetricsCallback(verbose=1)

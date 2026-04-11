@@ -1,6 +1,7 @@
 import itertools
 from typing import Tuple
 
+from gymnasium.core import ObsType, WrapperObsType, ActType, WrapperActType
 from gymnasium.spaces import Discrete
 from gymnasium.vector.utils import spaces
 import gymnasium as gym
@@ -8,6 +9,8 @@ import numpy as np
 
 from src.server_simulator.envs import BasicClusterEnv
 from src.server_simulator.envs.cluster_simulator.actions import DilationEnvironmentAction, EnvironmentAction
+from src.server_simulator.envs.cluster_simulator.base.extractors.observation import ClusterObservation
+from src.server_simulator.envs.cluster_simulator.base.internal.job import Status
 
 
 # TODO: Make These wrapper more general
@@ -62,40 +65,49 @@ class FlattenActionWrapperDilation(gym.ActionWrapper):
 
 from gymnasium.wrappers import TimeLimit
 
-class TimeLimitPenaltyWrapper(TimeLimit):
+class TimeLimitPenaltyWrapper(gym.Wrapper):
     def __init__(self, env, max_episode_steps: int = 1_000, penalty=-10000.0):
-        super().__init__(env, max_episode_steps=max_episode_steps)
+        super().__init__(env)
+        self.max_episode_steps = max_episode_steps
+        self._episode_step_counter = 0
         self.penalty = penalty
 
     def step(self, action):
         obs, reward, terminated, truncated, info = super().step(action)
+        self._episode_step_counter += 1
 
-        if truncated and not terminated:
+        if self._episode_step_counter == self.max_episode_steps:
             reward = self.penalty
+            truncated = True
+            terminated = True
 
         return obs, reward, terminated, truncated, info
 
 
-class FlattenMultiDiscreteWrapper(gym.Wrapper):
-    def __init__(self, env):
-        super().__init__(env)
+class JobToMachineCombinationStateWrapper(gym.ObservationWrapper):
 
-        assert isinstance(env.action_space, Tuple), "Expected Tuple action space"
+    def observation(self, observation: ClusterObservation) -> WrapperObsType:
+        machines = observation["machines"]
+        jobs = observation["jobs_usage"] * np.array([
+            1 if status == Status.Pending else np.inf
+            for status in observation["jobs_status"]
+        ]) # TODO: re-arrange position to number eof machines
+        return jobs * machines
 
-        # Extract n from each Discrete space in the Tuple
-        self.nvec = [space.n for space in env.action_space.spaces]
-        self.n_actions = int(np.prod(self.nvec))
-
-        # flat int → tuple of per-dimension actions
-        self._action_lookup = list(itertools.product(*[range(n) for n in self.nvec]))
-
-        self.action_space = Discrete(self.n_actions)
+    def observation_space(
+        self,
+    ) -> spaces.Space[ObsType] | spaces.Space[WrapperObsType]:
+        pass
 
 
-    def step(self, action):
-            # Convert flat integer → tuple of per-dimension actions
-            multi_action = self._action_lookup[action]
-            return self.env.step(multi_action)
+class Mask(gym.ObservationWrapper):
 
-    def reset(self, **kwargs):
-        return self.env.reset(**kwargs)
+    # def observation_space(
+    #     self,
+    # ) -> spaces.Space[ObsType] | spaces.Space[WrapperObsType]:
+    #     print(self.env.observation_space)
+    #     return self.env.observation_space
+
+    def observation(self, observation: ObsType) -> WrapperObsType:
+        observation["jobs_status"] != Status.Pending
+        return observation

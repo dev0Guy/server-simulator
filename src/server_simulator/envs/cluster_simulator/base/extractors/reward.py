@@ -17,7 +17,13 @@ class RewardCaculator(Generic[ClusterInformation]):
     ) -> float: ...
 
 
+    @abc.abstractmethod
+    def reset(self) -> None: ...
+
 class DifferentInPendingJobsRewardCaculator(RewardCaculator[ClusterInformation]):
+    def reset(self) -> None:
+        pass
+
     def __call__(
         self,
         prev_extra_information: ClusterInformation,
@@ -34,11 +40,16 @@ class DifferentInPendingJobsRewardCaculator(RewardCaculator[ClusterInformation])
 
 class AverageSlowDownReward(RewardCaculator[ClusterInformation]):
 
-    def __init__(self, n_jobs: int):
+    def reset(self) -> None:
         self._job_start_time: list[Optional[int]] = [
             None
-            for _ in range(n_jobs)
+            for _ in range(self.n_jobs)
         ]
+
+    def __init__(self, n_jobs: int):
+        self.n_jobs = n_jobs
+        self._job_start_time = []
+        self.reset()
 
     def __call__(  self,
         prev_extra_information: ClusterInformation,
@@ -47,10 +58,16 @@ class AverageSlowDownReward(RewardCaculator[ClusterInformation]):
         reward = 0
         current_time = current_extra_information["current_tick"]
         for idx, status in enumerate(current_extra_information["jobs_status"]):
-            if status == Status.Pending and self._job_start_time[idx] is None:
-                self._job_start_time[idx] = current_time
-            if self._job_start_time[idx]:
-                turnaround = current_time - self._job_start_time[idx]
-                if turnaround:
-                    reward += -1/turnaround
+            status = Status(status)
+            match status:
+                case Status.Pending | Status.Running if self._job_start_time[idx] is None:
+                    self._job_start_time[idx] = current_time
+                case Status.Completed | Status.NotCreated | Status.Running:
+                    continue
+                case Status.Pending:
+                    turnaround = current_time - self._job_start_time[idx]
+                    if turnaround != 0:
+                        reward += -1 / turnaround
+                case _:
+                    raise ValueError(f"{status=}, {self._job_start_time[idx]=}")
         return reward

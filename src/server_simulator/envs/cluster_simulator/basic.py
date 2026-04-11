@@ -57,6 +57,7 @@ class BasicClusterEnv(
         if seed is not None:
             self._seed = seed
         super().reset(seed=self._seed)
+        self._reward_caculator.reset()
         self._cluster.reset(self._seed)
 
         observation = self._obs_creator.create(self._cluster)
@@ -81,5 +82,5 @@ class BasicClusterEnv(
         info = self._info_builder(observation)
         reward = self._reward_caculator(prev_info, info)
         truncated = self._cluster.are_all_jobs_executed()
-        terminated = self._cluster.has_completed() or truncated
+        terminated = self._cluster.has_completed() #or truncated
         return observation, reward, terminated, truncated, info
